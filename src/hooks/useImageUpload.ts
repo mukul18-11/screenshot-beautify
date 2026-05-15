@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type FileRejection,
   useDropzone,
@@ -51,20 +51,46 @@ function getRejectionMessage(rejection: FileRejection) {
 export function useImageUpload() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const isMountedRef = useRef(false);
+  const uploadRequestIdRef = useRef(0);
   const uploadedImage = useEditorStore((state) => state.uploadedImage);
   const replaceUploadedImage = useEditorStore(
     (state) => state.replaceUploadedImage,
   );
   const clearUploadedImage = useEditorStore((state) => state.clearUploadedImage);
 
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const showError = useCallback((message: string) => {
+    if (!isMountedRef.current) {
+      return;
+    }
+
     setErrorMessage(message);
     toast.error(message);
   }, []);
 
+  const clearError = useCallback(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
+
+    setErrorMessage(null);
+  }, []);
+
   const uploadFile = useCallback(
     async (file: File, options?: UploadFileOptions) => {
-      setErrorMessage(null);
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      clearError();
 
       const validation = validateImageFile(file);
 
@@ -73,10 +99,20 @@ export function useImageUpload() {
         return;
       }
 
+      const requestId = uploadRequestIdRef.current + 1;
+      uploadRequestIdRef.current = requestId;
       setIsUploading(true);
 
       try {
         const image = await createUploadedImage(file);
+
+        if (
+          !isMountedRef.current ||
+          requestId !== uploadRequestIdRef.current
+        ) {
+          URL.revokeObjectURL(image.objectUrl);
+          return;
+        }
 
         const successMessage =
           options?.successMessage ??
@@ -87,12 +123,19 @@ export function useImageUpload() {
           description: `${image.width} x ${image.height} px - ${formatFileSize(image.size)}`,
         });
       } catch (error) {
-        showError(getErrorMessage(error));
+        if (requestId === uploadRequestIdRef.current) {
+          showError(getErrorMessage(error));
+        }
       } finally {
-        setIsUploading(false);
+        if (
+          isMountedRef.current &&
+          requestId === uploadRequestIdRef.current
+        ) {
+          setIsUploading(false);
+        }
       }
     },
-    [replaceUploadedImage, showError, uploadedImage],
+    [clearError, replaceUploadedImage, showError, uploadedImage],
   );
 
   const onDrop = useCallback<NonNullable<DropzoneOptions["onDrop"]>>(
@@ -127,7 +170,7 @@ export function useImageUpload() {
   return useMemo(
     () => ({
       ...dropzone,
-      clearError: () => setErrorMessage(null),
+      clearError,
       clearUploadedImage,
       errorMessage,
       isUploading,
@@ -136,6 +179,7 @@ export function useImageUpload() {
     }),
     [
       clearUploadedImage,
+      clearError,
       dropzone,
       errorMessage,
       isUploading,

@@ -71,6 +71,7 @@ export default function EmptyUploadState({
         <Button
           type="button"
           size="lg"
+          aria-label="Browse for a screenshot image"
           disabled={isUploading}
           onClick={(event) => {
             event.stopPropagation();

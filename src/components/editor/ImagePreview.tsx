@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
@@ -22,11 +22,8 @@ export default function ImagePreview({
   uploadedImage,
 }: ImagePreviewProps) {
   const shouldReduceMotion = useReducedMotion();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(true);
-  }, [uploadedImage.objectUrl]);
+  const [loadedImageId, setLoadedImageId] = useState<string | null>(null);
+  const isLoading = loadedImageId !== uploadedImage.id;
 
   return (
     <motion.div
@@ -64,6 +61,7 @@ export default function ImagePreview({
                 type="button"
                 size="sm"
                 variant="ghost"
+                aria-label="Remove screenshot image"
                 onClick={(event) => {
                   event.stopPropagation();
                   onRemove?.();
@@ -115,7 +113,7 @@ export default function ImagePreview({
               key={uploadedImage.id}
               src={uploadedImage.objectUrl}
               alt={uploadedImage.name}
-              onLoad={() => setIsLoading(false)}
+              onLoad={() => setLoadedImageId(uploadedImage.id)}
               initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.96 }}
               animate={{
                 opacity: isLoading ? 0 : 1,

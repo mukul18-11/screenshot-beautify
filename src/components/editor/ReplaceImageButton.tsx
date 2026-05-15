@@ -25,6 +25,7 @@ export default function ReplaceImageButton({
         type="button"
         size="sm"
         variant="secondary"
+        aria-label="Replace screenshot image"
         onClick={(event) => {
           event.stopPropagation();
           onReplace();

@@ -16,13 +16,27 @@ function createImageId() {
 export function readImageDimensions(objectUrl: string): Promise<ImageDimensions> {
   return new Promise((resolve, reject) => {
     if (typeof Image === "undefined") {
-      reject(new Error("Image loading is only available in the browser."));
+      reject(new Error("Image previews are only available in the browser."));
       return;
     }
 
     const image = new Image();
 
+    const cleanup = () => {
+      image.onload = null;
+      image.onerror = null;
+    };
+
     image.onload = () => {
+      cleanup();
+
+      if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+        reject(
+          new Error("We couldn't read that image. Try another screenshot."),
+        );
+        return;
+      }
+
       resolve({
         width: image.naturalWidth,
         height: image.naturalHeight,
@@ -30,6 +44,7 @@ export function readImageDimensions(objectUrl: string): Promise<ImageDimensions>
     };
 
     image.onerror = () => {
+      cleanup();
       reject(new Error("We couldn't read that image. Try another screenshot."));
     };
 
@@ -47,7 +62,7 @@ export async function createUploadedImage(file: File): Promise<UploadedImage> {
       id: createImageId(),
       file,
       objectUrl,
-      name: file.name,
+      name: file.name.trim() || "Pasted screenshot",
       size: file.size,
       type: file.type,
       width,

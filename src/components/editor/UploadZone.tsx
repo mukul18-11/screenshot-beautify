@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, type KeyboardEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ export default function UploadZone() {
   const shouldReduceMotion = useReducedMotion();
   const {
     clearUploadedImage,
+    clearError,
     errorMessage,
     getInputProps,
     getRootProps,
@@ -30,9 +31,36 @@ export default function UploadZone() {
   useClipboardImage({ uploadFile });
 
   const handleRemoveImage = useCallback(() => {
+    clearError();
     clearUploadedImage();
     toast.success("Screenshot removed");
+  }, [clearError, clearUploadedImage]);
+
+  useEffect(() => {
+    return () => {
+      clearUploadedImage();
+    };
   }, [clearUploadedImage]);
+
+  const handleRootKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.currentTarget !== event.target) {
+        return;
+      }
+
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      if (isUploading) {
+        return;
+      }
+
+      event.preventDefault();
+      open();
+    },
+    [isUploading, open],
+  );
 
   const dragState = isDragReject ? "reject" : isDragAccept ? "accept" : "idle";
   const dragStateCopy =
@@ -49,12 +77,20 @@ export default function UploadZone() {
     >
       <motion.div
         {...getRootProps({
+          "aria-describedby": errorMessage || isDragReject
+            ? "upload-helper-text upload-error"
+            : "upload-helper-text",
+          "aria-disabled": isUploading,
+          "aria-invalid": Boolean(errorMessage || isDragReject),
           "aria-label": "Screenshot upload area",
+          onKeyDown: handleRootKeyDown,
+          role: "group",
+          tabIndex: 0,
         })}
         animate={{ scale: isDragActive && !shouldReduceMotion ? 1.01 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex min-h-[540px] w-full cursor-default items-center justify-center overflow-hidden rounded-3xl border border-dashed border-slate-300/80 bg-white/50 p-5 outline-none transition-colors duration-200 hover:border-slate-400/50 hover:bg-white/65 dark:border-white/15 dark:bg-white/[0.06] dark:hover:border-white/25 dark:hover:bg-white/10 sm:p-10",
+          "relative flex min-h-[480px] w-full cursor-default items-center justify-center overflow-hidden rounded-3xl border border-dashed border-slate-300/80 bg-white/50 p-4 outline-none transition-colors duration-200 hover:border-slate-400/50 hover:bg-white/65 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2 dark:border-white/15 dark:bg-white/[0.06] dark:hover:border-white/25 dark:hover:bg-white/10 dark:focus-visible:ring-white/30 sm:min-h-[540px] sm:p-10",
           isDragActive &&
             "border-cyan-400/80 bg-cyan-50/75 shadow-[0_0_0_8px_rgba(34,211,238,0.08),0_26px_80px_-42px_rgba(8,47,73,0.55)] dark:bg-cyan-400/10",
           isDragAccept &&
@@ -63,9 +99,17 @@ export default function UploadZone() {
             "border-rose-400/90 bg-rose-50/80 shadow-[0_0_0_10px_rgba(244,63,94,0.10)] dark:bg-rose-400/10",
         )}
       >
-        <input {...getInputProps()} />
+        <input
+          {...getInputProps({
+            "aria-label": "Browse for a screenshot image",
+          })}
+        />
 
         <div className="flex w-full flex-col items-center gap-6">
+          <p id="upload-helper-text" className="sr-only">
+            Upload, drop, or paste a PNG, JPG, or WebP screenshot up to 10 MB.
+          </p>
+
           <AnimatePresence>
             {isDragActive && (
               <motion.div
@@ -118,6 +162,9 @@ export default function UploadZone() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.18 }}
+                id="upload-error"
+                role="alert"
+                aria-live="assertive"
                 className="inline-flex max-w-md items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 shadow-sm dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
               >
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />

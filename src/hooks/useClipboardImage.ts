@@ -19,9 +19,12 @@ function isEditableTarget(target: EventTarget | null) {
   }
 
   const tagName = target.tagName.toLowerCase();
+  const editableParent = target.closest("[contenteditable]");
 
   return (
     target.isContentEditable ||
+    (editableParent instanceof HTMLElement &&
+      editableParent.contentEditable !== "false") ||
     tagName === "input" ||
     tagName === "textarea" ||
     tagName === "select"
@@ -35,8 +38,8 @@ function getImageFileFromClipboard(event: ClipboardEvent) {
     return null;
   }
 
-  const imageItem = Array.from(items).find((item) =>
-    item.type.startsWith("image/"),
+  const imageItem = Array.from(items).find(
+    (item) => item.kind === "file" && item.type.startsWith("image/"),
   );
 
   return imageItem?.getAsFile() ?? null;
