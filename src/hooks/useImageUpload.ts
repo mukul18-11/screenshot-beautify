@@ -17,6 +17,10 @@ import {
 } from "@/lib/image-validation";
 import { useEditorStore } from "@/store/editor-store";
 
+type UploadFileOptions = {
+  successMessage?: string;
+};
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -59,7 +63,7 @@ export function useImageUpload() {
   }, []);
 
   const uploadFile = useCallback(
-    async (file: File) => {
+    async (file: File, options?: UploadFileOptions) => {
       setErrorMessage(null);
 
       const validation = validateImageFile(file);
@@ -75,7 +79,7 @@ export function useImageUpload() {
         const image = await createUploadedImage(file);
 
         replaceUploadedImage(image);
-        toast.success("Screenshot ready", {
+        toast.success(options?.successMessage ?? "Screenshot ready", {
           description: `${image.width} x ${image.height} px - ${formatFileSize(image.size)}`,
         });
       } catch (error) {
@@ -123,8 +127,16 @@ export function useImageUpload() {
       clearUploadedImage,
       errorMessage,
       isUploading,
+      uploadFile,
       uploadedImage,
     }),
-    [clearUploadedImage, dropzone, errorMessage, isUploading, uploadedImage],
+    [
+      clearUploadedImage,
+      dropzone,
+      errorMessage,
+      isUploading,
+      uploadFile,
+      uploadedImage,
+    ],
   );
 }

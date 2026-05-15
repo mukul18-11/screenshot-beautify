@@ -1,0 +1,75 @@
+"use client";
+
+import { useEffect } from "react";
+import { toast } from "sonner";
+
+type UploadClipboardFile = (
+  file: File,
+  options?: { successMessage?: string },
+) => Promise<void>;
+
+type UseClipboardImageOptions = {
+  enabled?: boolean;
+  uploadFile: UploadClipboardFile;
+};
+
+function isEditableTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+
+  return (
+    target.isContentEditable ||
+    tagName === "input" ||
+    tagName === "textarea" ||
+    tagName === "select"
+  );
+}
+
+function getImageFileFromClipboard(event: ClipboardEvent) {
+  const items = event.clipboardData?.items;
+
+  if (!items?.length) {
+    return null;
+  }
+
+  const imageItem = Array.from(items).find((item) =>
+    item.type.startsWith("image/"),
+  );
+
+  return imageItem?.getAsFile() ?? null;
+}
+
+export function useClipboardImage({
+  enabled = true,
+  uploadFile,
+}: UseClipboardImageOptions) {
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const handlePaste = (event: ClipboardEvent) => {
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+
+      const file = getImageFileFromClipboard(event);
+
+      if (!file) {
+        toast("No image found in clipboard.");
+        return;
+      }
+
+      void uploadFile(file, { successMessage: "Screenshot pasted" });
+    };
+
+    window.addEventListener("paste", handlePaste);
+
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+  }, [enabled, uploadFile]);
+}

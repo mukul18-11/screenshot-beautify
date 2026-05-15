@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import EmptyUploadState from "@/components/editor/EmptyUploadState";
 import ImagePreview from "@/components/editor/ImagePreview";
 import { cn } from "@/lib/utils";
+import { useClipboardImage } from "@/hooks/useClipboardImage";
 import { useImageUpload } from "@/hooks/useImageUpload";
 
 export default function UploadZone() {
@@ -19,8 +20,11 @@ export default function UploadZone() {
     isDragReject,
     isUploading,
     open,
+    uploadFile,
     uploadedImage,
   } = useImageUpload();
+
+  useClipboardImage({ uploadFile });
 
   return (
     <motion.section

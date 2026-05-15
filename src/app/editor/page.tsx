@@ -85,7 +85,7 @@ export default function EditorPage() {
                       />
                     </div>
                     <p className="text-sm font-medium leading-6 text-slate-600">
-                      Upload a screenshot to start editing.
+                      Upload or paste a screenshot to start editing.
                     </p>
                   </div>
                 </motion.div>
