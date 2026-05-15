@@ -1,11 +1,10 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, ImageIcon, Trash2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import EmptyUploadState from "@/components/editor/EmptyUploadState";
-import { Button } from "@/components/ui/button";
-import { formatFileSize } from "@/lib/format-file-size";
+import ImagePreview from "@/components/editor/ImagePreview";
 import { cn } from "@/lib/utils";
 import { useImageUpload } from "@/hooks/useImageUpload";
 
@@ -54,63 +53,13 @@ export default function UploadZone() {
         <div className="flex w-full flex-col items-center gap-6">
           <AnimatePresence mode="wait">
             {uploadedImage ? (
-              <motion.div
+              <ImagePreview
                 key="uploaded"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="grid w-full max-w-4xl gap-6 lg:grid-cols-[minmax(0,1fr)_280px]"
-              >
-                <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-slate-950/95 p-4 shadow-2xl shadow-slate-950/25">
-                  <img
-                    src={uploadedImage.objectUrl}
-                    alt={uploadedImage.name}
-                    className="max-h-[460px] max-w-full rounded-xl object-contain shadow-2xl shadow-black/35"
-                  />
-                </div>
-
-                <div className="flex flex-col justify-center rounded-2xl border border-white/70 bg-white/70 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-xl">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                    <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
-                  </div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">
-                    Screenshot ready
-                  </p>
-                  <h2 className="mt-2 break-words text-xl font-semibold text-slate-950">
-                    {uploadedImage.name}
-                  </h2>
-                  <div className="mt-4 space-y-2 text-sm text-slate-500">
-                    <p>
-                      {uploadedImage.width} x {uploadedImage.height} px
-                    </p>
-                    <p>{formatFileSize(uploadedImage.size)}</p>
-                    <p>{uploadedImage.type}</p>
-                  </div>
-
-                  <div className="mt-6 flex flex-col gap-3">
-                    <Button
-                      type="button"
-                      onClick={open}
-                      disabled={isUploading}
-                      className="bg-slate-950 text-white hover:bg-slate-800"
-                    >
-                      <ImageIcon className="h-4 w-4" aria-hidden="true" />
-                      Replace screenshot
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={clearUploadedImage}
-                      disabled={isUploading}
-                      className="border-slate-200 bg-white/80"
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      Clear
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+                isUploading={isUploading}
+                onClear={clearUploadedImage}
+                onReplace={open}
+                uploadedImage={uploadedImage}
+              />
             ) : (
               <motion.div
                 key="empty"

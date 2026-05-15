@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { ArrowLeft, Layers3, SlidersHorizontal, Sparkles } from "lucide-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
+import ImageMetaCard from "@/components/editor/ImageMetaCard";
 import UploadZone from "@/components/editor/UploadZone";
+import { useEditorStore } from "@/store/editor-store";
 
 export default function EditorPage() {
+  const uploadedImage = useEditorStore((state) => state.uploadedImage);
+
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_16%,rgba(45,212,191,0.24),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(99,102,241,0.22),transparent_34%),radial-gradient(circle_at_76%_88%,rgba(244,114,182,0.20),transparent_30%),linear-gradient(135deg,#f8fafc_0%,#edf4ff_44%,#fff7ed_100%)] text-slate-950">
       <div className="flex min-h-screen flex-col px-5 py-5 sm:px-6 lg:px-8">
@@ -58,19 +62,35 @@ export default function EditorPage() {
               </div>
             </div>
 
-            <div className="flex min-h-[420px] items-center justify-center text-center">
-              <div className="max-w-[260px]">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white/70">
-                  <SlidersHorizontal
-                    className="h-6 w-6 text-slate-400"
-                    aria-hidden="true"
-                  />
-                </div>
-                <p className="text-sm font-medium leading-6 text-slate-600">
-                  Upload a screenshot to start editing.
-                </p>
-              </div>
-            </div>
+            <AnimatePresence mode="wait">
+              {uploadedImage ? (
+                <ImageMetaCard
+                  key={uploadedImage.id}
+                  uploadedImage={uploadedImage}
+                />
+              ) : (
+                <motion.div
+                  key="empty-settings"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.24, ease: "easeOut" }}
+                  className="flex min-h-[420px] items-center justify-center text-center"
+                >
+                  <div className="max-w-[260px]">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white/70">
+                      <SlidersHorizontal
+                        className="h-6 w-6 text-slate-400"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <p className="text-sm font-medium leading-6 text-slate-600">
+                      Upload a screenshot to start editing.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.aside>
         </section>
       </div>
