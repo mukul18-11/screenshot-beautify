@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import CanvasPreview from "@/components/editor/CanvasPreview";
 import ReplaceImageButton from "@/components/editor/ReplaceImageButton";
 import { Button } from "@/components/ui/button";
 import type { UploadedImage } from "@/store/editor-store";
@@ -76,7 +77,13 @@ export default function ImagePreview({
           </div>
         </div>
 
-        <div className="relative flex min-h-[380px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200/70 bg-[linear-gradient(45deg,rgba(226,232,240,0.42)_25%,transparent_25%),linear-gradient(-45deg,rgba(226,232,240,0.42)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,rgba(226,232,240,0.42)_75%),linear-gradient(-45deg,transparent_75%,rgba(226,232,240,0.42)_75%)] bg-[length:24px_24px] bg-[position:0_0,0_12px,12px_-12px,-12px_0] p-4 shadow-inner shadow-slate-950/5 dark:border-white/10 dark:bg-slate-950/35 sm:min-h-[460px] sm:p-8">
+        <div className="relative flex min-h-[380px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-100/65 p-3 shadow-inner shadow-slate-950/5 dark:border-white/10 dark:bg-slate-950/35 sm:min-h-[460px] sm:p-6">
+          <CanvasPreview
+            isLoading={isLoading}
+            onImageLoad={() => setLoadedImageId(uploadedImage.id)}
+            uploadedImage={uploadedImage}
+          />
+
           <AnimatePresence>
             {isLoading && (
               <motion.div
@@ -84,7 +91,7 @@ export default function ImagePreview({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-4 overflow-hidden rounded-2xl bg-slate-200/70 shadow-inner dark:bg-white/10 sm:inset-8"
+                className="absolute inset-3 overflow-hidden rounded-2xl bg-slate-200/70 shadow-inner dark:bg-white/10 sm:inset-6"
               >
                 <div className="h-full w-full animate-pulse rounded-2xl bg-gradient-to-br from-white/80 via-slate-100/80 to-white/50 dark:from-white/15 dark:via-white/10 dark:to-white/5" />
                 {!shouldReduceMotion && (
@@ -106,23 +113,6 @@ export default function ImagePreview({
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={uploadedImage.id}
-              src={uploadedImage.objectUrl}
-              alt={uploadedImage.name}
-              onLoad={() => setLoadedImageId(uploadedImage.id)}
-              initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.96 }}
-              animate={{
-                opacity: isLoading ? 0 : 1,
-                scale: isLoading && !shouldReduceMotion ? 0.98 : 1,
-              }}
-              exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative max-h-[58vh] max-w-full rounded-xl object-contain shadow-2xl shadow-slate-950/25 lg:max-h-[620px]"
-            />
           </AnimatePresence>
         </div>
       </div>
