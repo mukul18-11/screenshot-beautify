@@ -3,6 +3,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import BackgroundControls from "@/components/editor/BackgroundControls";
 import CanvasControls from "@/components/editor/CanvasControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ImageMetaCard from "@/components/editor/ImageMetaCard";
@@ -46,6 +47,7 @@ export default function EditorSettingsPanel({
             transition={{ duration: 0.24, ease: "easeOut" }}
           >
             <CanvasPresetSelector />
+            <BackgroundControls />
             <CanvasControls />
             <ImageMetaCard uploadedImage={uploadedImage} />
           </motion.div>

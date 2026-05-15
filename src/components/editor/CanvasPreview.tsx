@@ -19,6 +19,7 @@ export default function CanvasPreview({
   const shouldReduceMotion = useReducedMotion();
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
+  const backgroundType = useEditorStore((state) => state.backgroundType);
   const backgroundValue = useEditorStore((state) => state.backgroundValue);
   const imagePadding = useEditorStore((state) => state.imagePadding);
   const imageRadius = useEditorStore((state) => state.imageRadius);
@@ -33,6 +34,9 @@ export default function CanvasPreview({
     (imagePadding / Math.min(canvasWidth, canvasHeight)) * 100;
   const screenshotScale = imageScale / 100;
   const screenshotShadow = createImageShadowCss(imageShadow);
+  const backgroundKey = `${backgroundType}-${backgroundValue}-${
+    backgroundType === "image-blur" ? uploadedImage.id : "static"
+  }`;
 
   return (
     <motion.div
@@ -61,14 +65,36 @@ export default function CanvasPreview({
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={backgroundValue}
+            key={backgroundKey}
             initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
-            className="absolute inset-0"
-            style={{ background: backgroundValue }}
-          />
+            className="absolute inset-0 overflow-hidden"
+          >
+            {backgroundType === "image-blur" ? (
+              <>
+                <div
+                  className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
+                  style={{
+                    backgroundImage: `url(${uploadedImage.objectUrl})`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                  }}
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: backgroundValue }}
+                />
+              </>
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{ background: backgroundValue }}
+              />
+            )}
+          </motion.div>
         </AnimatePresence>
 
         <div

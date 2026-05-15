@@ -4,7 +4,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   Box,
   Frame,
-  Palette,
   RotateCcw,
   Scaling,
   Sparkles,
@@ -12,7 +11,6 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import { BACKGROUND_PRESETS } from "@/lib/background-presets";
 import {
   BEAUTIFY_SETTING_LIMITS,
   DEFAULT_BEAUTIFY_SETTINGS,
@@ -182,14 +180,10 @@ function hasBeautifyChanges(settings: ReturnType<typeof useEditorStore.getState>
 
 export default function CanvasControls() {
   const shouldReduceMotion = useReducedMotion();
-  const backgroundPresetId = useEditorStore((state) => state.backgroundPresetId);
   const imagePadding = useEditorStore((state) => state.imagePadding);
   const imageRadius = useEditorStore((state) => state.imageRadius);
   const imageScale = useEditorStore((state) => state.imageScale);
   const imageShadow = useEditorStore((state) => state.imageShadow);
-  const setBackgroundPreset = useEditorStore(
-    (state) => state.setBackgroundPreset,
-  );
   const setImagePadding = useEditorStore((state) => state.setImagePadding);
   const setImageRadius = useEditorStore((state) => state.setImageRadius);
   const setImageScale = useEditorStore((state) => state.setImageScale);
@@ -207,41 +201,6 @@ export default function CanvasControls() {
       transition={{ duration: 0.26, ease: "easeOut" }}
       className="pt-1"
     >
-      <ControlSection icon={Palette} title="Background">
-        <div className="grid grid-cols-2 gap-2">
-          {BACKGROUND_PRESETS.map((preset) => {
-            const isSelected = backgroundPresetId === preset.id;
-
-            return (
-              <motion.button
-                key={preset.id}
-                type="button"
-                whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
-                whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
-                aria-label={`${preset.name} background`}
-                aria-pressed={isSelected}
-                onClick={() => setBackgroundPreset(preset.id)}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg border p-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/30",
-                  isSelected
-                    ? "border-slate-950 bg-white shadow-lg shadow-slate-950/10 dark:border-white dark:bg-white/15"
-                    : "border-slate-200 bg-white/60 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:hover:bg-white/10",
-                )}
-              >
-                <span
-                  className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-white/80 shadow-sm dark:border-white/10"
-                  style={{ background: preset.cssValue }}
-                  aria-hidden="true"
-                />
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-100">
-                  {preset.name}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </ControlSection>
-
       <ControlSection icon={Scaling} title="Screenshot">
         <div className="space-y-5">
           <SliderControl

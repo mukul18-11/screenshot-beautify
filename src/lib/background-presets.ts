@@ -63,6 +63,13 @@ export const BACKGROUND_PRESETS = [
     type: "gradient",
     cssValue: "linear-gradient(135deg, #ff6154 0%, #ff8a3d 52%, #fff1d6 100%)",
   },
+  {
+    id: "blur-from-screenshot",
+    name: "Blur from screenshot",
+    type: "image-blur",
+    cssValue:
+      "linear-gradient(135deg, rgba(15, 23, 42, 0.62) 0%, rgba(15, 23, 42, 0.28) 100%)",
+  },
 ] as const satisfies readonly BackgroundPreset[];
 
 export type BackgroundPresetId = (typeof BACKGROUND_PRESETS)[number]["id"];

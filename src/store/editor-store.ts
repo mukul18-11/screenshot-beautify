@@ -107,7 +107,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       backgroundType: "solid",
       backgroundValue: color,
-      backgroundPresetId: "custom-solid",
+      backgroundPresetId: "custom",
     });
   },
   setImagePadding: (value) => {
