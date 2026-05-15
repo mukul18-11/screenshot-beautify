@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock3, FileImage, FileType2, HardDrive, Ruler } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { formatFileSize } from "@/lib/format-file-size";
 import type { UploadedImage } from "@/store/editor-store";
@@ -37,6 +37,7 @@ function getReadableFileType(type: string) {
 }
 
 export default function ImageMetaCard({ uploadedImage }: ImageMetaCardProps) {
+  const shouldReduceMotion = useReducedMotion();
   const metaItems = [
     {
       icon: HardDrive,
@@ -62,20 +63,21 @@ export default function ImageMetaCard({ uploadedImage }: ImageMetaCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 18 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: shouldReduceMotion ? 0 : 12 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
       className="pt-5"
     >
-      <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-xl">
-        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+      <div className="rounded-3xl border border-white/70 bg-white/70 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-white/10">
+        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200">
           <FileImage className="h-6 w-6" aria-hidden="true" />
         </div>
 
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">
+        <p className="text-xs font-semibold uppercase tracking-normal text-emerald-600 dark:text-emerald-200">
           Screenshot loaded
         </p>
-        <h3 className="mt-2 break-words text-lg font-semibold leading-6 text-slate-950">
+        <h3 className="mt-2 break-words text-lg font-semibold leading-6 text-slate-950 dark:text-white">
           {uploadedImage.name}
         </h3>
 
@@ -86,15 +88,17 @@ export default function ImageMetaCard({ uploadedImage }: ImageMetaCardProps) {
             return (
               <div
                 key={item.label}
-                className="flex items-center justify-between gap-4 rounded-xl border border-slate-200/70 bg-white/65 px-3 py-3"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/70 bg-white/65 px-3 py-3 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-white/[0.06]"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
-                  <p className="text-sm text-slate-500">{item.label}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-300">
+                    {item.label}
+                  </p>
                 </div>
-                <p className="shrink-0 text-right text-sm font-semibold text-slate-800">
+                <p className="shrink-0 text-right text-sm font-semibold text-slate-800 dark:text-slate-100">
                   {item.value}
                 </p>
               </div>
