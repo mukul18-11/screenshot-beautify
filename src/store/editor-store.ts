@@ -27,6 +27,7 @@ type EditorStore = BeautifySettings & {
   setImageRadius: (value: number) => void;
   setImageScale: (value: number) => void;
   setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
+  setImageBorderEnabled: (enabled: boolean) => void;
   toggleImageBorder: () => void;
   resetBeautifySettings: () => void;
 };
@@ -126,6 +127,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         ...partialShadow,
       },
     }));
+  },
+  setImageBorderEnabled: (enabled) => {
+    set({ imageBorderEnabled: enabled });
   },
   toggleImageBorder: () => {
     set((state) => ({

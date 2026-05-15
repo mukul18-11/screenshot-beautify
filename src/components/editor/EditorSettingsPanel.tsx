@@ -7,6 +7,7 @@ import BackgroundControls from "@/components/editor/BackgroundControls";
 import CanvasControls from "@/components/editor/CanvasControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ImageMetaCard from "@/components/editor/ImageMetaCard";
+import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import type { UploadedImage } from "@/store/editor-store";
 
 type EditorSettingsPanelProps = {
@@ -48,6 +49,7 @@ export default function EditorSettingsPanel({
           >
             <CanvasPresetSelector />
             <BackgroundControls />
+            <ImageStyleControls />
             <CanvasControls />
             <ImageMetaCard uploadedImage={uploadedImage} />
           </motion.div>

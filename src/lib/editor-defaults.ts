@@ -10,8 +10,8 @@ const defaultBackgroundPreset = getBackgroundPreset(DEFAULT_BACKGROUND_PRESET_ID
 
 export const DEFAULT_IMAGE_SHADOW: ImageShadow = {
   enabled: true,
-  blur: 64,
-  opacity: 0.28,
+  blur: 40,
+  opacity: 0.25,
   offsetY: 24,
 };
 
@@ -22,42 +22,42 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   backgroundType: defaultBackgroundPreset.type,
   backgroundValue: defaultBackgroundPreset.cssValue,
   backgroundPresetId: defaultBackgroundPreset.id,
-  imagePadding: 72,
-  imageRadius: 18,
+  imagePadding: 96,
+  imageRadius: 24,
   imageScale: 92,
   imageShadow: DEFAULT_IMAGE_SHADOW,
-  imageBorderEnabled: false,
+  imageBorderEnabled: true,
 };
 
 export const BEAUTIFY_SETTING_LIMITS = {
   imagePadding: {
     min: 24,
-    max: 160,
+    max: 220,
     step: 4,
   },
   imageRadius: {
     min: 0,
-    max: 40,
+    max: 48,
     step: 1,
   },
   imageScale: {
-    min: 60,
-    max: 115,
+    min: 70,
+    max: 110,
     step: 1,
   },
   imageShadowBlur: {
     min: 0,
-    max: 120,
-    step: 2,
+    max: 80,
+    step: 1,
   },
   imageShadowOpacity: {
     min: 0,
     max: 0.6,
-    step: 0.02,
+    step: 0.01,
   },
   imageShadowOffsetY: {
     min: 0,
-    max: 64,
+    max: 60,
     step: 1,
   },
 } as const;
