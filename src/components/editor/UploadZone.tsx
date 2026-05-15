@@ -1,7 +1,9 @@
 "use client";
 
+import { useCallback } from "react";
 import { AlertCircle } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { toast } from "sonner";
 
 import EmptyUploadState from "@/components/editor/EmptyUploadState";
 import ImagePreview from "@/components/editor/ImagePreview";
@@ -25,6 +27,11 @@ export default function UploadZone() {
   } = useImageUpload();
 
   useClipboardImage({ uploadFile });
+
+  const handleRemoveImage = useCallback(() => {
+    clearUploadedImage();
+    toast.success("Screenshot removed");
+  }, [clearUploadedImage]);
 
   return (
     <motion.section
@@ -60,7 +67,7 @@ export default function UploadZone() {
               <ImagePreview
                 key="uploaded"
                 isUploading={isUploading}
-                onClear={clearUploadedImage}
+                onRemove={handleRemoveImage}
                 onReplace={open}
                 uploadedImage={uploadedImage}
               />

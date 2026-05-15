@@ -78,8 +78,12 @@ export function useImageUpload() {
       try {
         const image = await createUploadedImage(file);
 
+        const successMessage =
+          options?.successMessage ??
+          (uploadedImage ? "Screenshot replaced" : "Screenshot ready");
+
         replaceUploadedImage(image);
-        toast.success(options?.successMessage ?? "Screenshot ready", {
+        toast.success(successMessage, {
           description: `${image.width} x ${image.height} px - ${formatFileSize(image.size)}`,
         });
       } catch (error) {
@@ -88,7 +92,7 @@ export function useImageUpload() {
         setIsUploading(false);
       }
     },
-    [replaceUploadedImage, showError],
+    [replaceUploadedImage, showError, uploadedImage],
   );
 
   const onDrop = useCallback<NonNullable<DropzoneOptions["onDrop"]>>(

@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, ImageIcon, Trash2 } from "lucide-react";
+import { CheckCircle2, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import ReplaceImageButton from "@/components/editor/ReplaceImageButton";
 import { Button } from "@/components/ui/button";
 import type { UploadedImage } from "@/store/editor-store";
 
 type ImagePreviewProps = {
   isUploading?: boolean;
-  onClear?: () => void;
+  onRemove?: () => void;
   onReplace?: () => void;
   uploadedImage: UploadedImage;
 };
 
 export default function ImagePreview({
   isUploading = false,
-  onClear,
+  onRemove,
   onReplace,
   uploadedImage,
 }: ImagePreviewProps) {
@@ -42,32 +43,23 @@ export default function ImagePreview({
           </div>
 
           <div className="flex items-center gap-2">
+            <ReplaceImageButton
+              disabled={isUploading}
+              onReplace={() => onReplace?.()}
+            />
             <Button
               type="button"
               size="sm"
+              variant="ghost"
               onClick={(event) => {
                 event.stopPropagation();
-                onReplace?.();
+                onRemove?.();
               }}
               disabled={isUploading}
-              className="border border-white/70 bg-slate-950/90 text-white shadow-lg shadow-slate-950/15 hover:bg-slate-800"
-            >
-              <ImageIcon className="h-4 w-4" aria-hidden="true" />
-              Replace
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              onClick={(event) => {
-                event.stopPropagation();
-                onClear?.();
-              }}
-              disabled={isUploading}
-              className="border-white/70 bg-white/85 text-slate-600 shadow-lg shadow-slate-950/10 hover:bg-white hover:text-slate-950"
-              aria-label="Clear screenshot"
+              className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
+              Remove image
             </Button>
           </div>
         </div>
@@ -87,19 +79,22 @@ export default function ImagePreview({
             )}
           </AnimatePresence>
 
-          <motion.img
-            key={uploadedImage.id}
-            src={uploadedImage.objectUrl}
-            alt={uploadedImage.name}
-            onLoad={() => setIsLoading(false)}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{
-              opacity: isLoading ? 0 : 1,
-              scale: isLoading ? 0.96 : 1,
-            }}
-            transition={{ duration: 0.28, ease: "easeOut" }}
-            className="relative max-h-[58vh] max-w-full rounded-xl object-contain shadow-2xl shadow-slate-950/25 lg:max-h-[620px]"
-          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={uploadedImage.id}
+              src={uploadedImage.objectUrl}
+              alt={uploadedImage.name}
+              onLoad={() => setIsLoading(false)}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{
+                opacity: isLoading ? 0 : 1,
+                scale: isLoading ? 0.96 : 1,
+              }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="relative max-h-[58vh] max-w-full rounded-xl object-contain shadow-2xl shadow-slate-950/25 lg:max-h-[620px]"
+            />
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>

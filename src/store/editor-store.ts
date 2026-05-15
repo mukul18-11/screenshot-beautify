@@ -41,6 +41,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ uploadedImage });
   },
   clearUploadedImage: () => {
+    if (!get().uploadedImage) {
+      return;
+    }
+
     get().setUploadedImage(null);
   },
   replaceUploadedImage: (uploadedImage) => {
