@@ -18,6 +18,8 @@ export type TiltPresetId =
   | "subtle-lift"
   | "dramatic-launch";
 
+export type ExportScale = 1 | 2 | 4;
+
 export type UploadedImage = {
   id: string;
   file: File;
@@ -128,6 +130,15 @@ export type TiltPreset = {
   tiltShadowMultiplier: number;
 };
 
+export type ExportSettings = {
+  exportScale: ExportScale;
+  exportFileName: string;
+  isExporting: boolean;
+  lastExportedAt: number | null;
+};
+
 export type Phase3Settings = BrowserFrameSettings & TextOverlaySettings;
 
 export type Phase4Settings = TiltSettings;
+
+export type Phase5Settings = ExportSettings;

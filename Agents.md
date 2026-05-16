@@ -53,7 +53,7 @@ Phase 3 is completed and should not be rebuilt unless explicitly requested. It i
 - Text layout presets
 - Premium responsive editor UI polish
 
-We are currently building Phase 4: CSS 3D Tilt and Depth. Phase 4 scope:
+Phase 4 is completed and should not be rebuilt unless explicitly requested. It includes:
 
 - CSS-based 3D tilt
 - Perspective controls
@@ -64,15 +64,27 @@ We are currently building Phase 4: CSS 3D Tilt and Depth. Phase 4 scope:
 - Subtle background parallax feel
 - Premium responsive editor UI polish
 
+We are currently building Phase 5: Export. Phase 5 scope:
+
+- Export final design as PNG
+- Copy final design image to clipboard
+- Export scale controls: 1x, 2x, and 4x
+- Export filename controls
+- Export loading state
+- Export success and error toasts
+- Hidden high-quality export renderer
+- Export QA
+
 Do not build these yet unless explicitly asked:
 
-- Export
-- Real Three.js/WebGL
-- Video/GIF export
 - Auth
 - Payments
+- Save projects
+- Public share links
 - Backend APIs
 - LLM APIs
+- Real Three.js/WebGL
+- GIF/video export
 
 ## Non-Negotiable Product Principles
 
@@ -112,7 +124,7 @@ Do not rely on Next.js middleware as the only protection for private routes or s
 
 ## Recommended Project Structure
 
-Use this structure for the current upload, canvas controls, Phase 3 controls, and Phase 4 tilt controls:
+Use this structure for the current upload, canvas controls, Phase 3 controls, Phase 4 tilt controls, and Phase 5 export controls:
 
 ```txt
 src/
@@ -132,6 +144,8 @@ src/
       ImagePreview.tsx
       ImageMetaCard.tsx
       ImageStyleControls.tsx
+      ExportControls.tsx
+      ExportRenderer.tsx
       TiltControls.tsx
       ResetControls.tsx
       ReplaceImageButton.tsx
@@ -150,6 +164,7 @@ src/
     background-presets.ts
     browser-frame-presets.ts
     canvas-presets.ts
+    export-utils.ts
     image-validation.ts
     image-utils.ts
     tilt-presets.ts
@@ -190,10 +205,22 @@ Keep editor state small and explicit. It owns uploaded image state and editor ap
 - Phase 3 browser frame state fields: `browserFrameEnabled`, `browserFrameTheme`, `browserFrameStyle`, `browserFrameUrl`, `browserFrameShowUrl`
 - Phase 3 text overlay state fields: `textOverlayEnabled`, `headlineText`, `subtitleText`, `badgeText`, `textLayoutPreset`, `textPosition`, `textAlign`, `textColor`, `headlineSize`, `subtitleSize`
 - Phase 4 tilt state fields: `tiltEnabled`, `tiltPresetId`, `perspective`, `rotateX`, `rotateY`, `rotateZ`, `translateY`, `tiltShadowMultiplier`, `hoverTiltEnabled`, `hoverTiltSensitivity`, `backgroundParallaxEnabled`, `backgroundParallaxStrength`
+- Phase 5 export state fields: `exportScale`, `exportFileName`, `isExporting`, `lastExportedAt`
 - Browser frame and text overlay actions should be explicit and predictable; avoid deriving user-entered text from presets.
 - Tilt actions should be explicit and predictable. Presets may update tilt values, but should not change the uploaded image, canvas size, browser frame text, or user-entered overlay copy.
+- Export actions should be explicit and predictable. Export should not change the uploaded image, canvas styling, browser frame settings, overlay copy, or tilt settings.
 
 The store should own object URL cleanup when replacing or clearing the current image. Avoid persisting screenshot files, object URLs, or image data to local storage.
+
+## Export Rules
+
+- Do not export the visually scaled preview directly.
+- Use a hidden export renderer or full-resolution export node that renders at the real canvas dimensions multiplied by the selected export scale.
+- Export should include the final canvas artwork only, not editor UI controls, panel chrome, buttons, metadata, loading indicators, or hover-only states.
+- Export should include the configured background, screenshot styling, browser frame, text overlays, and base 3D tilt.
+- Export should not include active hover tilt pointer movement or temporary background parallax offsets from the current pointer position.
+- Prefer `html-to-image` for DOM-to-PNG export, or an existing equivalent if one is already installed before adding a dependency.
+- Keep export client-side. Do not upload screenshot data or rendered images to a backend or third-party service.
 
 ## Upload Validation Rules
 
@@ -220,6 +247,7 @@ The store should own object URL cleanup when replacing or clearing the current i
 - Keep trust/privacy copy visible near the upload action.
 - Do not introduce future-phase controls until explicitly asked.
 - Render browser frames and text overlays inside `CanvasPreview`, so the live preview is the source of truth rather than a separate export-only layer.
+- Reuse the same artwork composition for export rendering so preview and export do not drift, but render it through a hidden full-resolution node for quality.
 - By default, apply 3D tilt to the uploaded screenshot/browser frame mockup layer, not the whole canvas. Keep the canvas background flat and beautiful.
 - Text overlays should remain readable and should not become distorted unless an existing layout makes it unavoidable.
 - Use CSS transforms for Phase 4 tilt; do not add Three.js, WebGL, or another rendering engine. Prefer `transform-style: preserve-3d` and transforms shaped like `perspective(...) rotateX(...) rotateY(...) rotateZ(...) translateY(...)`.
@@ -254,6 +282,8 @@ The store should own object URL cleanup when replacing or clearing the current i
 - `BrowserFrameControls`: renders Phase 3 browser frame toggle, theme, URL, and URL visibility controls.
 - `TextOverlayControls`: renders Phase 3 headline, subtitle, badge, layout, position, alignment, color, and size controls.
 - `TiltControls`: renders Phase 4 tilt toggle, perspective, rotate X/Y/Z, floating depth, hover movement, background parallax, and tilt preset controls.
+- `ExportControls`: renders Phase 5 PNG export, clipboard copy, export scale, filename, loading, and toast-triggering controls.
+- `ExportRenderer`: renders the hidden full-resolution final artwork used for PNG and clipboard export.
 - `ResetControls`: renders reset style controls that restore beautification defaults without changing the uploaded image.
 - `ImageMetaCard`: renders uploaded image metadata only.
 - `ReplaceImageButton`: small focused replace action.
@@ -266,9 +296,10 @@ The store should own object URL cleanup when replacing or clearing the current i
 - `browser-frame-presets.ts`: browser frame theme/style data and helpers.
 - `tilt-presets.ts`: 3D tilt preset data and helpers.
 - `text-layout-presets.ts`: text overlay layout preset data and helpers.
+- `export-utils.ts`: client-side PNG generation, clipboard copy, filename normalization, and download helpers.
 - `image-validation.ts`: accepted types, size limits, and validation messages.
 - `image-utils.ts`: object URL creation, image dimension reading, and `UploadedImage` creation.
-- `editor-store.ts`: uploaded image state, canvas settings state, Phase 3 state, Phase 4 tilt state, and object URL cleanup.
+- `editor-store.ts`: uploaded image state, canvas settings state, Phase 3 state, Phase 4 tilt state, Phase 5 export state, and object URL cleanup.
 
 ## Commands
 
@@ -292,6 +323,7 @@ Only stage, commit, or push changes when the user explicitly asks for it.
 - Check accepted formats: PNG, JPEG/JPG, and WebP.
 - Check rejection states for unsupported type, too-large file, empty file, and multiple-file drops.
 - Confirm old previews are cleaned up when images are replaced or removed.
+- For export changes, verify PNG download at 1x, 2x, and 4x; filename handling; clipboard copy where supported; loading states; success/error toasts; and that hover tilt/parallax pointer offsets are not captured.
 - For visual/UI changes, test desktop and mobile responsive layouts.
 - Do not open localhost or inspect Chrome by default for visual checks; the user will check the local UI unless they explicitly ask Codex to do it.
 - Keep automated tests focused if a test framework is added later; do not introduce one casually during the MVP.
@@ -309,8 +341,9 @@ Only stage, commit, or push changes when the user explicitly asks for it.
 - Phase 1 completed: upload, paste, replace, remove, preview, metadata, validation, and local-only handling.
 - Phase 2 completed: canvas size presets, background presets, padding, border radius, shadow controls, screenshot scale, reset controls, and premium responsive editor UI.
 - Phase 3 completed: browser frame, browser frame controls, text overlays, text layout presets, and premium responsive UI polish.
-- Phase 4 current: CSS-based 3D tilt, perspective, rotate controls, floating depth, tilt presets, hover movement, background parallax feel, and premium responsive UI polish.
-- Future phases may include export presets, social formats, templates, and export.
+- Phase 4 completed: CSS-based 3D tilt, perspective, rotate controls, floating depth, tilt presets, hover movement, background parallax feel, and premium responsive UI polish.
+- Phase 5 current: PNG export, copy image to clipboard, export scale, export filename, loading states, export toasts, hidden high-quality export renderer, and export QA.
+- Future phases may include export presets, social formats, templates, and sharing workflows only when explicitly requested.
 - Keep future-phase UI out of the product until the user explicitly asks for it.
 
 ## AGENTS.md Maintenance Rule

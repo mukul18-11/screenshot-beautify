@@ -3,6 +3,7 @@ import { getCanvasPreset } from "@/lib/canvas-presets";
 import type {
   BeautifySettings,
   BrowserFrameSettings,
+  ExportSettings,
   ImageShadow,
   TextOverlaySettings,
   TiltSettings,
@@ -70,6 +71,13 @@ export const DEFAULT_TILT_SETTINGS: TiltSettings = {
   hoverTiltSensitivity: 8,
   backgroundParallaxEnabled: false,
   backgroundParallaxStrength: 8,
+};
+
+export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
+  exportScale: 2,
+  exportFileName: "screenshot-beautifier",
+  isExporting: false,
+  lastExportedAt: null,
 };
 
 export const BEAUTIFY_SETTING_LIMITS = {

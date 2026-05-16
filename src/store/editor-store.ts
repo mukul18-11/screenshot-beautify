@@ -8,9 +8,11 @@ import { getCanvasPreset } from "@/lib/canvas-presets";
 import {
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
+  DEFAULT_EXPORT_SETTINGS,
   DEFAULT_TEXT_OVERLAY_SETTINGS,
   DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
+import { sanitizeFileName } from "@/lib/export-utils";
 import { createTiltPresetSettings } from "@/lib/tilt-presets";
 import { getTextLayoutPreset } from "@/lib/text-layout-presets";
 import type {
@@ -19,9 +21,12 @@ import type {
   BrowserFrameSettings,
   BrowserFrameStyle,
   BrowserFrameTheme,
+  ExportScale,
+  ExportSettings,
   ImageShadow,
   Phase3Settings,
   Phase4Settings,
+  Phase5Settings,
   TextAlign,
   TextOverlaySettings,
   TextPosition,
@@ -33,7 +38,8 @@ export type { UploadedImage } from "@/types/editor";
 
 type EditorStore = BeautifySettings &
   Phase3Settings &
-  Phase4Settings & {
+  Phase4Settings &
+  Phase5Settings & {
     uploadedImage: UploadedImage | null;
     lastBeautifyPresetId: string | null;
     setUploadedImage: (uploadedImage: UploadedImage | null) => void;
@@ -84,6 +90,11 @@ type EditorStore = BeautifySettings &
     setBackgroundParallaxEnabled: (value: boolean) => void;
     setBackgroundParallaxStrength: (value: number) => void;
     resetTiltSettings: () => void;
+    setExportScale: (scale: ExportScale) => void;
+    setExportFileName: (name: string) => void;
+    setIsExporting: (value: boolean) => void;
+    markExported: () => void;
+    resetExportSettings: () => void;
   };
 
 function revokeObjectUrl(uploadedImage: UploadedImage | null) {
@@ -118,6 +129,12 @@ function createDefaultTextOverlaySettings(): TextOverlaySettings {
 function createDefaultTiltSettings(): TiltSettings {
   return {
     ...DEFAULT_TILT_SETTINGS,
+  };
+}
+
+function createDefaultExportSettings(): ExportSettings {
+  return {
+    ...DEFAULT_EXPORT_SETTINGS,
   };
 }
 
@@ -162,6 +179,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   ...createDefaultBrowserFrameSettings(),
   ...createDefaultTextOverlaySettings(),
   ...createDefaultTiltSettings(),
+  ...createDefaultExportSettings(),
   setUploadedImage: (uploadedImage) => {
     const previousImage = get().uploadedImage;
 
@@ -371,5 +389,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   resetTiltSettings: () => {
     set(createDefaultTiltSettings());
+  },
+  setExportScale: (scale) => {
+    set({ exportScale: scale });
+  },
+  setExportFileName: (name) => {
+    set({ exportFileName: sanitizeFileName(name) });
+  },
+  setIsExporting: (value) => {
+    set({ isExporting: value });
+  },
+  markExported: () => {
+    set({ lastExportedAt: Date.now(), isExporting: false });
+  },
+  resetExportSettings: () => {
+    set(createDefaultExportSettings());
   },
 }));

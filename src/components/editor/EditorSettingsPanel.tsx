@@ -13,6 +13,7 @@ import BackgroundControls from "@/components/editor/BackgroundControls";
 import BeautifyPresetBar from "@/components/editor/BeautifyPresetBar";
 import BrowserFrameControls from "@/components/editor/BrowserFrameControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
+import ExportControls from "@/components/editor/ExportControls";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
 import TextLayoutPresetSelector from "@/components/editor/TextLayoutPresetSelector";
@@ -199,6 +200,7 @@ export default function EditorSettingsPanel({
             <TextLayoutPresetSelector />
             <TextOverlayControls />
             <TiltControls />
+            <ExportControls uploadedImage={uploadedImage} />
             <ResetControls />
           </motion.div>
         ) : (
@@ -223,6 +225,9 @@ export default function EditorSettingsPanel({
               <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                 Upload a screenshot to preview 3D tilt.
               </p>
+              <div className="mt-6 text-left">
+                <ExportControls uploadedImage={uploadedImage} />
+              </div>
             </div>
           </motion.div>
         )}
