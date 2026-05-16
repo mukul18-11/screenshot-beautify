@@ -114,9 +114,13 @@ export function useImageUpload() {
           return;
         }
 
+        // Read current image from the store imperatively to avoid adding
+        // uploadedImage to the dependency array (which would recreate this
+        // callback on every upload and cascade re-renders).
+        const currentImage = useEditorStore.getState().uploadedImage;
         const successMessage =
           options?.successMessage ??
-          (uploadedImage ? "Screenshot replaced" : "Screenshot ready");
+          (currentImage ? "Screenshot replaced" : "Screenshot ready");
 
         replaceUploadedImage(image);
         toast.success(successMessage, {
@@ -135,7 +139,7 @@ export function useImageUpload() {
         }
       }
     },
-    [clearError, replaceUploadedImage, showError, uploadedImage],
+    [clearError, replaceUploadedImage, showError],
   );
 
   const onDrop = useCallback<NonNullable<DropzoneOptions["onDrop"]>>(
