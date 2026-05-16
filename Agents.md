@@ -105,12 +105,12 @@ src/
       BeautifyPresetBar.tsx
       BeautifyCanvas.tsx
       BackgroundControls.tsx
-      CanvasControls.tsx
       UploadZone.tsx
       EmptyUploadState.tsx
       ImagePreview.tsx
       ImageMetaCard.tsx
       ImageStyleControls.tsx
+      ResetControls.tsx
       ReplaceImageButton.tsx
       PasteHint.tsx
 
@@ -212,10 +212,10 @@ The store should own object URL cleanup when replacing or clearing the current i
 - `ImagePreview`: renders the canvas preview shell plus replace/remove actions.
 - `BeautifyCanvas`: renders the uploaded image inside the configured beautification canvas.
 - `BeautifyPresetBar`: renders one-click Phase 2 style presets that update canvas, background, and screenshot styling without changing the uploaded image.
-- `CanvasControls`: renders shared live canvas status and reset controls.
 - `CanvasPresetSelector`: renders canvas size presets.
 - `BackgroundControls`: renders background presets and custom solid color controls.
 - `ImageStyleControls`: renders padding, radius, scale, shadow, and border controls.
+- `ResetControls`: renders reset style controls that restore beautification defaults without changing the uploaded image.
 - `ImageMetaCard`: renders uploaded image metadata only.
 - `ReplaceImageButton`: small focused replace action.
 - `PasteHint`: presentational clipboard hint.
