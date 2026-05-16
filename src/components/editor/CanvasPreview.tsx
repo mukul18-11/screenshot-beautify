@@ -36,14 +36,14 @@ export default function CanvasPreview({
         scale: shouldReduceMotion ? 1 : 0.99,
       }}
       transition={{ duration: 0.28, ease: "easeOut" }}
-      className="flex w-full items-center justify-center px-2 py-3 sm:px-4 sm:py-5"
+      className="flex w-full items-center justify-center px-1 py-2 sm:px-3 sm:py-4"
     >
       <CanvasArtwork
         mode="preview"
         isLoading={isLoading}
         onImageLoad={onImageLoad}
         uploadedImage={uploadedImage}
-        className="rounded-[1.75rem] border border-white/80 bg-white shadow-2xl shadow-slate-950/20 ring-1 ring-slate-950/[0.03] dark:border-white/10 dark:bg-slate-950 dark:ring-white/10"
+        className="rounded-2xl shadow-2xl shadow-slate-950/15 ring-1 ring-black/[0.04]"
         style={{ width: previewWidth }}
       />
     </motion.div>

@@ -178,9 +178,9 @@ export const DESIGN_TEMPLATES = [
     canvasPresetId: "wide-hero",
     backgroundPresetId: "midnight-purple",
     imageStyle: {
-      imagePadding: 120,
+      imagePadding: 80,
       imageRadius: 26,
-      imageScale: 92,
+      imageScale: 94,
       imageShadow: shadow(72, 0.42, 34),
       imageBorderEnabled: true,
     },
@@ -196,7 +196,7 @@ export const DESIGN_TEMPLATES = [
       46,
       20,
     ),
-    tilt: tilt(true, "product-hero", 1000, 12, -18, 0, 0, 1.35, true, true),
+    tilt: tilt(true, "product-hero", 1100, 8, -12, 0, 0, 1.2, true, true),
     previewLabel: "Hero",
   }),
   createDesignTemplate({

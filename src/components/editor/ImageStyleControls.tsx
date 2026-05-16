@@ -35,15 +35,15 @@ function SliderRow({
   const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-slider`;
 
   return (
-    <div className={cn("space-y-2.5", disabled && "opacity-50")}>
+    <div className={cn("space-y-2", disabled && "opacity-40")}>
       <div className="flex items-center justify-between gap-3">
         <Label
           htmlFor={inputId}
-          className="text-sm font-medium text-slate-600 dark:text-slate-300"
+          className="text-[13px] font-medium text-slate-600 dark:text-slate-300"
         >
           {label}
         </Label>
-        <span className="min-w-14 rounded-lg border border-slate-200 bg-white px-2 py-1 text-right text-xs font-semibold text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-100">
+        <span className="text-[11px] font-semibold tabular-nums text-slate-400">
           {value}
           {suffix}
         </span>
@@ -92,13 +92,11 @@ export default function ImageStyleControls() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-200/70 py-5 dark:border-white/10"
+      className="border-b border-slate-100 py-4 dark:border-white/8"
     >
-      <div className="mb-4 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950">
-          <ImageIcon className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
+      <div className="mb-3 flex items-center gap-2">
+        <ImageIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
+        <h3 className="text-[13px] font-semibold text-slate-700 dark:text-white">
           Screenshot style
         </h3>
       </div>
@@ -132,12 +130,12 @@ export default function ImageStyleControls() {
           onChange={setImageScale}
         />
 
-        <Separator className="my-1" />
+        <Separator className="!my-3 bg-slate-100" />
 
         <div className="flex items-center justify-between gap-3">
           <Label
             htmlFor="shadow-toggle"
-            className="text-sm font-medium text-slate-700 dark:text-slate-200"
+            className="text-[13px] font-medium text-slate-600"
           >
             Shadow
           </Label>
@@ -149,10 +147,10 @@ export default function ImageStyleControls() {
           />
         </div>
 
-        <div className="grid gap-4 rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
+        <div className="space-y-3 pl-1">
           <SliderRow
             disabled={!imageShadow.enabled}
-            label="Shadow blur"
+            label="Blur"
             min={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.min}
             max={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.max}
             step={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.step}
@@ -162,7 +160,7 @@ export default function ImageStyleControls() {
           />
           <SliderRow
             disabled={!imageShadow.enabled}
-            label="Shadow opacity"
+            label="Opacity"
             min={Math.round(
               BEAUTIFY_SETTING_LIMITS.imageShadowOpacity.min * 100,
             )}
@@ -178,7 +176,7 @@ export default function ImageStyleControls() {
           />
           <SliderRow
             disabled={!imageShadow.enabled}
-            label="Shadow offset Y"
+            label="Offset Y"
             min={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.min}
             max={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.max}
             step={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.step}
@@ -188,12 +186,12 @@ export default function ImageStyleControls() {
           />
         </div>
 
-        <Separator className="my-1" />
+        <Separator className="!my-3 bg-slate-100" />
 
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
+        <div className="flex items-center justify-between gap-3">
           <Label
             htmlFor="border-toggle"
-            className="text-sm font-medium text-slate-700 dark:text-slate-200"
+            className="text-[13px] font-medium text-slate-600"
           >
             Subtle border
           </Label>

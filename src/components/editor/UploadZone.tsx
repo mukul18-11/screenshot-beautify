@@ -73,7 +73,7 @@ export default function UploadZone() {
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: "easeOut" }}
-      className="group flex w-full rounded-[1.75rem] border border-slate-200/80 bg-white/80 p-3 shadow-[0_24px_70px_-50px_rgba(15,23,42,0.55)] backdrop-blur-xl sm:p-5"
+      className="flex w-full"
     >
       <motion.div
         {...getRootProps({
@@ -87,16 +87,19 @@ export default function UploadZone() {
           role: "group",
           tabIndex: 0,
         })}
-        animate={{ scale: isDragActive && !shouldReduceMotion ? 1.01 : 1 }}
+        animate={{ scale: isDragActive && !shouldReduceMotion ? 1.005 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex min-h-[480px] w-full cursor-default items-center justify-center overflow-hidden rounded-[1.5rem] border border-dashed border-slate-300/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(240,253,250,0.58)_42%,rgba(238,242,255,0.68))] p-4 outline-none transition-colors duration-200 hover:border-indigo-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-indigo-500/25 focus-visible:ring-offset-2 sm:min-h-[540px] sm:p-10",
+          "relative flex min-h-[480px] w-full cursor-default items-center justify-center overflow-hidden rounded-2xl border border-dashed p-4 outline-none transition-colors duration-200 sm:min-h-[540px] sm:p-6",
+          !uploadedImage
+            ? "border-slate-200 bg-white/60 hover:border-slate-300 hover:bg-white/80"
+            : "border-transparent bg-transparent",
           isDragActive &&
-            "border-cyan-400/80 bg-cyan-50/75 shadow-[0_0_0_8px_rgba(34,211,238,0.08),0_26px_80px_-42px_rgba(8,47,73,0.55)]",
+            "border-cyan-400/60 bg-cyan-50/40",
           isDragAccept &&
-            "border-emerald-400/90 bg-emerald-50/80 shadow-[0_0_0_10px_rgba(16,185,129,0.12),0_28px_90px_-44px_rgba(6,95,70,0.6)]",
+            "border-emerald-400/60 bg-emerald-50/40",
           isDragReject &&
-            "border-rose-400/90 bg-rose-50/80 shadow-[0_0_0_10px_rgba(244,63,94,0.10)]",
+            "border-rose-400/60 bg-rose-50/40",
         )}
       >
         <input
@@ -118,10 +121,10 @@ export default function UploadZone() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className={cn(
-                  "absolute left-0 right-0 top-5 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-full border px-4 py-2 text-center text-sm font-semibold shadow-lg backdrop-blur-xl",
+                  "absolute left-0 right-0 top-4 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-full px-4 py-2 text-center text-sm font-semibold shadow-lg backdrop-blur-xl",
                   dragState === "reject"
-                    ? "border-rose-200 bg-rose-50/90 text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/15 dark:text-rose-200"
-                    : "border-emerald-200 bg-white/90 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/15 dark:text-emerald-100",
+                    ? "bg-rose-50/90 text-rose-700"
+                    : "bg-white/90 text-emerald-700",
                 )}
               >
                 {dragStateCopy}
@@ -165,7 +168,7 @@ export default function UploadZone() {
                 id="upload-error"
                 role="alert"
                 aria-live="assertive"
-                className="inline-flex max-w-md items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 shadow-sm dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
+                className="inline-flex max-w-md items-center gap-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-600"
               >
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>

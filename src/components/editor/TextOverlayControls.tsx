@@ -92,13 +92,13 @@ function SegmentedControl<TValue extends string>({
   value,
 }: SegmentedControlProps<TValue>) {
   return (
-    <div className={cn("space-y-2", disabled && "opacity-50")}>
-      <Label className="text-sm font-medium text-slate-600 dark:text-slate-300">
+    <div className={cn("space-y-1.5", disabled && "opacity-50")}>
+      <Label className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
         {label}
       </Label>
       <div
         className={cn(
-          "grid gap-1 rounded-xl border border-slate-200 bg-white/55 p-1 shadow-sm dark:border-white/10 dark:bg-white/[0.06]",
+          "grid gap-0.5 rounded-lg bg-slate-100/80 p-0.5 dark:bg-white/[0.06]",
           gridClassName,
         )}
       >
@@ -115,10 +115,10 @@ function SegmentedControl<TValue extends string>({
               aria-pressed={isSelected}
               onClick={() => onChange(option.value)}
               className={cn(
-                "h-8 rounded-lg px-2 text-xs font-semibold transition",
+                "h-7 rounded-md px-2 text-xs font-semibold transition",
                 isSelected
-                  ? "bg-slate-950 text-white shadow-sm hover:bg-slate-950 hover:text-white dark:bg-white dark:text-slate-950 dark:hover:bg-white"
-                  : "text-slate-500 hover:bg-white/80 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
+                  ? "bg-white text-slate-800 shadow-sm dark:bg-slate-800 dark:text-white"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200",
               )}
             >
               {option.label}
@@ -139,10 +139,10 @@ function TextField({
   value,
 }: TextFieldProps) {
   return (
-    <div className={cn("space-y-2", disabled && "opacity-50")}>
+    <div className={cn("space-y-1.5", disabled && "opacity-50")}>
       <Label
         htmlFor={id}
-        className="text-sm font-medium text-slate-600 dark:text-slate-300"
+        className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
       >
         {label}
       </Label>
@@ -153,7 +153,7 @@ function TextField({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white/80 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-950/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/15"
+        className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
       />
     </div>
   );
@@ -171,15 +171,15 @@ function SliderRow({
   const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-slider`;
 
   return (
-    <div className={cn("space-y-2.5", disabled && "opacity-50")}>
+    <div className={cn("space-y-2", disabled && "opacity-40")}>
       <div className="flex items-center justify-between gap-3">
         <Label
           htmlFor={inputId}
-          className="text-sm font-medium text-slate-600 dark:text-slate-300"
+          className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
         >
           {label}
         </Label>
-        <span className="min-w-14 rounded-lg border border-slate-200 bg-white px-2 py-1 text-right text-xs font-semibold text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-100">
+        <span className="text-[11px] font-semibold tabular-nums text-slate-400">
           {value}px
         </span>
       </div>
@@ -234,63 +234,46 @@ export default function TextOverlayControls() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-200/70 py-5 dark:border-white/10"
+      className="border-b border-slate-100 py-4 dark:border-white/8"
     >
-      <div className="mb-4 flex items-start gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950">
-          <Type className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Type className="h-4 w-4 text-slate-400" aria-hidden="true" />
+          <h3 className="text-[13px] font-semibold text-slate-700 dark:text-white">
             Text overlay
           </h3>
-          <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-300">
-            Add a launch-ready headline, subtitle, or badge.
-          </p>
         </div>
+        <Switch
+          id="text-overlay-toggle"
+          checked={textOverlayEnabled}
+          onCheckedChange={toggleTextOverlay}
+          aria-label="Toggle text overlay"
+        />
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
-          <div className="min-w-0">
-            <Label
-              htmlFor="text-overlay-toggle"
-              className="text-sm font-medium text-slate-700 dark:text-slate-200"
-            >
-              Text overlay
-            </Label>
-            <p className="mt-1 text-xs leading-4 text-slate-500 dark:text-slate-400">
-              Show launch copy on the canvas.
-            </p>
-          </div>
-          <Switch
-            id="text-overlay-toggle"
-            checked={textOverlayEnabled}
-            onCheckedChange={toggleTextOverlay}
-            aria-label="Toggle text overlay"
-          />
-        </div>
+      <AnimatePresence initial={false}>
+        {textOverlayEnabled && (
+          <motion.div
+            key="text-overlay-settings"
+            initial={{
+              opacity: 0,
+              height: shouldReduceMotion ? "auto" : 0,
+            }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{
+              opacity: 0,
+              height: shouldReduceMotion ? "auto" : 0,
+            }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 pt-1">
+              <p className="text-[11px] text-slate-400">
+                Click text on the canvas to edit directly.
+              </p>
 
-        <AnimatePresence initial={false}>
-          {textOverlayEnabled && (
-            <motion.div
-              key="text-overlay-settings"
-              initial={{
-                opacity: 0,
-                height: shouldReduceMotion ? "auto" : 0,
-                y: shouldReduceMotion ? 0 : -4,
-              }}
-              animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{
-                opacity: 0,
-                height: shouldReduceMotion ? "auto" : 0,
-                y: shouldReduceMotion ? 0 : -4,
-              }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
-            >
-              <div className="grid gap-4">
-                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
                   <TextField
                     id="badge-text"
                     label="Badge"
@@ -299,99 +282,94 @@ export default function TextOverlayControls() {
                     placeholder="NEW LAUNCH"
                     onChange={setBadgeText}
                   />
-
-                  <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/55 px-3 py-2 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
-                    <Label
-                      htmlFor="badge-toggle"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      Show badge
-                    </Label>
-                    <Switch
-                      id="badge-toggle"
-                      checked={badgeEnabled}
-                      onCheckedChange={toggleBadge}
-                      aria-label="Toggle text overlay badge"
-                    />
-                  </div>
                 </div>
+                <div className="flex items-center gap-2 pt-5">
+                  <Switch
+                    id="badge-toggle"
+                    checked={badgeEnabled}
+                    onCheckedChange={toggleBadge}
+                    aria-label="Toggle text overlay badge"
+                  />
+                </div>
+              </div>
 
-                <TextField
-                  id="headline-text"
-                  label="Headline"
-                  value={headlineText}
-                  disabled={false}
-                  placeholder="Turn screenshots into launch-ready visuals"
-                  onChange={setHeadlineText}
+              <TextField
+                id="headline-text"
+                label="Headline"
+                value={headlineText}
+                disabled={false}
+                placeholder="Turn screenshots into launch-ready visuals"
+                onChange={setHeadlineText}
+              />
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="subtitle-text"
+                  className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
+                >
+                  Subtitle
+                </Label>
+                <textarea
+                  id="subtitle-text"
+                  value={subtitleText}
+                  placeholder="Make your product updates look premium in seconds."
+                  onChange={(event) => setSubtitleText(event.target.value)}
+                  rows={2}
+                  className="min-h-16 w-full resize-none rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
                 />
+              </div>
 
-                <div className="space-y-2">
+              <SegmentedControl
+                label="Position"
+                value={textPosition}
+                options={POSITION_OPTIONS}
+                gridClassName="grid-cols-5"
+                onChange={setTextPosition}
+              />
+
+              <SegmentedControl
+                label="Align"
+                value={textAlign}
+                options={ALIGN_OPTIONS}
+                onChange={setTextAlign}
+              />
+
+              <div className="flex items-center gap-3">
+                <div className="space-y-1.5">
                   <Label
-                    htmlFor="subtitle-text"
-                    className="text-sm font-medium text-slate-600 dark:text-slate-300"
+                    htmlFor="text-color"
+                    className="text-[13px] font-medium text-slate-500"
                   >
-                    Subtitle
+                    Color
                   </Label>
-                  <textarea
-                    id="subtitle-text"
-                    value={subtitleText}
-                    placeholder="Make your product updates look premium in seconds."
-                    onChange={(event) => setSubtitleText(event.target.value)}
-                    rows={3}
-                    className="min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 text-sm font-medium leading-5 text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-950/10 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/15"
-                  />
-                </div>
-
-                <SegmentedControl
-                  label="Position"
-                  value={textPosition}
-                  options={POSITION_OPTIONS}
-                  gridClassName="grid-cols-2 sm:grid-cols-5 lg:grid-cols-2 xl:grid-cols-5"
-                  onChange={setTextPosition}
-                />
-
-                <SegmentedControl
-                  label="Text align"
-                  value={textAlign}
-                  options={ALIGN_OPTIONS}
-                  onChange={setTextAlign}
-                />
-
-                <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="text-color"
-                      className="text-sm font-medium text-slate-600 dark:text-slate-300"
-                    >
-                      Text color
-                    </Label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        id="text-color"
-                        type="color"
-                        value={textColor}
-                        onChange={(event) => setTextColor(event.target.value)}
-                        className="h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-slate-200 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-white/10"
-                      />
-                      <span className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 font-mono text-xs font-semibold uppercase text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
-                        {textColor}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="text-color"
+                      type="color"
+                      value={textColor}
+                      onChange={(event) => setTextColor(event.target.value)}
+                      className="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5"
+                    />
+                    <span className="font-mono text-[11px] uppercase text-slate-400">
+                      {textColor}
+                    </span>
                   </div>
-
-                  <SliderRow
-                    label="Headline size"
-                    min={BEAUTIFY_SETTING_LIMITS.headlineSize.min}
-                    max={BEAUTIFY_SETTING_LIMITS.headlineSize.max}
-                    step={BEAUTIFY_SETTING_LIMITS.headlineSize.step}
-                    value={headlineSize}
-                    disabled={false}
-                    onChange={setHeadlineSize}
-                  />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <SliderRow
+                  label="Headline"
+                  min={BEAUTIFY_SETTING_LIMITS.headlineSize.min}
+                  max={BEAUTIFY_SETTING_LIMITS.headlineSize.max}
+                  step={BEAUTIFY_SETTING_LIMITS.headlineSize.step}
+                  value={headlineSize}
+                  disabled={false}
+                  onChange={setHeadlineSize}
+                />
 
                 <SliderRow
-                  label="Subtitle size"
+                  label="Subtitle"
                   min={BEAUTIFY_SETTING_LIMITS.subtitleSize.min}
                   max={BEAUTIFY_SETTING_LIMITS.subtitleSize.max}
                   step={BEAUTIFY_SETTING_LIMITS.subtitleSize.step}
@@ -400,10 +378,10 @@ export default function TextOverlayControls() {
                   onChange={setSubtitleSize}
                 />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.section>
   );
 }

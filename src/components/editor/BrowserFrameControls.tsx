@@ -53,11 +53,11 @@ function SegmentedControl<TValue extends string>({
   value,
 }: SegmentedControlProps<TValue>) {
   return (
-    <div className={cn("space-y-2", disabled && "opacity-50")}>
-      <Label className="text-sm font-medium text-slate-600 dark:text-slate-300">
+    <div className={cn("space-y-1.5", disabled && "opacity-50")}>
+      <Label className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
         {label}
       </Label>
-      <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-white/55 p-1 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
+      <div className="flex gap-1 rounded-lg bg-slate-100/80 p-0.5 dark:bg-white/[0.06]">
         {options.map((option) => {
           const isSelected = option.value === value;
 
@@ -71,10 +71,10 @@ function SegmentedControl<TValue extends string>({
               aria-pressed={isSelected}
               onClick={() => onChange(option.value)}
               className={cn(
-                "h-8 rounded-lg px-2 text-xs font-semibold transition",
+                "h-7 flex-1 rounded-md px-2 text-xs font-semibold transition",
                 isSelected
-                  ? "bg-slate-950 text-white shadow-sm hover:bg-slate-950 hover:text-white dark:bg-white dark:text-slate-950 dark:hover:bg-white"
-                  : "text-slate-500 hover:bg-white/80 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
+                  ? "bg-white text-slate-800 shadow-sm dark:bg-slate-800 dark:text-white"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200",
               )}
             >
               {option.label}
@@ -123,62 +123,41 @@ export default function BrowserFrameControls() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-200/70 py-5 dark:border-white/10"
+      className="border-b border-slate-100 py-4 dark:border-white/8"
     >
-      <div className="mb-4 flex items-start gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950">
-          <AppWindow className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <AppWindow className="h-4 w-4 text-slate-400" aria-hidden="true" />
+          <h3 className="text-[13px] font-semibold text-slate-700 dark:text-white">
             Browser frame
           </h3>
-          <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-300">
-            Wrap your screenshot in a clean browser mockup.
-          </p>
         </div>
+        <Switch
+          id="browser-frame-toggle"
+          checked={browserFrameEnabled}
+          onCheckedChange={toggleBrowserFrame}
+          aria-label="Toggle browser frame"
+        />
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
-          <div className="min-w-0">
-            <Label
-              htmlFor="browser-frame-toggle"
-              className="text-sm font-medium text-slate-700 dark:text-slate-200"
-            >
-              Browser frame
-            </Label>
-            <p className="mt-1 text-xs leading-4 text-slate-500 dark:text-slate-400">
-              Add a lightweight browser shell.
-            </p>
-          </div>
-          <Switch
-            id="browser-frame-toggle"
-            checked={browserFrameEnabled}
-            onCheckedChange={toggleBrowserFrame}
-            aria-label="Toggle browser frame"
-          />
-        </div>
-
-        <AnimatePresence initial={false}>
-          {browserFrameEnabled && (
-            <motion.div
-              key="browser-frame-settings"
-              initial={{
-                opacity: 0,
-                height: shouldReduceMotion ? "auto" : 0,
-                y: shouldReduceMotion ? 0 : -4,
-              }}
-              animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{
-                opacity: 0,
-                height: shouldReduceMotion ? "auto" : 0,
-                y: shouldReduceMotion ? 0 : -4,
-              }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
-            >
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+      <AnimatePresence initial={false}>
+        {browserFrameEnabled && (
+          <motion.div
+            key="browser-frame-settings"
+            initial={{
+              opacity: 0,
+              height: shouldReduceMotion ? "auto" : 0,
+            }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{
+              opacity: 0,
+              height: shouldReduceMotion ? "auto" : 0,
+            }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 pt-1">
+              <div className="grid grid-cols-2 gap-3">
                 <SegmentedControl
                   label="Theme"
                   value={browserFrameTheme}
@@ -194,10 +173,10 @@ export default function BrowserFrameControls() {
                 />
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3">
                 <Label
                   htmlFor="browser-frame-url-toggle"
-                  className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                  className="text-[13px] font-medium text-slate-600"
                 >
                   Show URL
                 </Label>
@@ -216,38 +195,30 @@ export default function BrowserFrameControls() {
                     initial={{
                       opacity: 0,
                       height: shouldReduceMotion ? "auto" : 0,
-                      y: shouldReduceMotion ? 0 : -4,
                     }}
-                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
                     exit={{
                       opacity: 0,
                       height: shouldReduceMotion ? "auto" : 0,
-                      y: shouldReduceMotion ? 0 : -4,
                     }}
                     transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="mt-4 overflow-hidden"
+                    className="overflow-hidden"
                   >
-                    <Label
-                      htmlFor="browser-frame-url"
-                      className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300"
-                    >
-                      URL
-                    </Label>
                     <input
                       id="browser-frame-url"
                       type="text"
                       value={browserFrameUrl}
                       placeholder="app.yourproduct.com"
                       onChange={(event) => setBrowserFrameUrl(event.target.value)}
-                      className="h-10 w-full rounded-xl border border-slate-200 bg-white/80 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-950/10 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/15"
+                      className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
                     />
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.section>
   );
 }

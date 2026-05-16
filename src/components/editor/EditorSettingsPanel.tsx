@@ -3,7 +3,6 @@
 import {
   FileImage,
   RefreshCw,
-  SlidersHorizontal,
   Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -65,7 +64,7 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-200/70 py-5 dark:border-white/10"
+      className="border-b border-slate-100 pb-4 dark:border-white/8"
     >
       <input
         {...getInputProps({
@@ -73,98 +72,62 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
         })}
       />
 
-      <div className="rounded-2xl border border-slate-200/70 bg-white/65 p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200">
-            <FileImage className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-normal text-emerald-600 dark:text-emerald-200">
-              Screenshot loaded
-            </p>
-            <h3 className="mt-1 truncate text-sm font-semibold text-slate-950 dark:text-white">
-              {uploadedImage.name}
-            </h3>
-            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-300">
-              {uploadedImage.width} x {uploadedImage.height} px /{" "}
-              {formatFileSize(uploadedImage.size)} /{" "}
-              {getReadableFileType(uploadedImage.type)}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <motion.div
-            whileHover={{ y: shouldReduceMotion || isUploading ? 0 : -1 }}
-            whileTap={{ scale: shouldReduceMotion || isUploading ? 1 : 0.98 }}
-          >
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              disabled={isUploading}
-              onClick={open}
-              className="w-full border border-white/70 bg-white/85 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/15"
-            >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Replace
-            </Button>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ y: shouldReduceMotion || isUploading ? 0 : -1 }}
-            whileTap={{ scale: shouldReduceMotion || isUploading ? 1 : 0.98 }}
-          >
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              disabled={isUploading}
-              onClick={handleRemoveImage}
-              className="w-full border border-rose-200/80 bg-rose-50/70 text-rose-600 shadow-sm hover:bg-rose-50 hover:text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200 dark:hover:bg-rose-400/15"
-            >
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
-              Remove
-            </Button>
-          </motion.div>
-        </div>
-
-        <AnimatePresence>
-          {errorMessage && (
-            <motion.p
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              role="alert"
-              className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
-            >
-              {errorMessage}
-            </motion.p>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.section>
-  );
-}
-
-function PanelHeader() {
-  return (
-    <div className="sticky top-0 z-20 border-b border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.65)] lg:rounded-t-[1.75rem]">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#14b8a6,#6366f1)] text-white shadow-lg shadow-indigo-500/20">
-          <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+          <FileImage className="h-4 w-4" aria-hidden="true" />
         </div>
-        <div>
-          <h2 className="text-base font-semibold text-slate-950">
-            Settings
-          </h2>
-          <p className="text-sm text-slate-500">
-            Canvas controls
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-[13px] font-semibold text-slate-800 dark:text-white">
+            {uploadedImage.name}
+          </h3>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            {uploadedImage.width}×{uploadedImage.height} ·{" "}
+            {formatFileSize(uploadedImage.size)} ·{" "}
+            {getReadableFileType(uploadedImage.type)}
           </p>
         </div>
       </div>
-    </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          disabled={isUploading}
+          onClick={open}
+          className="h-7 gap-1.5 px-2 text-xs text-slate-500 hover:text-slate-800"
+        >
+          <RefreshCw className="h-3 w-3" aria-hidden="true" />
+          Replace
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          disabled={isUploading}
+          onClick={handleRemoveImage}
+          className="h-7 gap-1.5 px-2 text-xs text-slate-400 hover:text-rose-600"
+        >
+          <Trash2 className="h-3 w-3" aria-hidden="true" />
+          Remove
+        </Button>
+      </div>
+
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            role="alert"
+            className="mt-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-600 dark:bg-rose-400/10 dark:text-rose-200"
+          >
+            {errorMessage}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </motion.section>
   );
 }
 
@@ -177,11 +140,14 @@ export default function EditorSettingsPanel({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.32, delay: 0.08, ease: "easeOut" }}
       className={cn(
-        "overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-[0_24px_70px_-50px_rgba(15,23,42,0.55)]",
+        "overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-xl shadow-slate-950/[0.06]",
         "lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:scroll-smooth",
       )}
     >
-      <PanelHeader />
+      {/* Minimal header */}
+      <div className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
+        <h2 className="text-[13px] font-semibold text-slate-800">Settings</h2>
+      </div>
 
       <AnimatePresence mode="wait">
         {uploadedImage ? (
@@ -191,7 +157,7 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="px-5"
+            className="px-5 py-4"
           >
             <ImageInfoSection uploadedImage={uploadedImage} />
             <TemplateGallery />
@@ -213,22 +179,13 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="flex min-h-[420px] items-center justify-center px-5 text-center"
+            className="flex min-h-[360px] items-center justify-center px-5 text-center"
           >
-            <div className="max-w-[260px]">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/10">
-                <SlidersHorizontal
-                  className="h-6 w-6 text-slate-400 dark:text-slate-300"
-                  aria-hidden="true"
-                />
-              </div>
-              <p className="text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-                Upload a screenshot to customize it.
+            <div className="max-w-[220px]">
+              <p className="text-sm text-slate-400">
+                Upload a screenshot to start customizing.
               </p>
-              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                Upload a screenshot to preview 3D tilt.
-              </p>
-              <div className="mt-6 text-left">
+              <div className="mt-5 text-left">
                 <ExportControls uploadedImage={uploadedImage} />
               </div>
             </div>

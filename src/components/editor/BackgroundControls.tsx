@@ -37,17 +37,13 @@ export default function BackgroundControls() {
   const isCustomSelected = backgroundPresetId === "custom";
 
   return (
-    <section className="border-b border-slate-200/70 py-5 dark:border-white/10">
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
-          Background
-        </h3>
-        <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-300">
-          Pick a background that makes your screenshot pop.
-        </p>
-      </div>
+    <section className="border-b border-slate-100 py-4 dark:border-white/8">
+      <h3 className="mb-3 text-[13px] font-semibold text-slate-700 dark:text-white">
+        Background
+      </h3>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+      {/* Compact color swatches grid */}
+      <div className="grid grid-cols-4 gap-1.5">
         {BACKGROUND_PRESETS.map((preset) => {
           const isSelected = backgroundPresetId === preset.id;
 
@@ -55,86 +51,52 @@ export default function BackgroundControls() {
             <motion.button
               key={preset.id}
               type="button"
-              whileHover={{ y: shouldReduceMotion ? 0 : -2 }}
-              whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
+              whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
+              whileTap={{ scale: shouldReduceMotion ? 1 : 0.95 }}
               aria-label={`${preset.name} background`}
               aria-pressed={isSelected}
               onClick={() => setBackgroundPreset(preset.id)}
               className={cn(
-                "group relative overflow-hidden rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/30",
+                "group relative flex h-10 items-center justify-center overflow-hidden rounded-lg border transition",
                 isSelected
-                  ? "border-indigo-500 bg-[linear-gradient(135deg,#14b8a6,#6366f1)] text-white shadow-lg shadow-indigo-500/20"
-                  : "border-slate-200 bg-white/70 text-slate-700 shadow-sm hover:border-slate-300 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:bg-white/10",
+                  ? "border-slate-800 ring-1 ring-slate-800/30 dark:border-white dark:ring-white/30"
+                  : "border-slate-200/60 hover:border-slate-300 dark:border-white/10",
               )}
+              style={{ background: preset.cssValue }}
+              title={preset.name}
             >
-              <div className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-lg border shadow-sm",
-                    isSelected
-                      ? "border-white/25 dark:border-slate-950/15"
-                      : "border-white/80 dark:border-white/10",
-                  )}
-                  style={{ background: preset.cssValue }}
-                  aria-hidden="true"
+              {preset.type === "image-blur" && (
+                <ImageIcon className="h-3.5 w-3.5 text-white/70" aria-hidden="true" />
+              )}
+              {isSelected && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute inset-0 flex items-center justify-center bg-black/20"
                 >
-                  {preset.type === "image-blur" && (
-                    <span className="absolute inset-1 flex items-center justify-center rounded-md bg-white/20 text-white backdrop-blur-sm">
-                      <ImageIcon className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                  )}
-                </span>
-
-                <span className="min-w-0 flex-1 text-sm font-semibold leading-5">
-                  {preset.name}
-                </span>
-
-                {isSelected && (
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-slate-950 dark:bg-slate-950 dark:text-white"
-                  >
-                    <Check className="h-3 w-3" aria-hidden="true" />
-                  </motion.span>
-                )}
-              </div>
+                  <Check className="h-3.5 w-3.5 text-white drop-shadow" aria-hidden="true" />
+                </motion.span>
+              )}
             </motion.button>
           );
         })}
       </div>
 
-      <div
-        className={cn(
-          "mt-3 rounded-xl border p-3 transition",
-          isCustomSelected
-            ? "border-indigo-500 bg-white shadow-lg shadow-indigo-500/10"
-            : "border-slate-200 bg-white/60 shadow-sm dark:border-white/10 dark:bg-white/[0.06]",
-        )}
-      >
-        <label
-          htmlFor="custom-background-color"
-          className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-100"
-        >
-          Custom color
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            id="custom-background-color"
-            type="color"
-            value={colorInputValue}
-            onChange={(event) => setSolidBackground(event.target.value)}
-            className="h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-slate-200 bg-white p-1 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:border-white/10 dark:bg-white/10 dark:focus-visible:ring-white/30"
-          />
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-              Choose a solid canvas color.
-            </p>
-            <p className="mt-0.5 font-mono text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">
-              {isCustomSelected ? backgroundValue : colorInputValue}
-            </p>
-          </div>
+      {/* Inline custom color picker */}
+      <div className="mt-3 flex items-center gap-2.5">
+        <input
+          id="custom-background-color"
+          type="color"
+          value={colorInputValue}
+          onChange={(event) => setSolidBackground(event.target.value)}
+          className="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5"
+        />
+        <div className="min-w-0">
+          <span className="text-[12px] font-medium text-slate-500">Custom</span>
+          <span className="ml-2 font-mono text-[11px] uppercase text-slate-400">
+            {isCustomSelected ? backgroundValue : colorInputValue}
+          </span>
         </div>
       </div>
     </section>

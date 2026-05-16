@@ -338,6 +338,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         badgeText={badgeText}
         headlineSize={headlineSize}
         headlineText={headlineText}
+        isEditable={!isExportMode}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
         textAlign={textAlign}
@@ -445,7 +446,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           </div>
 
           {hasTextOverlay && textPosition === "center" && (
-            <div className="pointer-events-none relative z-10 flex h-full w-full items-center justify-center">
+            <div className="relative z-10 flex h-full w-full items-center justify-center">
               {textOverlay}
             </div>
           )}
