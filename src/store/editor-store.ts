@@ -9,9 +9,14 @@ import {
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
   DEFAULT_EXPORT_SETTINGS,
+  DEFAULT_TEMPLATE_SETTINGS,
   DEFAULT_TEXT_OVERLAY_SETTINGS,
   DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
+import {
+  createDesignTemplateSettings,
+  getDesignTemplate,
+} from "@/lib/design-templates";
 import { sanitizeFileName } from "@/lib/export-utils";
 import { createTiltPresetSettings } from "@/lib/tilt-presets";
 import { getTextLayoutPreset } from "@/lib/text-layout-presets";
@@ -27,6 +32,8 @@ import type {
   Phase3Settings,
   Phase4Settings,
   Phase5Settings,
+  Phase6Settings,
+  TemplateSettings,
   TextAlign,
   TextOverlaySettings,
   TextPosition,
@@ -39,7 +46,8 @@ export type { UploadedImage } from "@/types/editor";
 type EditorStore = BeautifySettings &
   Phase3Settings &
   Phase4Settings &
-  Phase5Settings & {
+  Phase5Settings &
+  Phase6Settings & {
     uploadedImage: UploadedImage | null;
     lastBeautifyPresetId: string | null;
     setUploadedImage: (uploadedImage: UploadedImage | null) => void;
@@ -95,6 +103,8 @@ type EditorStore = BeautifySettings &
     setIsExporting: (value: boolean) => void;
     markExported: () => void;
     resetExportSettings: () => void;
+    applyDesignTemplate: (templateId: string) => void;
+    setActiveTemplateId: (templateId: string | null) => void;
   };
 
 function revokeObjectUrl(uploadedImage: UploadedImage | null) {
@@ -135,6 +145,12 @@ function createDefaultTiltSettings(): TiltSettings {
 function createDefaultExportSettings(): ExportSettings {
   return {
     ...DEFAULT_EXPORT_SETTINGS,
+  };
+}
+
+function createDefaultTemplateSettings(): TemplateSettings {
+  return {
+    ...DEFAULT_TEMPLATE_SETTINGS,
   };
 }
 
@@ -180,6 +196,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   ...createDefaultTextOverlaySettings(),
   ...createDefaultTiltSettings(),
   ...createDefaultExportSettings(),
+  ...createDefaultTemplateSettings(),
   setUploadedImage: (uploadedImage) => {
     const previousImage = get().uploadedImage;
 
@@ -404,5 +421,18 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   resetExportSettings: () => {
     set(createDefaultExportSettings());
+  },
+  applyDesignTemplate: (templateId) => {
+    const template = getDesignTemplate(templateId);
+
+    set({
+      ...createDesignTemplateSettings(template.id),
+      activeTemplateId: template.id,
+      lastAppliedTemplateId: template.id,
+      lastBeautifyPresetId: null,
+    });
+  },
+  setActiveTemplateId: (templateId) => {
+    set({ activeTemplateId: templateId });
   },
 }));

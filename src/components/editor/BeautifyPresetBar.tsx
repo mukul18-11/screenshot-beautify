@@ -31,7 +31,7 @@ export default function BeautifyPresetBar() {
     <section className="border-b border-slate-200/70 py-5 dark:border-white/10">
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[linear-gradient(135deg,#14b8a6,#6366f1)] text-white shadow-sm">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </div>
           <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
@@ -66,7 +66,7 @@ export default function BeautifyPresetBar() {
                 className={cn(
                   "group min-w-[148px] rounded-xl border p-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/30",
                   isSelected
-                    ? "border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/15 dark:border-white dark:bg-white dark:text-slate-950"
+                    ? "border-indigo-500 bg-[linear-gradient(135deg,#14b8a6,#6366f1)] text-white shadow-lg shadow-indigo-500/20"
                     : "border-slate-200 bg-white/70 text-slate-700 shadow-sm hover:border-slate-300 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:bg-white/10",
                 )}
               >

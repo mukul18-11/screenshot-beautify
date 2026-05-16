@@ -16,6 +16,7 @@ import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ExportControls from "@/components/editor/ExportControls";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
+import TemplateGallery from "@/components/editor/TemplateGallery";
 import TextLayoutPresetSelector from "@/components/editor/TextLayoutPresetSelector";
 import TextOverlayControls from "@/components/editor/TextOverlayControls";
 import TiltControls from "@/components/editor/TiltControls";
@@ -149,16 +150,16 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
 
 function PanelHeader() {
   return (
-    <div className="sticky top-0 z-10 -mx-5 -mt-5 border-b border-slate-200/70 bg-white/80 px-5 py-5 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/70 lg:rounded-t-3xl">
+    <div className="sticky top-0 z-20 border-b border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.65)] lg:rounded-t-[1.75rem]">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 dark:bg-white dark:text-slate-950">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#14b8a6,#6366f1)] text-white shadow-lg shadow-indigo-500/20">
           <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950 dark:text-white">
+          <h2 className="text-base font-semibold text-slate-950">
             Settings
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-300">
+          <p className="text-sm text-slate-500">
             Canvas controls
           </p>
         </div>
@@ -176,7 +177,7 @@ export default function EditorSettingsPanel({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.32, delay: 0.08, ease: "easeOut" }}
       className={cn(
-        "rounded-3xl border border-white/60 bg-white/50 p-5 shadow-soft backdrop-blur-2xl dark:border-white/10 dark:bg-white/10",
+        "overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-[0_24px_70px_-50px_rgba(15,23,42,0.55)]",
         "lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:scroll-smooth",
       )}
     >
@@ -190,8 +191,10 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
+            className="px-5"
           >
             <ImageInfoSection uploadedImage={uploadedImage} />
+            <TemplateGallery />
             <BeautifyPresetBar />
             <CanvasPresetSelector />
             <BackgroundControls />
@@ -210,7 +213,7 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="flex min-h-[420px] items-center justify-center text-center"
+            className="flex min-h-[420px] items-center justify-center px-5 text-center"
           >
             <div className="max-w-[260px]">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/10">

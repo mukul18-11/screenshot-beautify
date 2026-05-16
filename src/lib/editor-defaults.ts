@@ -5,6 +5,7 @@ import type {
   BrowserFrameSettings,
   ExportSettings,
   ImageShadow,
+  TemplateSettings,
   TextOverlaySettings,
   TiltSettings,
 } from "@/types/editor";
@@ -78,6 +79,11 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   exportFileName: "screenshot-beautifier",
   isExporting: false,
   lastExportedAt: null,
+};
+
+export const DEFAULT_TEMPLATE_SETTINGS: TemplateSettings = {
+  activeTemplateId: null,
+  lastAppliedTemplateId: null,
 };
 
 export const BEAUTIFY_SETTING_LIMITS = {

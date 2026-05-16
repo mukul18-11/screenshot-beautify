@@ -73,7 +73,7 @@ export default function UploadZone() {
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: "easeOut" }}
-      className="group flex w-full rounded-3xl border border-white/60 bg-white/45 p-3 shadow-soft backdrop-blur-2xl dark:border-white/10 dark:bg-white/10 sm:p-5"
+      className="group flex w-full rounded-[1.75rem] border border-slate-200/80 bg-white/80 p-3 shadow-[0_24px_70px_-50px_rgba(15,23,42,0.55)] backdrop-blur-xl sm:p-5"
     >
       <motion.div
         {...getRootProps({
@@ -90,13 +90,13 @@ export default function UploadZone() {
         animate={{ scale: isDragActive && !shouldReduceMotion ? 1.01 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex min-h-[480px] w-full cursor-default items-center justify-center overflow-hidden rounded-3xl border border-dashed border-slate-300/80 bg-white/50 p-4 outline-none transition-colors duration-200 hover:border-slate-400/50 hover:bg-white/65 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2 dark:border-white/15 dark:bg-white/[0.06] dark:hover:border-white/25 dark:hover:bg-white/10 dark:focus-visible:ring-white/30 sm:min-h-[540px] sm:p-10",
+          "relative flex min-h-[480px] w-full cursor-default items-center justify-center overflow-hidden rounded-[1.5rem] border border-dashed border-slate-300/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(240,253,250,0.58)_42%,rgba(238,242,255,0.68))] p-4 outline-none transition-colors duration-200 hover:border-indigo-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-indigo-500/25 focus-visible:ring-offset-2 sm:min-h-[540px] sm:p-10",
           isDragActive &&
-            "border-cyan-400/80 bg-cyan-50/75 shadow-[0_0_0_8px_rgba(34,211,238,0.08),0_26px_80px_-42px_rgba(8,47,73,0.55)] dark:bg-cyan-400/10",
+            "border-cyan-400/80 bg-cyan-50/75 shadow-[0_0_0_8px_rgba(34,211,238,0.08),0_26px_80px_-42px_rgba(8,47,73,0.55)]",
           isDragAccept &&
-            "border-emerald-400/90 bg-emerald-50/80 shadow-[0_0_0_10px_rgba(16,185,129,0.12),0_28px_90px_-44px_rgba(6,95,70,0.6)] dark:bg-emerald-400/10",
+            "border-emerald-400/90 bg-emerald-50/80 shadow-[0_0_0_10px_rgba(16,185,129,0.12),0_28px_90px_-44px_rgba(6,95,70,0.6)]",
           isDragReject &&
-            "border-rose-400/90 bg-rose-50/80 shadow-[0_0_0_10px_rgba(244,63,94,0.10)] dark:bg-rose-400/10",
+            "border-rose-400/90 bg-rose-50/80 shadow-[0_0_0_10px_rgba(244,63,94,0.10)]",
         )}
       >
         <input

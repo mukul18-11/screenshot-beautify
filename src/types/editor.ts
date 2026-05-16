@@ -20,6 +20,14 @@ export type TiltPresetId =
 
 export type ExportScale = 1 | 2 | 4;
 
+export type DesignTemplateCategory =
+  | "Social"
+  | "Launch"
+  | "SaaS"
+  | "Founder"
+  | "Mobile"
+  | "Minimal";
+
 export type UploadedImage = {
   id: string;
   file: File;
@@ -137,8 +145,48 @@ export type ExportSettings = {
   lastExportedAt: number | null;
 };
 
+export type TemplateSettings = {
+  activeTemplateId: string | null;
+  lastAppliedTemplateId: string | null;
+};
+
+export type DesignTemplateCanvas = Pick<
+  BeautifySettings,
+  "canvasPreset" | "canvasWidth" | "canvasHeight"
+>;
+
+export type DesignTemplateBackground = Pick<
+  BeautifySettings,
+  "backgroundType" | "backgroundValue" | "backgroundPresetId"
+>;
+
+export type DesignTemplateImageStyle = Pick<
+  BeautifySettings,
+  | "imagePadding"
+  | "imageRadius"
+  | "imageScale"
+  | "imageShadow"
+  | "imageBorderEnabled"
+>;
+
+export type DesignTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  category: DesignTemplateCategory;
+  canvas: DesignTemplateCanvas;
+  background: DesignTemplateBackground;
+  imageStyle: DesignTemplateImageStyle;
+  browserFrame: BrowserFrameSettings;
+  textOverlay: TextOverlaySettings;
+  tilt: TiltSettings;
+  previewLabel: string;
+};
+
 export type Phase3Settings = BrowserFrameSettings & TextOverlaySettings;
 
 export type Phase4Settings = TiltSettings;
 
 export type Phase5Settings = ExportSettings;
+
+export type Phase6Settings = TemplateSettings;

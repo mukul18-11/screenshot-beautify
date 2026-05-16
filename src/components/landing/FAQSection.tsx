@@ -1,0 +1,50 @@
+const FAQS = [
+  {
+    question: "Do screenshots upload to a server?",
+    answer:
+      "No. Screenshot Beautifier handles the image in your browser for this MVP.",
+  },
+  {
+    question: "What file types can I use?",
+    answer: "PNG, JPG, and WebP screenshots up to 10 MB are supported.",
+  },
+  {
+    question: "Can I export for social posts and landing pages?",
+    answer:
+      "Yes. Use built-in canvas sizes and export sharp PNGs for X, LinkedIn, Product Hunt, decks, and hero images.",
+  },
+  {
+    question: "Are templates saved to an account?",
+    answer:
+      "No. Phase 6 templates are built-in static presets and do not require login.",
+  },
+] as const;
+
+export default function FAQSection() {
+  return (
+    <section className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-sm font-semibold text-cyan-700">FAQ</p>
+        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+          Practical answers before you start
+        </h2>
+      </div>
+
+      <div className="mx-auto mt-9 grid max-w-4xl gap-3 sm:grid-cols-2">
+        {FAQS.map((faq) => (
+          <div
+            key={faq.question}
+            className="rounded-2xl border border-slate-200 bg-white/75 p-5 shadow-sm backdrop-blur-xl"
+          >
+            <h3 className="text-base font-semibold text-slate-950">
+              {faq.question}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {faq.answer}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
