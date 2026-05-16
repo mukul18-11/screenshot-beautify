@@ -3,6 +3,7 @@
 import { create } from "zustand";
 
 import { getBackgroundPreset } from "@/lib/background-presets";
+import { createBeautifyPresetSettings } from "@/lib/beautify-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
 import { DEFAULT_BEAUTIFY_SETTINGS } from "@/lib/editor-defaults";
 import type {
@@ -16,9 +17,11 @@ export type { UploadedImage } from "@/types/editor";
 
 type EditorStore = BeautifySettings & {
   uploadedImage: UploadedImage | null;
+  lastBeautifyPresetId: string | null;
   setUploadedImage: (uploadedImage: UploadedImage | null) => void;
   clearUploadedImage: () => void;
   replaceUploadedImage: (uploadedImage: UploadedImage) => void;
+  applyBeautifyPreset: (presetId: string) => void;
   setCanvasPreset: (presetId: string) => void;
   setCanvasSize: (width: number, height: number) => void;
   setBackgroundPreset: (presetId: string) => void;
@@ -65,6 +68,7 @@ function getBackgroundState(presetId: string): {
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
   uploadedImage: null,
+  lastBeautifyPresetId: null,
   ...createDefaultBeautifySettings(),
   setUploadedImage: (uploadedImage) => {
     const previousImage = get().uploadedImage;
@@ -84,6 +88,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   replaceUploadedImage: (uploadedImage) => {
     get().setUploadedImage(uploadedImage);
+  },
+  applyBeautifyPreset: (presetId) => {
+    set({
+      ...createBeautifyPresetSettings(presetId),
+      lastBeautifyPresetId: presetId,
+    });
   },
   setCanvasPreset: (presetId) => {
     const preset = getCanvasPreset(presetId);
@@ -137,6 +147,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
   resetBeautifySettings: () => {
-    set(createDefaultBeautifySettings());
+    set({
+      ...createDefaultBeautifySettings(),
+      lastBeautifyPresetId: null,
+    });
   },
 }));

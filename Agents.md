@@ -102,12 +102,15 @@ src/
 
   components/
     editor/
+      BeautifyPresetBar.tsx
       BeautifyCanvas.tsx
+      BackgroundControls.tsx
       CanvasControls.tsx
       UploadZone.tsx
       EmptyUploadState.tsx
       ImagePreview.tsx
       ImageMetaCard.tsx
+      ImageStyleControls.tsx
       ReplaceImageButton.tsx
       PasteHint.tsx
 
@@ -119,6 +122,8 @@ src/
     editor-store.ts
 
   lib/
+    beautify-presets.ts
+    background-presets.ts
     canvas-presets.ts
     image-validation.ts
     image-utils.ts
@@ -206,13 +211,19 @@ The store should own object URL cleanup when replacing or clearing the current i
 - `EmptyUploadState`: presentational empty/uploading state with browse CTA and paste hint.
 - `ImagePreview`: renders the canvas preview shell plus replace/remove actions.
 - `BeautifyCanvas`: renders the uploaded image inside the configured beautification canvas.
-- `CanvasControls`: renders Phase 2 canvas size, background, padding, radius, shadow, scale, and reset controls.
+- `BeautifyPresetBar`: renders one-click Phase 2 style presets that update canvas, background, and screenshot styling without changing the uploaded image.
+- `CanvasControls`: renders shared live canvas status and reset controls.
+- `CanvasPresetSelector`: renders canvas size presets.
+- `BackgroundControls`: renders background presets and custom solid color controls.
+- `ImageStyleControls`: renders padding, radius, scale, shadow, and border controls.
 - `ImageMetaCard`: renders uploaded image metadata only.
 - `ReplaceImageButton`: small focused replace action.
 - `PasteHint`: presentational clipboard hint.
 - `useImageUpload`: shared upload flow, validation, dropzone wiring, loading/error state, and store updates.
 - `useClipboardImage`: clipboard event handling only.
-- `canvas-presets.ts`: canvas size, background, shadow, limits, defaults, and canvas style helpers.
+- `beautify-presets.ts`: one-click style preset data and helpers.
+- `background-presets.ts`: background preset data and helpers.
+- `canvas-presets.ts`: canvas size preset data and helpers.
 - `image-validation.ts`: accepted types, size limits, and validation messages.
 - `image-utils.ts`: object URL creation, image dimension reading, and `UploadedImage` creation.
 - `editor-store.ts`: uploaded image state, canvas settings state, and object URL cleanup.
