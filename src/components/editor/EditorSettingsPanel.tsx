@@ -17,6 +17,7 @@ import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
 import TextLayoutPresetSelector from "@/components/editor/TextLayoutPresetSelector";
 import TextOverlayControls from "@/components/editor/TextOverlayControls";
+import TiltControls from "@/components/editor/TiltControls";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/format-file-size";
 import { cn } from "@/lib/utils";
@@ -197,6 +198,7 @@ export default function EditorSettingsPanel({
             <BrowserFrameControls />
             <TextLayoutPresetSelector />
             <TextOverlayControls />
+            <TiltControls />
             <ResetControls />
           </motion.div>
         ) : (
@@ -217,6 +219,9 @@ export default function EditorSettingsPanel({
               </div>
               <p className="text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
                 Upload a screenshot to customize it.
+              </p>
+              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                Upload a screenshot to preview 3D tilt.
               </p>
             </div>
           </motion.div>

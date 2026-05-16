@@ -5,6 +5,7 @@ import type {
   BrowserFrameSettings,
   ImageShadow,
   TextOverlaySettings,
+  TiltSettings,
 } from "@/types/editor";
 
 const DEFAULT_CANVAS_PRESET_ID = "wide-hero";
@@ -56,6 +57,21 @@ export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
   badgeEnabled: true,
 };
 
+export const DEFAULT_TILT_SETTINGS: TiltSettings = {
+  tiltEnabled: false,
+  tiltPresetId: "flat",
+  perspective: 1200,
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  translateY: 0,
+  tiltShadowMultiplier: 1,
+  hoverTiltEnabled: false,
+  hoverTiltSensitivity: 8,
+  backgroundParallaxEnabled: false,
+  backgroundParallaxStrength: 8,
+};
+
 export const BEAUTIFY_SETTING_LIMITS = {
   imagePadding: {
     min: 24,
@@ -95,6 +111,46 @@ export const BEAUTIFY_SETTING_LIMITS = {
   subtitleSize: {
     min: 14,
     max: 32,
+    step: 1,
+  },
+  perspective: {
+    min: 600,
+    max: 2000,
+    step: 50,
+  },
+  rotateX: {
+    min: -30,
+    max: 30,
+    step: 1,
+  },
+  rotateY: {
+    min: -35,
+    max: 35,
+    step: 1,
+  },
+  rotateZ: {
+    min: -8,
+    max: 8,
+    step: 0.5,
+  },
+  translateY: {
+    min: -40,
+    max: 20,
+    step: 1,
+  },
+  tiltShadowMultiplier: {
+    min: 0.5,
+    max: 2,
+    step: 0.1,
+  },
+  hoverTiltSensitivity: {
+    min: 2,
+    max: 18,
+    step: 1,
+  },
+  backgroundParallaxStrength: {
+    min: 0,
+    max: 24,
     step: 1,
   },
 } as const;

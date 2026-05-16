@@ -1,10 +1,19 @@
 "use client";
 
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type PointerEvent,
+} from "react";
+
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import BrowserFrame from "@/components/editor/BrowserFrame";
 import TextOverlay from "@/components/editor/TextOverlay";
+import TiltedMockupWrapper from "@/components/editor/TiltedMockupWrapper";
 import { createImageShadowCss } from "@/lib/editor-defaults";
+import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 import type { TextPosition } from "@/types/editor";
@@ -67,6 +76,8 @@ export default function CanvasPreview({
   uploadedImage,
 }: CanvasPreviewProps) {
   const shouldReduceMotion = useReducedMotion();
+  const canvasShellRef = useRef<HTMLDivElement | null>(null);
+  const parallaxFrameRef = useRef<number | null>(null);
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
   const backgroundType = useEditorStore((state) => state.backgroundType);
@@ -103,15 +114,97 @@ export default function CanvasPreview({
   const headlineSize = useEditorStore((state) => state.headlineSize);
   const subtitleSize = useEditorStore((state) => state.subtitleSize);
   const badgeEnabled = useEditorStore((state) => state.badgeEnabled);
+  const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
+  const tiltShadowMultiplier = useEditorStore(
+    (state) => state.tiltShadowMultiplier,
+  );
+  const backgroundParallaxEnabled = useEditorStore(
+    (state) => state.backgroundParallaxEnabled,
+  );
+  const backgroundParallaxStrength = useEditorStore(
+    (state) => state.backgroundParallaxStrength,
+  );
   const aspectRatio = canvasWidth / canvasHeight;
   const previewWidth = `min(100%, 1040px, calc(70vh * ${aspectRatio}))`;
   const paddingPercent =
     (imagePadding / Math.min(canvasWidth, canvasHeight)) * 100;
   const screenshotScale = imageScale / 100;
-  const screenshotShadow = createImageShadowCss(imageShadow);
+  const screenshotShadow = createImageShadowCss({
+    ...imageShadow,
+    blur: tiltEnabled
+      ? multiplyTiltShadow(imageShadow.blur, tiltShadowMultiplier)
+      : imageShadow.blur,
+    offsetY: tiltEnabled
+      ? multiplyTiltShadow(imageShadow.offsetY, tiltShadowMultiplier)
+      : imageShadow.offsetY,
+  });
   const backgroundKey = `${backgroundType}-${backgroundValue}-${
     backgroundType === "image-blur" ? uploadedImage.id : "static"
   }`;
+  const canParallaxBackground =
+    backgroundParallaxEnabled &&
+    backgroundParallaxStrength > 0 &&
+    !shouldReduceMotion;
+  const applyBackgroundParallax = useCallback((x = 0, y = 0) => {
+    const canvasShell = canvasShellRef.current;
+
+    if (!canvasShell) {
+      return;
+    }
+
+    canvasShell.style.setProperty("--bg-shift-x", `${x}px`);
+    canvasShell.style.setProperty("--bg-shift-y", `${y}px`);
+  }, []);
+  const scheduleBackgroundParallax = useCallback(
+    (x = 0, y = 0) => {
+      if (parallaxFrameRef.current !== null) {
+        cancelAnimationFrame(parallaxFrameRef.current);
+      }
+
+      parallaxFrameRef.current = requestAnimationFrame(() => {
+        applyBackgroundParallax(x, y);
+        parallaxFrameRef.current = null;
+      });
+    },
+    [applyBackgroundParallax],
+  );
+
+  useEffect(() => {
+    if (!canParallaxBackground) {
+      applyBackgroundParallax();
+    }
+
+    return () => {
+      if (parallaxFrameRef.current !== null) {
+        cancelAnimationFrame(parallaxFrameRef.current);
+      }
+    };
+  }, [applyBackgroundParallax, canParallaxBackground]);
+
+  function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!canParallaxBackground || event.pointerType === "touch") {
+      return;
+    }
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const offsetX = (event.clientX - bounds.left) / bounds.width;
+    const offsetY = (event.clientY - bounds.top) / bounds.height;
+    const normalizedX = offsetX * 2 - 1;
+    const normalizedY = offsetY * 2 - 1;
+    const shiftX = -normalizedX * backgroundParallaxStrength * 0.45;
+    const shiftY = -normalizedY * backgroundParallaxStrength * 0.35;
+
+    scheduleBackgroundParallax(shiftX, shiftY);
+  }
+
+  function handleCanvasPointerLeave() {
+    if (!canParallaxBackground) {
+      return;
+    }
+
+    scheduleBackgroundParallax();
+  }
+
   const screenshotMotionProps = {
     initial: {
       opacity: 0,
@@ -211,7 +304,11 @@ export default function CanvasPreview({
       className="flex w-full items-center justify-center px-2 py-3 sm:px-4 sm:py-5"
     >
       <motion.div
+        ref={canvasShellRef}
         layout
+        onPointerCancel={handleCanvasPointerLeave}
+        onPointerLeave={handleCanvasPointerLeave}
+        onPointerMove={handleCanvasPointerMove}
         transition={{ duration: 0.28, ease: "easeOut" }}
         className="relative overflow-hidden rounded-[1.75rem] border border-white/80 bg-white shadow-2xl shadow-slate-950/20 ring-1 ring-slate-950/[0.03] dark:border-white/10 dark:bg-slate-950 dark:ring-white/10"
         style={{
@@ -227,6 +324,15 @@ export default function CanvasPreview({
             exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
             className="absolute inset-0 overflow-hidden"
+            style={{
+              transform: backgroundParallaxEnabled
+                ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) scale(1.04)"
+                : undefined,
+              transition: shouldReduceMotion
+                ? undefined
+                : "transform 280ms ease-out",
+              willChange: backgroundParallaxEnabled ? "transform" : undefined,
+            }}
           >
             {backgroundType === "image-blur" ? (
               <>
@@ -275,7 +381,14 @@ export default function CanvasPreview({
           {hasTextOverlay && textPosition === "left" && textOverlay}
 
           <div className={cn("relative z-[1] flex", screenshotSlotClasses)}>
-            <AnimatePresence mode="wait">{screenshotPreview}</AnimatePresence>
+            <TiltedMockupWrapper
+              className={cn(
+                "flex max-h-full max-w-full",
+                screenshotShellClasses,
+              )}
+            >
+              <AnimatePresence mode="wait">{screenshotPreview}</AnimatePresence>
+            </TiltedMockupWrapper>
           </div>
 
           {hasTextOverlay && textPosition === "center" && (

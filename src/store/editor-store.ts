@@ -9,7 +9,9 @@ import {
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
   DEFAULT_TEXT_OVERLAY_SETTINGS,
+  DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
+import { createTiltPresetSettings } from "@/lib/tilt-presets";
 import { getTextLayoutPreset } from "@/lib/text-layout-presets";
 import type {
   BackgroundType,
@@ -19,50 +21,70 @@ import type {
   BrowserFrameTheme,
   ImageShadow,
   Phase3Settings,
+  Phase4Settings,
   TextAlign,
   TextOverlaySettings,
   TextPosition,
+  TiltSettings,
   UploadedImage,
 } from "@/types/editor";
 
 export type { UploadedImage } from "@/types/editor";
 
-type EditorStore = BeautifySettings & Phase3Settings & {
-  uploadedImage: UploadedImage | null;
-  lastBeautifyPresetId: string | null;
-  setUploadedImage: (uploadedImage: UploadedImage | null) => void;
-  clearUploadedImage: () => void;
-  replaceUploadedImage: (uploadedImage: UploadedImage) => void;
-  applyBeautifyPreset: (presetId: string) => void;
-  setCanvasPreset: (presetId: string) => void;
-  setCanvasSize: (width: number, height: number) => void;
-  setBackgroundPreset: (presetId: string) => void;
-  setSolidBackground: (color: string) => void;
-  setImagePadding: (value: number) => void;
-  setImageRadius: (value: number) => void;
-  setImageScale: (value: number) => void;
-  setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
-  setImageBorderEnabled: (enabled: boolean) => void;
-  toggleImageBorder: () => void;
-  resetBeautifySettings: () => void;
-  toggleBrowserFrame: () => void;
-  setBrowserFrameTheme: (theme: BrowserFrameTheme) => void;
-  setBrowserFrameStyle: (style: BrowserFrameStyle) => void;
-  setBrowserFrameUrl: (url: string) => void;
-  toggleBrowserFrameUrl: () => void;
-  toggleTextOverlay: () => void;
-  setHeadlineText: (value: string) => void;
-  setSubtitleText: (value: string) => void;
-  setBadgeText: (value: string) => void;
-  setTextPosition: (position: TextPosition) => void;
-  setTextAlign: (align: TextAlign) => void;
-  setTextColor: (color: string) => void;
-  setHeadlineSize: (size: number) => void;
-  setSubtitleSize: (size: number) => void;
-  toggleBadge: () => void;
-  applyTextLayoutPreset: (presetId: string) => void;
-  resetTextOverlaySettings: () => void;
-};
+type EditorStore = BeautifySettings &
+  Phase3Settings &
+  Phase4Settings & {
+    uploadedImage: UploadedImage | null;
+    lastBeautifyPresetId: string | null;
+    setUploadedImage: (uploadedImage: UploadedImage | null) => void;
+    clearUploadedImage: () => void;
+    replaceUploadedImage: (uploadedImage: UploadedImage) => void;
+    applyBeautifyPreset: (presetId: string) => void;
+    setCanvasPreset: (presetId: string) => void;
+    setCanvasSize: (width: number, height: number) => void;
+    setBackgroundPreset: (presetId: string) => void;
+    setSolidBackground: (color: string) => void;
+    setImagePadding: (value: number) => void;
+    setImageRadius: (value: number) => void;
+    setImageScale: (value: number) => void;
+    setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
+    setImageBorderEnabled: (enabled: boolean) => void;
+    toggleImageBorder: () => void;
+    resetBeautifySettings: () => void;
+    toggleBrowserFrame: () => void;
+    setBrowserFrameTheme: (theme: BrowserFrameTheme) => void;
+    setBrowserFrameStyle: (style: BrowserFrameStyle) => void;
+    setBrowserFrameUrl: (url: string) => void;
+    toggleBrowserFrameUrl: () => void;
+    toggleTextOverlay: () => void;
+    setHeadlineText: (value: string) => void;
+    setSubtitleText: (value: string) => void;
+    setBadgeText: (value: string) => void;
+    setTextPosition: (position: TextPosition) => void;
+    setTextAlign: (align: TextAlign) => void;
+    setTextColor: (color: string) => void;
+    setHeadlineSize: (size: number) => void;
+    setSubtitleSize: (size: number) => void;
+    toggleBadge: () => void;
+    applyTextLayoutPreset: (presetId: string) => void;
+    resetTextOverlaySettings: () => void;
+    toggleTilt: () => void;
+    setTiltEnabled: (value: boolean) => void;
+    setTiltPreset: (presetId: string) => void;
+    setPerspective: (value: number) => void;
+    setRotateX: (value: number) => void;
+    setRotateY: (value: number) => void;
+    setRotateZ: (value: number) => void;
+    setTranslateY: (value: number) => void;
+    setTiltShadowMultiplier: (value: number) => void;
+    toggleHoverTilt: () => void;
+    setHoverTiltEnabled: (value: boolean) => void;
+    setHoverTiltSensitivity: (value: number) => void;
+    toggleBackgroundParallax: () => void;
+    setBackgroundParallaxEnabled: (value: boolean) => void;
+    setBackgroundParallaxStrength: (value: number) => void;
+    resetTiltSettings: () => void;
+  };
 
 function revokeObjectUrl(uploadedImage: UploadedImage | null) {
   if (typeof URL === "undefined" || !uploadedImage?.objectUrl) {
@@ -90,6 +112,12 @@ function createDefaultBrowserFrameSettings(): BrowserFrameSettings {
 function createDefaultTextOverlaySettings(): TextOverlaySettings {
   return {
     ...DEFAULT_TEXT_OVERLAY_SETTINGS,
+  };
+}
+
+function createDefaultTiltSettings(): TiltSettings {
+  return {
+    ...DEFAULT_TILT_SETTINGS,
   };
 }
 
@@ -133,6 +161,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   ...createDefaultBeautifySettings(),
   ...createDefaultBrowserFrameSettings(),
   ...createDefaultTextOverlaySettings(),
+  ...createDefaultTiltSettings(),
   setUploadedImage: (uploadedImage) => {
     const previousImage = get().uploadedImage;
 
@@ -273,5 +302,74 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   resetTextOverlaySettings: () => {
     set(createDefaultTextOverlaySettings());
+  },
+  toggleTilt: () => {
+    set((state) => ({
+      tiltEnabled: !state.tiltEnabled,
+    }));
+  },
+  setTiltEnabled: (value) => {
+    set({ tiltEnabled: value });
+  },
+  setTiltPreset: (presetId) => {
+    set(createTiltPresetSettings(presetId));
+  },
+  setPerspective: (value) => {
+    set({ perspective: value, tiltEnabled: true, tiltPresetId: "custom" });
+  },
+  setRotateX: (value) => {
+    set({ rotateX: value, tiltEnabled: true, tiltPresetId: "custom" });
+  },
+  setRotateY: (value) => {
+    set({ rotateY: value, tiltEnabled: true, tiltPresetId: "custom" });
+  },
+  setRotateZ: (value) => {
+    set({ rotateZ: value, tiltEnabled: true, tiltPresetId: "custom" });
+  },
+  setTranslateY: (value) => {
+    set({ translateY: value, tiltEnabled: true, tiltPresetId: "custom" });
+  },
+  setTiltShadowMultiplier: (value) => {
+    set({
+      tiltShadowMultiplier: value,
+      tiltEnabled: true,
+      tiltPresetId: "custom",
+    });
+  },
+  toggleHoverTilt: () => {
+    set((state) => ({
+      hoverTiltEnabled: !state.hoverTiltEnabled,
+      tiltEnabled: !state.hoverTiltEnabled ? true : state.tiltEnabled,
+    }));
+  },
+  setHoverTiltEnabled: (value) => {
+    set({
+      hoverTiltEnabled: value,
+      tiltEnabled: value ? true : get().tiltEnabled,
+    });
+  },
+  setHoverTiltSensitivity: (value) => {
+    set({
+      hoverTiltSensitivity: value,
+      hoverTiltEnabled: true,
+      tiltEnabled: true,
+    });
+  },
+  toggleBackgroundParallax: () => {
+    set((state) => ({
+      backgroundParallaxEnabled: !state.backgroundParallaxEnabled,
+    }));
+  },
+  setBackgroundParallaxEnabled: (value) => {
+    set({ backgroundParallaxEnabled: value });
+  },
+  setBackgroundParallaxStrength: (value) => {
+    set({
+      backgroundParallaxStrength: value,
+      backgroundParallaxEnabled: true,
+    });
+  },
+  resetTiltSettings: () => {
+    set(createDefaultTiltSettings());
   },
 }));

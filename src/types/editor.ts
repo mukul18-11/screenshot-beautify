@@ -8,6 +8,16 @@ export type TextPosition = "top" | "bottom" | "left" | "right" | "center";
 
 export type TextAlign = "left" | "center" | "right";
 
+export type TiltPresetId =
+  | "flat"
+  | "left-angle"
+  | "right-angle"
+  | "floating-card"
+  | "product-hero"
+  | "deep-perspective"
+  | "subtle-lift"
+  | "dramatic-launch";
+
 export type UploadedImage = {
   id: string;
   file: File;
@@ -91,4 +101,33 @@ export type TextLayoutPreset = {
   badgeEnabled: boolean;
 };
 
+export type TiltSettings = {
+  tiltEnabled: boolean;
+  tiltPresetId: string;
+  perspective: number;
+  rotateX: number;
+  rotateY: number;
+  rotateZ: number;
+  translateY: number;
+  tiltShadowMultiplier: number;
+  hoverTiltEnabled: boolean;
+  hoverTiltSensitivity: number;
+  backgroundParallaxEnabled: boolean;
+  backgroundParallaxStrength: number;
+};
+
+export type TiltPreset = {
+  id: TiltPresetId;
+  name: string;
+  description: string;
+  perspective: number;
+  rotateX: number;
+  rotateY: number;
+  rotateZ: number;
+  translateY: number;
+  tiltShadowMultiplier: number;
+};
+
 export type Phase3Settings = BrowserFrameSettings & TextOverlaySettings;
+
+export type Phase4Settings = TiltSettings;
