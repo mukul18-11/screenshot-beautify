@@ -17,14 +17,14 @@ type CanvasPreviewProps = {
 
 function getContentLayoutClasses(textPosition: TextPosition) {
   if (textPosition === "left" || textPosition === "right") {
-    return "flex-row gap-8";
+    return "flex-row gap-4 sm:gap-6";
   }
 
   if (textPosition === "center") {
-    return "flex-col gap-5";
+    return "flex-col gap-4 sm:gap-5";
   }
 
-  return "flex-col gap-6";
+  return "flex-col gap-4 sm:gap-6";
 }
 
 function getScreenshotSlotClasses(

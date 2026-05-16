@@ -141,12 +141,17 @@ export default function BrowserFrameControls() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
-          <Label
-            htmlFor="browser-frame-toggle"
-            className="text-sm font-medium text-slate-700 dark:text-slate-200"
-          >
-            Browser frame
-          </Label>
+          <div className="min-w-0">
+            <Label
+              htmlFor="browser-frame-toggle"
+              className="text-sm font-medium text-slate-700 dark:text-slate-200"
+            >
+              Browser frame
+            </Label>
+            <p className="mt-1 text-xs leading-4 text-slate-500 dark:text-slate-400">
+              Add a lightweight browser shell.
+            </p>
+          </div>
           <Switch
             id="browser-frame-toggle"
             checked={browserFrameEnabled}
@@ -155,81 +160,93 @@ export default function BrowserFrameControls() {
           />
         </div>
 
-        <div
-          className={cn(
-            "grid gap-3 rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm transition dark:border-white/10 dark:bg-white/[0.06]",
-            !browserFrameEnabled && "opacity-60",
-          )}
-        >
-          <SegmentedControl
-            label="Theme"
-            value={browserFrameTheme}
-            options={THEME_OPTIONS}
-            disabled={!browserFrameEnabled}
-            onChange={setBrowserFrameTheme}
-          />
-
-          <SegmentedControl
-            label="Style"
-            value={browserFrameStyle}
-            options={STYLE_OPTIONS}
-            disabled={!browserFrameEnabled}
-            onChange={setBrowserFrameStyle}
-          />
-
-          <div className="flex items-center justify-between gap-3 pt-1">
-            <Label
-              htmlFor="browser-frame-url-toggle"
-              className="text-sm font-medium text-slate-700 dark:text-slate-200"
+        <AnimatePresence initial={false}>
+          {browserFrameEnabled && (
+            <motion.div
+              key="browser-frame-settings"
+              initial={{
+                opacity: 0,
+                height: shouldReduceMotion ? "auto" : 0,
+                y: shouldReduceMotion ? 0 : -4,
+              }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{
+                opacity: 0,
+                height: shouldReduceMotion ? "auto" : 0,
+                y: shouldReduceMotion ? 0 : -4,
+              }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="overflow-hidden rounded-xl border border-slate-200 bg-white/55 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
             >
-              Show URL
-            </Label>
-            <Switch
-              id="browser-frame-url-toggle"
-              checked={browserFrameShowUrl}
-              disabled={!browserFrameEnabled}
-              onCheckedChange={toggleBrowserFrameUrl}
-              aria-label="Toggle browser frame URL"
-            />
-          </div>
-
-          <AnimatePresence initial={false}>
-            {browserFrameShowUrl && (
-              <motion.div
-                key="browser-frame-url"
-                initial={{
-                  opacity: 0,
-                  height: shouldReduceMotion ? "auto" : 0,
-                  y: shouldReduceMotion ? 0 : -4,
-                }}
-                animate={{ opacity: 1, height: "auto", y: 0 }}
-                exit={{
-                  opacity: 0,
-                  height: shouldReduceMotion ? "auto" : 0,
-                  y: shouldReduceMotion ? 0 : -4,
-                }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="overflow-hidden"
-              >
-                <Label
-                  htmlFor="browser-frame-url"
-                  className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300"
-                >
-                  URL
-                </Label>
-                <input
-                  id="browser-frame-url"
-                  type="text"
-                  value={browserFrameUrl}
-                  disabled={!browserFrameEnabled}
-                  placeholder="app.yourproduct.com"
-                  onChange={(event) => setBrowserFrameUrl(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white/80 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-950/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/15"
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <SegmentedControl
+                  label="Theme"
+                  value={browserFrameTheme}
+                  options={THEME_OPTIONS}
+                  onChange={setBrowserFrameTheme}
                 />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+
+                <SegmentedControl
+                  label="Style"
+                  value={browserFrameStyle}
+                  options={STYLE_OPTIONS}
+                  onChange={setBrowserFrameStyle}
+                />
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <Label
+                  htmlFor="browser-frame-url-toggle"
+                  className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                >
+                  Show URL
+                </Label>
+                <Switch
+                  id="browser-frame-url-toggle"
+                  checked={browserFrameShowUrl}
+                  onCheckedChange={toggleBrowserFrameUrl}
+                  aria-label="Toggle browser frame URL"
+                />
+              </div>
+
+              <AnimatePresence initial={false}>
+                {browserFrameShowUrl && (
+                  <motion.div
+                    key="browser-frame-url"
+                    initial={{
+                      opacity: 0,
+                      height: shouldReduceMotion ? "auto" : 0,
+                      y: shouldReduceMotion ? 0 : -4,
+                    }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{
+                      opacity: 0,
+                      height: shouldReduceMotion ? "auto" : 0,
+                      y: shouldReduceMotion ? 0 : -4,
+                    }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="mt-4 overflow-hidden"
+                  >
+                    <Label
+                      htmlFor="browser-frame-url"
+                      className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300"
+                    >
+                      URL
+                    </Label>
+                    <input
+                      id="browser-frame-url"
+                      type="text"
+                      value={browserFrameUrl}
+                      placeholder="app.yourproduct.com"
+                      onChange={(event) => setBrowserFrameUrl(event.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-200 bg-white/80 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-950/10 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/15"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.section>
   );

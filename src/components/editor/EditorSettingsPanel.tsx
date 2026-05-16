@@ -15,6 +15,7 @@ import BrowserFrameControls from "@/components/editor/BrowserFrameControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
+import TextLayoutPresetSelector from "@/components/editor/TextLayoutPresetSelector";
 import TextOverlayControls from "@/components/editor/TextOverlayControls";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/format-file-size";
@@ -174,7 +175,7 @@ export default function EditorSettingsPanel({
       transition={{ duration: 0.32, delay: 0.08, ease: "easeOut" }}
       className={cn(
         "rounded-3xl border border-white/60 bg-white/50 p-5 shadow-soft backdrop-blur-2xl dark:border-white/10 dark:bg-white/10",
-        "lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start lg:overflow-y-auto",
+        "lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:scroll-smooth",
       )}
     >
       <PanelHeader />
@@ -194,6 +195,7 @@ export default function EditorSettingsPanel({
             <BackgroundControls />
             <ImageStyleControls />
             <BrowserFrameControls />
+            <TextLayoutPresetSelector />
             <TextOverlayControls />
             <ResetControls />
           </motion.div>
@@ -214,7 +216,7 @@ export default function EditorSettingsPanel({
                 />
               </div>
               <p className="text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-                Upload or paste a screenshot to start editing.
+                Upload a screenshot to customize it.
               </p>
             </div>
           </motion.div>
