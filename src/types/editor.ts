@@ -1,5 +1,13 @@
 export type BackgroundType = "gradient" | "solid" | "mesh" | "image-blur";
 
+export type BrowserFrameTheme = "light" | "dark";
+
+export type BrowserFrameStyle = "macos" | "minimal";
+
+export type TextPosition = "top" | "bottom" | "left" | "right" | "center";
+
+export type TextAlign = "left" | "center" | "right";
+
 export type UploadedImage = {
   id: string;
   file: File;
@@ -46,3 +54,41 @@ export type BeautifySettings = {
   imageShadow: ImageShadow;
   imageBorderEnabled: boolean;
 };
+
+export type BrowserFrameSettings = {
+  browserFrameEnabled: boolean;
+  browserFrameTheme: BrowserFrameTheme;
+  browserFrameStyle: BrowserFrameStyle;
+  browserFrameUrl: string;
+  browserFrameShowUrl: boolean;
+};
+
+export type TextOverlaySettings = {
+  textOverlayEnabled: boolean;
+  headlineText: string;
+  subtitleText: string;
+  badgeText: string;
+  textLayoutPreset: string;
+  textPosition: TextPosition;
+  textAlign: TextAlign;
+  textColor: string;
+  headlineSize: number;
+  subtitleSize: number;
+  badgeEnabled: boolean;
+};
+
+export type TextLayoutPreset = {
+  id: string;
+  name: string;
+  headlineText: string;
+  subtitleText: string;
+  badgeText: string;
+  textPosition: TextPosition;
+  textAlign: TextAlign;
+  textColor: string;
+  headlineSize: number;
+  subtitleSize: number;
+  badgeEnabled: boolean;
+};
+
+export type Phase3Settings = BrowserFrameSettings & TextOverlaySettings;

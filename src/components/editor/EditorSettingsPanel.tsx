@@ -11,9 +11,11 @@ import { toast } from "sonner";
 
 import BackgroundControls from "@/components/editor/BackgroundControls";
 import BeautifyPresetBar from "@/components/editor/BeautifyPresetBar";
+import BrowserFrameControls from "@/components/editor/BrowserFrameControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
+import TextOverlayControls from "@/components/editor/TextOverlayControls";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/format-file-size";
 import { cn } from "@/lib/utils";
@@ -191,6 +193,8 @@ export default function EditorSettingsPanel({
             <CanvasPresetSelector />
             <BackgroundControls />
             <ImageStyleControls />
+            <BrowserFrameControls />
+            <TextOverlayControls />
             <ResetControls />
           </motion.div>
         ) : (

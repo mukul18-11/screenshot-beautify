@@ -1,6 +1,11 @@
 import { getBackgroundPreset } from "@/lib/background-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
-import type { BeautifySettings, ImageShadow } from "@/types/editor";
+import type {
+  BeautifySettings,
+  BrowserFrameSettings,
+  ImageShadow,
+  TextOverlaySettings,
+} from "@/types/editor";
 
 const DEFAULT_CANVAS_PRESET_ID = "wide-hero";
 const DEFAULT_BACKGROUND_PRESET_ID = "midnight-purple";
@@ -27,6 +32,28 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   imageScale: 92,
   imageShadow: DEFAULT_IMAGE_SHADOW,
   imageBorderEnabled: true,
+};
+
+export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
+  browserFrameEnabled: false,
+  browserFrameTheme: "light",
+  browserFrameStyle: "macos",
+  browserFrameUrl: "yourproduct.com",
+  browserFrameShowUrl: true,
+};
+
+export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
+  textOverlayEnabled: false,
+  headlineText: "Launch-ready in seconds",
+  subtitleText: "Turn a plain screenshot into a polished product visual.",
+  badgeText: "New launch",
+  textLayoutPreset: "launch-top",
+  textPosition: "top",
+  textAlign: "center",
+  textColor: "#ffffff",
+  headlineSize: 44,
+  subtitleSize: 20,
+  badgeEnabled: true,
 };
 
 export const BEAUTIFY_SETTING_LIMITS = {
@@ -58,6 +85,16 @@ export const BEAUTIFY_SETTING_LIMITS = {
   imageShadowOffsetY: {
     min: 0,
     max: 60,
+    step: 1,
+  },
+  headlineSize: {
+    min: 24,
+    max: 72,
+    step: 1,
+  },
+  subtitleSize: {
+    min: 14,
+    max: 32,
     step: 1,
   },
 } as const;

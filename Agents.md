@@ -19,7 +19,7 @@ The product should feel simple, polished, fast, and premium. Avoid turning it in
 
 ## Current Build Phase
 
-Phase 1 is completed and should not be rebuilt unless explicitly requested. It already includes:
+Phase 1 is completed and should not be rebuilt unless explicitly requested. It includes:
 
 - Drag and drop image upload
 - Browse file upload
@@ -31,7 +31,7 @@ Phase 1 is completed and should not be rebuilt unless explicitly requested. It a
 - Clean animated upload UI
 - Client-side only image handling
 
-We are currently building Phase 2: Beautification Canvas Controls. Phase 2 scope:
+Phase 2 is completed and should not be rebuilt unless explicitly requested. It includes:
 
 - Canvas size presets
 - Background presets
@@ -42,15 +42,25 @@ We are currently building Phase 2: Beautification Canvas Controls. Phase 2 scope
 - Reset controls
 - Premium responsive editor UI
 
+We are currently building Phase 3: Browser Frame and Text Overlays. Phase 3 scope:
+
+- Browser frame
+- Browser frame toggle
+- Browser frame style controls
+- Text overlays
+- Headline, subtitle, and badge text
+- Text position controls
+- Text layout presets
+- Premium responsive editor UI polish
+
 Do not build these yet unless explicitly asked:
 
 - Export
 - 3D tilt
-- Text overlays
-- Browser frame
+- Video/GIF export
 - Auth
 - Payments
-- Backend
+- Backend APIs
 - LLM APIs
 
 ## Non-Negotiable Product Principles
@@ -91,7 +101,7 @@ Do not rely on Next.js middleware as the only protection for private routes or s
 
 ## Recommended Project Structure
 
-Use this structure for the current upload and canvas controls:
+Use this structure for the current upload, canvas controls, and Phase 3 controls:
 
 ```txt
 src/
@@ -103,8 +113,9 @@ src/
   components/
     editor/
       BeautifyPresetBar.tsx
-      BeautifyCanvas.tsx
+      BrowserFrameControls.tsx
       BackgroundControls.tsx
+      CanvasPreview.tsx
       UploadZone.tsx
       EmptyUploadState.tsx
       ImagePreview.tsx
@@ -113,6 +124,7 @@ src/
       ResetControls.tsx
       ReplaceImageButton.tsx
       PasteHint.tsx
+      TextOverlayControls.tsx
 
   hooks/
     useImageUpload.ts
@@ -124,9 +136,11 @@ src/
   lib/
     beautify-presets.ts
     background-presets.ts
+    browser-frame-presets.ts
     canvas-presets.ts
     image-validation.ts
     image-utils.ts
+    text-layout-presets.ts
     format-file-size.ts
 ```
 
@@ -152,7 +166,7 @@ Create object URLs client-side, read natural image dimensions before storing the
 
 ## Zustand Store Expectations
 
-Keep editor state small and explicit. It currently owns uploaded image state and canvas appearance state:
+Keep editor state small and explicit. It owns uploaded image state and editor appearance state:
 
 - `uploadedImage: UploadedImage | null`
 - `setUploadedImage(uploadedImage | null)`
@@ -160,6 +174,9 @@ Keep editor state small and explicit. It currently owns uploaded image state and
 - `clearUploadedImage()`
 - Phase 2 canvas state fields: `canvasPreset`, `canvasWidth`, `canvasHeight`, `background`, `imagePadding`, `imageRadius`, `imageScale`, `imageShadow`, `imageBorderEnabled`
 - Canvas setting actions for preset, dimensions, background, padding, radius, scale, shadow, border, and reset
+- Phase 3 browser frame state fields: `browserFrameEnabled`, `browserFrameTheme`, `browserFrameUrl`, `browserFrameShowUrl`
+- Phase 3 text overlay state fields: `textOverlayEnabled`, `headlineText`, `subtitleText`, `badgeText`, `textLayoutPreset`, `textPosition`, `textAlign`, `textColor`, `headlineSize`, `subtitleSize`
+- Browser frame and text overlay actions should be explicit and predictable; avoid deriving user-entered text from presets.
 
 The store should own object URL cleanup when replacing or clearing the current image. Avoid persisting screenshot files, object URLs, or image data to local storage.
 
@@ -187,6 +204,7 @@ The store should own object URL cleanup when replacing or clearing the current i
 - Show metadata after upload: file name, size, type, dimensions, and uploaded time.
 - Keep trust/privacy copy visible near the upload action.
 - Do not introduce future-phase controls until explicitly asked.
+- Render browser frames and text overlays inside `CanvasPreview`, so the live preview is the source of truth rather than a separate export-only layer.
 
 ## Animation Guidelines
 
@@ -210,11 +228,13 @@ The store should own object URL cleanup when replacing or clearing the current i
 - `UploadZone`: orchestrates drag/drop, browse, paste, preview/empty state switching, and error display.
 - `EmptyUploadState`: presentational empty/uploading state with browse CTA and paste hint.
 - `ImagePreview`: renders the canvas preview shell plus replace/remove actions.
-- `BeautifyCanvas`: renders the uploaded image inside the configured beautification canvas.
+- `CanvasPreview`: renders the uploaded image, configured canvas, browser frame, and text overlays.
 - `BeautifyPresetBar`: renders one-click Phase 2 style presets that update canvas, background, and screenshot styling without changing the uploaded image.
 - `CanvasPresetSelector`: renders canvas size presets.
 - `BackgroundControls`: renders background presets and custom solid color controls.
 - `ImageStyleControls`: renders padding, radius, scale, shadow, and border controls.
+- `BrowserFrameControls`: renders Phase 3 browser frame toggle, theme, URL, and URL visibility controls.
+- `TextOverlayControls`: renders Phase 3 headline, subtitle, badge, layout, position, alignment, color, and size controls.
 - `ResetControls`: renders reset style controls that restore beautification defaults without changing the uploaded image.
 - `ImageMetaCard`: renders uploaded image metadata only.
 - `ReplaceImageButton`: small focused replace action.
@@ -224,6 +244,8 @@ The store should own object URL cleanup when replacing or clearing the current i
 - `beautify-presets.ts`: one-click style preset data and helpers.
 - `background-presets.ts`: background preset data and helpers.
 - `canvas-presets.ts`: canvas size preset data and helpers.
+- `browser-frame-presets.ts`: browser frame theme/style data and helpers.
+- `text-layout-presets.ts`: text overlay layout preset data and helpers.
 - `image-validation.ts`: accepted types, size limits, and validation messages.
 - `image-utils.ts`: object URL creation, image dimension reading, and `UploadedImage` creation.
 - `editor-store.ts`: uploaded image state, canvas settings state, and object URL cleanup.
@@ -241,7 +263,8 @@ npm run typecheck
 
 Run the smallest useful verification for the change. For UI changes, prefer at least `npm run lint` and `npm run typecheck`; run `npm run build` before larger handoffs when feasible.
 
-After each prompt or completed feature, stage the relevant changes, commit with a clear message, and push the branch to GitHub unless the user explicitly says not to.
+Only stage, commit, or push changes when the user explicitly asks for it.
+
 
 ## Testing Expectations
 
@@ -251,7 +274,7 @@ After each prompt or completed feature, stage the relevant changes, commit with 
 - Confirm old previews are cleaned up when images are replaced or removed.
 - For visual/UI changes, test desktop and mobile responsive layouts.
 - Do not open localhost or inspect Chrome by default for visual checks; the user will check the local UI unless they explicitly ask Codex to do it.
-- Keep automated tests focused if a test framework is added later; do not introduce one casually during Phase 1.
+- Keep automated tests focused if a test framework is added later; do not introduce one casually during the MVP.
 
 ## Security and Privacy Rules
 
@@ -259,13 +282,14 @@ After each prompt or completed feature, stage the relevant changes, commit with 
 - Do not upload, store, log, or send screenshot data to any backend or third-party service.
 - Do not add analytics, telemetry, auth, payments, or AI integrations unless explicitly requested.
 - Do not store screenshots in local storage, IndexedDB, cookies, or remote storage.
-- Keep file handling client-side and avoid backend APIs for Phase 1.
+- Keep file handling client-side and avoid backend APIs for the MVP.
 
 ## Current Product Roadmap Memory
 
-- Phase 1: upload, paste, replace, remove, preview, metadata, validation, and local-only handling.
-- Phase 2: canvas size presets, background presets, padding, border radius, shadow controls, screenshot scale, reset controls, and premium responsive editor UI.
-- Future phases may include export presets, social formats, text annotations, 3D tilt, templates, browser frames, and export.
+- Phase 1 completed: upload, paste, replace, remove, preview, metadata, validation, and local-only handling.
+- Phase 2 completed: canvas size presets, background presets, padding, border radius, shadow controls, screenshot scale, reset controls, and premium responsive editor UI.
+- Phase 3 current: browser frame, browser frame controls, text overlays, text layout presets, and premium responsive UI polish.
+- Future phases may include export presets, social formats, 3D tilt, templates, and export.
 - Keep future-phase UI out of the product until the user explicitly asks for it.
 
 ## AGENTS.md Maintenance Rule

@@ -5,17 +5,29 @@ import { create } from "zustand";
 import { getBackgroundPreset } from "@/lib/background-presets";
 import { createBeautifyPresetSettings } from "@/lib/beautify-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
-import { DEFAULT_BEAUTIFY_SETTINGS } from "@/lib/editor-defaults";
+import {
+  DEFAULT_BEAUTIFY_SETTINGS,
+  DEFAULT_BROWSER_FRAME_SETTINGS,
+  DEFAULT_TEXT_OVERLAY_SETTINGS,
+} from "@/lib/editor-defaults";
+import { getTextLayoutPreset } from "@/lib/text-layout-presets";
 import type {
   BackgroundType,
   BeautifySettings,
+  BrowserFrameSettings,
+  BrowserFrameStyle,
+  BrowserFrameTheme,
   ImageShadow,
+  Phase3Settings,
+  TextAlign,
+  TextOverlaySettings,
+  TextPosition,
   UploadedImage,
 } from "@/types/editor";
 
 export type { UploadedImage } from "@/types/editor";
 
-type EditorStore = BeautifySettings & {
+type EditorStore = BeautifySettings & Phase3Settings & {
   uploadedImage: UploadedImage | null;
   lastBeautifyPresetId: string | null;
   setUploadedImage: (uploadedImage: UploadedImage | null) => void;
@@ -33,6 +45,23 @@ type EditorStore = BeautifySettings & {
   setImageBorderEnabled: (enabled: boolean) => void;
   toggleImageBorder: () => void;
   resetBeautifySettings: () => void;
+  toggleBrowserFrame: () => void;
+  setBrowserFrameTheme: (theme: BrowserFrameTheme) => void;
+  setBrowserFrameStyle: (style: BrowserFrameStyle) => void;
+  setBrowserFrameUrl: (url: string) => void;
+  toggleBrowserFrameUrl: () => void;
+  toggleTextOverlay: () => void;
+  setHeadlineText: (value: string) => void;
+  setSubtitleText: (value: string) => void;
+  setBadgeText: (value: string) => void;
+  setTextPosition: (position: TextPosition) => void;
+  setTextAlign: (align: TextAlign) => void;
+  setTextColor: (color: string) => void;
+  setHeadlineSize: (size: number) => void;
+  setSubtitleSize: (size: number) => void;
+  toggleBadge: () => void;
+  applyTextLayoutPreset: (presetId: string) => void;
+  resetTextOverlaySettings: () => void;
 };
 
 function revokeObjectUrl(uploadedImage: UploadedImage | null) {
@@ -49,6 +78,38 @@ function createDefaultBeautifySettings(): BeautifySettings {
     imageShadow: {
       ...DEFAULT_BEAUTIFY_SETTINGS.imageShadow,
     },
+  };
+}
+
+function createDefaultBrowserFrameSettings(): BrowserFrameSettings {
+  return {
+    ...DEFAULT_BROWSER_FRAME_SETTINGS,
+  };
+}
+
+function createDefaultTextOverlaySettings(): TextOverlaySettings {
+  return {
+    ...DEFAULT_TEXT_OVERLAY_SETTINGS,
+  };
+}
+
+function createTextLayoutPresetSettings(
+  presetId: string,
+): TextOverlaySettings {
+  const preset = getTextLayoutPreset(presetId);
+
+  return {
+    textOverlayEnabled: true,
+    headlineText: preset.headlineText,
+    subtitleText: preset.subtitleText,
+    badgeText: preset.badgeText,
+    textLayoutPreset: preset.id,
+    textPosition: preset.textPosition,
+    textAlign: preset.textAlign,
+    textColor: preset.textColor,
+    headlineSize: preset.headlineSize,
+    subtitleSize: preset.subtitleSize,
+    badgeEnabled: preset.badgeEnabled,
   };
 }
 
@@ -70,6 +131,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   uploadedImage: null,
   lastBeautifyPresetId: null,
   ...createDefaultBeautifySettings(),
+  ...createDefaultBrowserFrameSettings(),
+  ...createDefaultTextOverlaySettings(),
   setUploadedImage: (uploadedImage) => {
     const previousImage = get().uploadedImage;
 
@@ -151,5 +214,64 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ...createDefaultBeautifySettings(),
       lastBeautifyPresetId: null,
     });
+  },
+  toggleBrowserFrame: () => {
+    set((state) => ({
+      browserFrameEnabled: !state.browserFrameEnabled,
+    }));
+  },
+  setBrowserFrameTheme: (theme) => {
+    set({ browserFrameTheme: theme });
+  },
+  setBrowserFrameStyle: (style) => {
+    set({ browserFrameStyle: style });
+  },
+  setBrowserFrameUrl: (url) => {
+    set({ browserFrameUrl: url });
+  },
+  toggleBrowserFrameUrl: () => {
+    set((state) => ({
+      browserFrameShowUrl: !state.browserFrameShowUrl,
+    }));
+  },
+  toggleTextOverlay: () => {
+    set((state) => ({
+      textOverlayEnabled: !state.textOverlayEnabled,
+    }));
+  },
+  setHeadlineText: (value) => {
+    set({ headlineText: value });
+  },
+  setSubtitleText: (value) => {
+    set({ subtitleText: value });
+  },
+  setBadgeText: (value) => {
+    set({ badgeText: value });
+  },
+  setTextPosition: (position) => {
+    set({ textPosition: position });
+  },
+  setTextAlign: (align) => {
+    set({ textAlign: align });
+  },
+  setTextColor: (color) => {
+    set({ textColor: color });
+  },
+  setHeadlineSize: (size) => {
+    set({ headlineSize: size });
+  },
+  setSubtitleSize: (size) => {
+    set({ subtitleSize: size });
+  },
+  toggleBadge: () => {
+    set((state) => ({
+      badgeEnabled: !state.badgeEnabled,
+    }));
+  },
+  applyTextLayoutPreset: (presetId) => {
+    set(createTextLayoutPresetSettings(presetId));
+  },
+  resetTextOverlaySettings: () => {
+    set(createDefaultTextOverlaySettings());
   },
 }));
