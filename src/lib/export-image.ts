@@ -154,8 +154,12 @@ function downloadBlob(blob: Blob, fileName: string) {
   }, 1000);
 }
 
+function handleExportImageError() {
+  throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
+}
+
 export async function createExportPngBlob({
-  cacheBust = true,
+  cacheBust = false,
   height,
   node,
   scale,
@@ -177,6 +181,7 @@ export async function createExportPngBlob({
     canvasHeight: height,
     canvasWidth: width,
     height,
+    onImageErrorHandler: handleExportImageError,
     pixelRatio: scale,
     skipAutoScale: true,
     skipFonts: true,

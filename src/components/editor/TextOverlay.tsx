@@ -20,6 +20,7 @@ type TextOverlayProps = {
   headlineSize: number;
   headlineText: string;
   isEditable?: boolean;
+  isExportMode?: boolean;
   subtitleSize: number;
   subtitleText: string;
   textAlign: TextAlign;
@@ -182,6 +183,7 @@ export default function TextOverlay({
   headlineSize,
   headlineText,
   isEditable = false,
+  isExportMode = false,
   subtitleSize,
   subtitleText,
   textAlign,
@@ -227,7 +229,12 @@ export default function TextOverlay({
       style={textStyle}
     >
       {shouldShowBadge && (
-        <div className="max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 text-[11px] font-bold uppercase leading-none tracking-normal shadow-sm backdrop-blur-md">
+        <div
+          className={cn(
+            "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 text-[11px] font-bold uppercase leading-none tracking-normal shadow-sm",
+            !isExportMode && "backdrop-blur-md",
+          )}
+        >
           <EditableText
             tag="span"
             value={normalizedBadgeText}
@@ -246,7 +253,7 @@ export default function TextOverlay({
           isEditable={isEditable}
           onCommit={setHeadlineText}
           placeholder="Headline text"
-          className="max-w-full overflow-hidden text-balance font-black leading-[0.98] tracking-normal [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3]"
+          className="max-w-full overflow-hidden text-balance font-black leading-[0.98] tracking-normal [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] sm:max-w-[14em]"
           style={headlineStyle}
         />
       )}

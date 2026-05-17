@@ -339,6 +339,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         headlineSize={headlineSize}
         headlineText={headlineText}
         isEditable={!isExportMode}
+        isExportMode={isExportMode}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
         textAlign={textAlign}
