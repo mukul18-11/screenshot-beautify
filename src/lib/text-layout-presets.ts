@@ -13,6 +13,8 @@ export const TEXT_LAYOUT_PRESETS = [
     headlineSize: 44,
     subtitleSize: 20,
     badgeEnabled: true,
+    textOffsetX: 0,
+    textOffsetY: 0,
   },
   {
     id: "launch-bottom",
@@ -26,6 +28,8 @@ export const TEXT_LAYOUT_PRESETS = [
     headlineSize: 44,
     subtitleSize: 20,
     badgeEnabled: true,
+    textOffsetX: 0,
+    textOffsetY: 0,
   },
   {
     id: "founder-story",
@@ -39,6 +43,8 @@ export const TEXT_LAYOUT_PRESETS = [
     headlineSize: 44,
     subtitleSize: 20,
     badgeEnabled: true,
+    textOffsetX: 0,
+    textOffsetY: 0,
   },
   {
     id: "product-hunt",
@@ -52,6 +58,8 @@ export const TEXT_LAYOUT_PRESETS = [
     headlineSize: 44,
     subtitleSize: 20,
     badgeEnabled: true,
+    textOffsetX: 0,
+    textOffsetY: 0,
   },
   {
     id: "clean-center",
@@ -65,6 +73,8 @@ export const TEXT_LAYOUT_PRESETS = [
     headlineSize: 44,
     subtitleSize: 20,
     badgeEnabled: false,
+    textOffsetX: 0,
+    textOffsetY: 0,
   },
   {
     id: "side-note",
@@ -78,6 +88,8 @@ export const TEXT_LAYOUT_PRESETS = [
     headlineSize: 44,
     subtitleSize: 20,
     badgeEnabled: true,
+    textOffsetX: 0,
+    textOffsetY: 0,
   },
 ] as const satisfies readonly TextLayoutPreset[];
 

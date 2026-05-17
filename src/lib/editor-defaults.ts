@@ -57,6 +57,8 @@ export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
   headlineSize: 44,
   subtitleSize: 20,
   badgeEnabled: true,
+  textOffsetX: 0,
+  textOffsetY: 0,
 };
 
 export const DEFAULT_TILT_SETTINGS: TiltSettings = {

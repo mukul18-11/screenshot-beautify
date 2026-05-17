@@ -5,8 +5,10 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   type CSSProperties,
   type ForwardedRef,
+  type MouseEvent,
   type MutableRefObject,
   type PointerEvent,
 } from "react";
@@ -23,6 +25,22 @@ import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 import type { TextPosition } from "@/types/editor";
 
 type CanvasArtworkMode = "preview" | "export";
+
+type TextDragGuide = {
+  horizontal: number | null;
+  vertical: number | null;
+};
+
+type TextDragState = {
+  canvasRect: DOMRect;
+  moved: boolean;
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startOffsetX: number;
+  startOffsetY: number;
+  textRect: DOMRect;
+};
 
 type CanvasArtworkProps = {
   className?: string;
@@ -96,6 +114,13 @@ function mergeRefs<T>(
   };
 }
 
+const DRAG_THRESHOLD_PX = 4;
+const SNAP_THRESHOLD_PX = 12;
+
+function clampTextOffset(value: number) {
+  return Math.max(-1, Math.min(1, value));
+}
+
 const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   function CanvasArtwork(
     {
@@ -110,7 +135,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   ) {
     const shouldReduceMotion = useReducedMotion();
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
+    const textOverlayRef = useRef<HTMLDivElement | null>(null);
+    const textDragStateRef = useRef<TextDragState | null>(null);
+    const suppressNextTextClickRef = useRef(false);
     const parallaxFrameRef = useRef<number | null>(null);
+    const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
+      horizontal: null,
+      vertical: null,
+    });
     const canvasWidth = useEditorStore((state) => state.canvasWidth);
     const canvasHeight = useEditorStore((state) => state.canvasHeight);
     const backgroundType = useEditorStore((state) => state.backgroundType);
@@ -147,6 +179,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const headlineSize = useEditorStore((state) => state.headlineSize);
     const subtitleSize = useEditorStore((state) => state.subtitleSize);
     const badgeEnabled = useEditorStore((state) => state.badgeEnabled);
+    const textOffsetX = useEditorStore((state) => state.textOffsetX);
+    const textOffsetY = useEditorStore((state) => state.textOffsetY);
+    const setTextOverlayPosition = useEditorStore(
+      (state) => state.setTextOverlayPosition,
+    );
     const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
     const perspective = useEditorStore((state) => state.perspective);
     const rotateX = useEditorStore((state) => state.rotateX);
@@ -249,6 +286,145 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       scheduleBackgroundParallax();
     }
 
+    function handleTextPointerDown(event: PointerEvent<HTMLDivElement>) {
+      if (isExportMode || event.button !== 0) {
+        return;
+      }
+
+      const canvasShell = canvasShellRef.current;
+      const textOverlay = textOverlayRef.current;
+
+      if (!canvasShell || !textOverlay) {
+        return;
+      }
+
+      textDragStateRef.current = {
+        canvasRect: canvasShell.getBoundingClientRect(),
+        moved: false,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startOffsetX: textOffsetX,
+        startOffsetY: textOffsetY,
+        textRect: textOverlay.getBoundingClientRect(),
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleTextPointerMove(event: PointerEvent<HTMLDivElement>) {
+      const dragState = textDragStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      let deltaX = event.clientX - dragState.startClientX;
+      let deltaY = event.clientY - dragState.startClientY;
+      const dragDistance = Math.hypot(deltaX, deltaY);
+
+      if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      dragState.moved = true;
+      event.preventDefault();
+
+      const guide: TextDragGuide = { horizontal: null, vertical: null };
+      const movedTextRect = {
+        bottom: dragState.textRect.bottom + deltaY,
+        left: dragState.textRect.left + deltaX,
+        right: dragState.textRect.right + deltaX,
+        top: dragState.textRect.top + deltaY,
+      };
+      const movedTextCenterX = (movedTextRect.left + movedTextRect.right) / 2;
+      const movedTextCenterY = (movedTextRect.top + movedTextRect.bottom) / 2;
+      const canvasCenterX =
+        dragState.canvasRect.left + dragState.canvasRect.width / 2;
+      const canvasCenterY =
+        dragState.canvasRect.top + dragState.canvasRect.height / 2;
+      const snapCandidatesX = [
+        {
+          delta: dragState.canvasRect.left - movedTextRect.left,
+          guide: 0,
+        },
+        {
+          delta: canvasCenterX - movedTextCenterX,
+          guide: 0.5,
+        },
+        {
+          delta: dragState.canvasRect.right - movedTextRect.right,
+          guide: 1,
+        },
+      ];
+      const snapCandidatesY = [
+        {
+          delta: dragState.canvasRect.top - movedTextRect.top,
+          guide: 0,
+        },
+        {
+          delta: canvasCenterY - movedTextCenterY,
+          guide: 0.5,
+        },
+        {
+          delta: dragState.canvasRect.bottom - movedTextRect.bottom,
+          guide: 1,
+        },
+      ];
+      const snapX = snapCandidatesX.find(
+        (candidate) => Math.abs(candidate.delta) <= SNAP_THRESHOLD_PX,
+      );
+      const snapY = snapCandidatesY.find(
+        (candidate) => Math.abs(candidate.delta) <= SNAP_THRESHOLD_PX,
+      );
+
+      if (snapX) {
+        deltaX += snapX.delta;
+        guide.vertical = snapX.guide;
+      }
+
+      if (snapY) {
+        deltaY += snapY.delta;
+        guide.horizontal = snapY.guide;
+      }
+
+      setTextDragGuide(guide);
+      setTextOverlayPosition(
+        clampTextOffset(
+          dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
+        ),
+        clampTextOffset(
+          dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
+        ),
+      );
+    }
+
+    function handleTextPointerEnd(event: PointerEvent<HTMLDivElement>) {
+      const dragState = textDragStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      suppressNextTextClickRef.current = dragState.moved;
+      textDragStateRef.current = null;
+      setTextDragGuide({ horizontal: null, vertical: null });
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }
+
+    function handleTextClickCapture(event: MouseEvent<HTMLDivElement>) {
+      if (!suppressNextTextClickRef.current) {
+        return;
+      }
+
+      suppressNextTextClickRef.current = false;
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     const screenshotMotionProps = {
       initial: {
         opacity: isExportMode ? 1 : 0,
@@ -274,6 +450,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       transition: { duration: isExportMode ? 0 : 0.26, ease: "easeOut" },
     } as const;
     const screenshotShellStyle = {
+      aspectRatio: `${uploadedImage.width} / ${uploadedImage.height}`,
       border: imageBorderEnabled
         ? "1px solid rgba(255, 255, 255, 0.72)"
         : "none",
@@ -303,11 +480,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       hoverTiltEnabled: isExportMode ? false : hoverTiltEnabled,
       hoverTiltSensitivity,
     };
+    const textPlacementStyle = {
+      transform: `translate(calc(${textOffsetX} * 50cqw), calc(${textOffsetY} * 50cqh))`,
+    } satisfies CSSProperties;
     const screenshotPreview = browserFrameEnabled ? (
       <motion.div
         key={`${uploadedImage.id}-browser-frame`}
         {...screenshotMotionProps}
-        className={cn("overflow-hidden", screenshotShellClasses)}
+        className={cn("inline-flex h-full overflow-hidden", screenshotShellClasses)}
         style={screenshotShellStyle}
       >
         <BrowserFrame
@@ -328,18 +508,26 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         alt={uploadedImage.name}
         onLoad={onImageLoad}
         {...screenshotMotionProps}
-        className={cn("object-contain", screenshotShellClasses)}
+        className={cn("block h-full object-contain", screenshotShellClasses)}
         style={screenshotShellStyle}
       />
     );
     const textOverlay = hasTextOverlay ? (
       <TextOverlay
+        ref={textOverlayRef}
         badgeEnabled={badgeEnabled}
         badgeText={badgeText}
         headlineSize={headlineSize}
         headlineText={headlineText}
         isEditable={!isExportMode}
         isExportMode={isExportMode}
+        isMovable={!isExportMode}
+        onClickCapture={handleTextClickCapture}
+        onPointerCancel={handleTextPointerEnd}
+        onPointerDown={handleTextPointerDown}
+        onPointerMove={handleTextPointerMove}
+        onPointerUp={handleTextPointerEnd}
+        placementStyle={textPlacementStyle}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
         textAlign={textAlign}
@@ -360,6 +548,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         className={cn("relative overflow-hidden", className)}
         style={{
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
+          containerType: "size",
           width: isExportMode ? `${canvasWidth}px` : undefined,
           height: isExportMode ? `${canvasHeight}px` : undefined,
           ...style,
@@ -421,6 +610,22 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             backgroundSize: "44px 44px",
           }}
         />
+
+        {!isExportMode && textDragGuide.vertical !== null && (
+          <div
+            className="pointer-events-none absolute bottom-0 top-0 z-20 w-px bg-cyan-300/80 shadow-[0_0_12px_rgba(103,232,249,0.65)]"
+            style={{ left: `${textDragGuide.vertical * 100}%` }}
+            aria-hidden="true"
+          />
+        )}
+
+        {!isExportMode && textDragGuide.horizontal !== null && (
+          <div
+            className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-cyan-300/80 shadow-[0_0_12px_rgba(103,232,249,0.65)]"
+            style={{ top: `${textDragGuide.horizontal * 100}%` }}
+            aria-hidden="true"
+          />
+        )}
 
         <motion.div
           layout={!isExportMode}

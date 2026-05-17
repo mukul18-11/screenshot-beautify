@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  forwardRef,
   useCallback,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEventHandler,
+  type PointerEventHandler,
 } from "react";
 
 import { cn } from "@/lib/utils";
@@ -21,6 +24,13 @@ type TextOverlayProps = {
   headlineText: string;
   isEditable?: boolean;
   isExportMode?: boolean;
+  isMovable?: boolean;
+  onClickCapture?: MouseEventHandler<HTMLDivElement>;
+  onPointerCancel?: PointerEventHandler<HTMLDivElement>;
+  onPointerDown?: PointerEventHandler<HTMLDivElement>;
+  onPointerMove?: PointerEventHandler<HTMLDivElement>;
+  onPointerUp?: PointerEventHandler<HTMLDivElement>;
+  placementStyle?: CSSProperties;
   subtitleSize: number;
   subtitleText: string;
   textAlign: TextAlign;
@@ -158,6 +168,7 @@ function EditableText({
       ref={ref as React.Ref<HTMLHeadingElement & HTMLParagraphElement & HTMLSpanElement>}
       className={cn(
         className,
+        isEditable && "px-2 py-1",
         isEditable && !isEditing &&
           "cursor-pointer rounded-md transition-colors hover:ring-2 hover:ring-white/30",
         isEditing &&
@@ -176,7 +187,8 @@ function EditableText({
   );
 }
 
-export default function TextOverlay({
+const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
+  function TextOverlay({
   badgeEnabled,
   badgeText,
   className,
@@ -184,12 +196,19 @@ export default function TextOverlay({
   headlineText,
   isEditable = false,
   isExportMode = false,
+  isMovable = false,
+  onClickCapture,
+  onPointerCancel,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  placementStyle,
   subtitleSize,
   subtitleText,
   textAlign,
   textColor,
   textPosition,
-}: TextOverlayProps) {
+}, forwardedRef) {
   const setHeadlineText = useEditorStore((state) => state.setHeadlineText);
   const setSubtitleText = useEditorStore((state) => state.setSubtitleText);
   const setBadgeText = useEditorStore((state) => state.setBadgeText);
@@ -221,12 +240,19 @@ export default function TextOverlay({
   return (
     <div
       className={cn(
-        "relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-hidden",
+        "relative z-10 flex min-w-0 shrink-0 touch-none select-none flex-col gap-3 overflow-hidden",
         getTextAlignClass(textAlign),
         getTextWidthClass(textPosition),
+        isMovable && "cursor-move",
         className,
       )}
-      style={textStyle}
+      ref={forwardedRef}
+      onClickCapture={onClickCapture}
+      onPointerCancel={onPointerCancel}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      style={{ ...textStyle, ...placementStyle }}
     >
       {shouldShowBadge && (
         <div
@@ -271,4 +297,9 @@ export default function TextOverlay({
       )}
     </div>
   );
-}
+  },
+);
+
+TextOverlay.displayName = "TextOverlay";
+
+export default TextOverlay;

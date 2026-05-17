@@ -95,6 +95,8 @@ export type TextOverlaySettings = {
   headlineSize: number;
   subtitleSize: number;
   badgeEnabled: boolean;
+  textOffsetX: number;
+  textOffsetY: number;
 };
 
 export type TextLayoutPreset = {
@@ -109,6 +111,8 @@ export type TextLayoutPreset = {
   headlineSize: number;
   subtitleSize: number;
   badgeEnabled: boolean;
+  textOffsetX: number;
+  textOffsetY: number;
 };
 
 export type TiltSettings = {

@@ -140,7 +140,7 @@ export default function BrowserFrame({
   return (
     <div
       className={cn(
-        "flex max-h-full max-w-full flex-col overflow-hidden",
+        "flex h-full max-h-full w-full max-w-full flex-col overflow-hidden",
         frameClasses.surface,
       )}
       style={frameStyle}
@@ -160,7 +160,7 @@ export default function BrowserFrame({
       )}
 
       <div
-        className={cn("min-h-0 overflow-hidden", frameClasses.body)}
+        className={cn("min-h-0 flex-1 overflow-hidden", frameClasses.body)}
         style={imageWrapStyle}
       >
         {/* Object URLs from local uploads are not compatible with next/image optimization. */}
@@ -169,7 +169,7 @@ export default function BrowserFrame({
           src={imageSrc}
           alt={imageAlt}
           onLoad={onImageLoad}
-          className="block h-auto max-h-full max-w-full object-contain"
+          className="block h-full w-full object-contain"
         />
       </div>
     </div>

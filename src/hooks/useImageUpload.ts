@@ -58,6 +58,9 @@ export function useImageUpload() {
     (state) => state.replaceUploadedImage,
   );
   const clearUploadedImage = useEditorStore((state) => state.clearUploadedImage);
+  const resetEditorForNewUpload = useEditorStore(
+    (state) => state.resetEditorForNewUpload,
+  );
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -122,6 +125,10 @@ export function useImageUpload() {
           options?.successMessage ??
           (currentImage ? "Screenshot replaced" : "Screenshot ready");
 
+        if (!currentImage) {
+          resetEditorForNewUpload();
+        }
+
         replaceUploadedImage(image);
         toast.success(successMessage, {
           description: `${image.width} x ${image.height} px - ${formatFileSize(image.size)}`,
@@ -139,7 +146,7 @@ export function useImageUpload() {
         }
       }
     },
-    [clearError, replaceUploadedImage, showError],
+    [clearError, replaceUploadedImage, resetEditorForNewUpload, showError],
   );
 
   const onDrop = useCallback<NonNullable<DropzoneOptions["onDrop"]>>(

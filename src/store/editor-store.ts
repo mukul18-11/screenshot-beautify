@@ -79,6 +79,8 @@ type EditorStore = BeautifySettings &
     setTextColor: (color: string) => void;
     setHeadlineSize: (size: number) => void;
     setSubtitleSize: (size: number) => void;
+    setTextOverlayPosition: (offsetX: number, offsetY: number) => void;
+    resetTextOverlayPosition: () => void;
     toggleBadge: () => void;
     applyTextLayoutPreset: (presetId: string) => void;
     resetTextOverlaySettings: () => void;
@@ -103,6 +105,7 @@ type EditorStore = BeautifySettings &
     setIsExporting: (value: boolean) => void;
     markExported: () => void;
     resetExportSettings: () => void;
+    resetEditorForNewUpload: () => void;
     applyDesignTemplate: (templateId: string) => void;
     setActiveTemplateId: (templateId: string | null) => void;
   };
@@ -171,6 +174,8 @@ function createTextLayoutPresetSettings(
     headlineSize: preset.headlineSize,
     subtitleSize: preset.subtitleSize,
     badgeEnabled: preset.badgeEnabled,
+    textOffsetX: preset.textOffsetX,
+    textOffsetY: preset.textOffsetY,
   };
 }
 
@@ -313,7 +318,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ badgeText: value });
   },
   setTextPosition: (position) => {
-    set({ textPosition: position });
+    set({
+      textLayoutPreset: "custom",
+      textOffsetX: 0,
+      textOffsetY: 0,
+      textPosition: position,
+    });
   },
   setTextAlign: (align) => {
     set({ textAlign: align });
@@ -326,6 +336,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   setSubtitleSize: (size) => {
     set({ subtitleSize: size });
+  },
+  setTextOverlayPosition: (offsetX, offsetY) => {
+    set({
+      activeTemplateId: null,
+      textLayoutPreset: "custom",
+      textOffsetX: Math.max(-1, Math.min(1, offsetX)),
+      textOffsetY: Math.max(-1, Math.min(1, offsetY)),
+    });
+  },
+  resetTextOverlayPosition: () => {
+    set({ textOffsetX: 0, textOffsetY: 0 });
   },
   toggleBadge: () => {
     set((state) => ({
@@ -421,6 +442,16 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   resetExportSettings: () => {
     set(createDefaultExportSettings());
+  },
+  resetEditorForNewUpload: () => {
+    set({
+      ...createDefaultBeautifySettings(),
+      ...createDefaultBrowserFrameSettings(),
+      ...createDefaultTextOverlaySettings(),
+      ...createDefaultTiltSettings(),
+      ...createDefaultTemplateSettings(),
+      lastBeautifyPresetId: null,
+    });
   },
   applyDesignTemplate: (templateId) => {
     const template = getDesignTemplate(templateId);

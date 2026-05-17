@@ -98,6 +98,8 @@ function textOverlay(
     headlineSize,
     subtitleSize,
     badgeEnabled,
+    textOffsetX: 0,
+    textOffsetY: 0,
   };
 }
 
@@ -489,35 +491,6 @@ export const DESIGN_TEMPLATES = [
     ),
     tilt: tilt(true, "subtle-lift", 1200, 4, -6, 0, -4, 1.12, false),
     previewLabel: "Update",
-  }),
-  createDesignTemplate({
-    id: "landing-page-hero",
-    name: "Landing Page Hero",
-    description: "Wide marketing hero format for landing pages and decks.",
-    category: "Launch",
-    canvasPresetId: "wide-hero",
-    backgroundPresetId: "blur-from-screenshot",
-    imageStyle: {
-      imagePadding: 118,
-      imageRadius: 26,
-      imageScale: 92,
-      imageShadow: shadow(70, 0.38, 32),
-      imageBorderEnabled: true,
-    },
-    browserFrame: browserFrame(true, "light", "macos", "yourproduct.com"),
-    textOverlay: textOverlay(
-      true,
-      "Make every screenshot feel like a launch",
-      "A polished hero visual for your product page, deck, or announcement.",
-      "LANDING PAGE",
-      "bottom",
-      "center",
-      "#ffffff",
-      44,
-      20,
-    ),
-    tilt: tilt(true, "product-hero", 1000, 12, -18, 0, 0, 1.35, true, true),
-    previewLabel: "Landing",
   }),
 ] as const satisfies readonly DesignTemplate[];
 
