@@ -8,6 +8,8 @@ export type TextPosition = "top" | "bottom" | "left" | "right" | "center";
 
 export type TextAlign = "left" | "center" | "right";
 
+export type TextLayerId = "badge" | "headline" | "subtitle";
+
 export type TiltPresetId =
   | "flat"
   | "left-angle"
@@ -71,6 +73,8 @@ export type BeautifySettings = {
   imagePadding: number;
   imageRadius: number;
   imageScale: number;
+  imageOffsetX: number;
+  imageOffsetY: number;
   imageShadow: ImageShadow;
   imageBorderEnabled: boolean;
 };
@@ -95,8 +99,12 @@ export type TextOverlaySettings = {
   headlineSize: number;
   subtitleSize: number;
   badgeEnabled: boolean;
-  textOffsetX: number;
-  textOffsetY: number;
+  badgeOffsetX: number;
+  badgeOffsetY: number;
+  headlineOffsetX: number;
+  headlineOffsetY: number;
+  subtitleOffsetX: number;
+  subtitleOffsetY: number;
 };
 
 export type TextLayoutPreset = {
@@ -111,8 +119,12 @@ export type TextLayoutPreset = {
   headlineSize: number;
   subtitleSize: number;
   badgeEnabled: boolean;
-  textOffsetX: number;
-  textOffsetY: number;
+  badgeOffsetX: number;
+  badgeOffsetY: number;
+  headlineOffsetX: number;
+  headlineOffsetY: number;
+  subtitleOffsetX: number;
+  subtitleOffsetY: number;
 };
 
 export type TiltSettings = {

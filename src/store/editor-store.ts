@@ -35,6 +35,7 @@ import type {
   Phase6Settings,
   TemplateSettings,
   TextAlign,
+  TextLayerId,
   TextOverlaySettings,
   TextPosition,
   TiltSettings,
@@ -61,6 +62,8 @@ type EditorStore = BeautifySettings &
     setImagePadding: (value: number) => void;
     setImageRadius: (value: number) => void;
     setImageScale: (value: number) => void;
+    setImagePosition: (offsetX: number, offsetY: number) => void;
+    resetImagePosition: () => void;
     setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
     setImageBorderEnabled: (enabled: boolean) => void;
     toggleImageBorder: () => void;
@@ -79,8 +82,12 @@ type EditorStore = BeautifySettings &
     setTextColor: (color: string) => void;
     setHeadlineSize: (size: number) => void;
     setSubtitleSize: (size: number) => void;
-    setTextOverlayPosition: (offsetX: number, offsetY: number) => void;
-    resetTextOverlayPosition: () => void;
+    setTextLayerPosition: (
+      layerId: TextLayerId,
+      offsetX: number,
+      offsetY: number,
+    ) => void;
+    resetTextLayerPosition: (layerId?: TextLayerId) => void;
     toggleBadge: () => void;
     applyTextLayoutPreset: (presetId: string) => void;
     resetTextOverlaySettings: () => void;
@@ -159,11 +166,12 @@ function createDefaultTemplateSettings(): TemplateSettings {
 
 function createTextLayoutPresetSettings(
   presetId: string,
+  textOverlayEnabled: boolean,
 ): TextOverlaySettings {
   const preset = getTextLayoutPreset(presetId);
 
   return {
-    textOverlayEnabled: true,
+    textOverlayEnabled,
     headlineText: preset.headlineText,
     subtitleText: preset.subtitleText,
     badgeText: preset.badgeText,
@@ -174,9 +182,24 @@ function createTextLayoutPresetSettings(
     headlineSize: preset.headlineSize,
     subtitleSize: preset.subtitleSize,
     badgeEnabled: preset.badgeEnabled,
-    textOffsetX: preset.textOffsetX,
-    textOffsetY: preset.textOffsetY,
+    badgeOffsetX: preset.badgeOffsetX,
+    badgeOffsetY: preset.badgeOffsetY,
+    headlineOffsetX: preset.headlineOffsetX,
+    headlineOffsetY: preset.headlineOffsetY,
+    subtitleOffsetX: preset.subtitleOffsetX,
+    subtitleOffsetY: preset.subtitleOffsetY,
   };
+}
+
+function clampOffset(value: number) {
+  return Math.max(-1, Math.min(1, value));
+}
+
+function getTextLayerOffsetKeys(layerId: TextLayerId) {
+  return {
+    x: `${layerId}OffsetX`,
+    y: `${layerId}OffsetY`,
+  } as const;
 }
 
 function getBackgroundState(presetId: string): {
@@ -262,6 +285,19 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setImageScale: (value) => {
     set({ imageScale: value });
   },
+  setImagePosition: (offsetX, offsetY) => {
+    set({
+      activeTemplateId: null,
+      imageOffsetX: clampOffset(offsetX),
+      imageOffsetY: clampOffset(offsetY),
+    });
+  },
+  resetImagePosition: () => {
+    set({
+      imageOffsetX: 0,
+      imageOffsetY: 0,
+    });
+  },
   setImageShadow: (partialShadow) => {
     set((state) => ({
       imageShadow: {
@@ -320,8 +356,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setTextPosition: (position) => {
     set({
       textLayoutPreset: "custom",
-      textOffsetX: 0,
-      textOffsetY: 0,
+      badgeOffsetX: 0,
+      badgeOffsetY: 0,
+      headlineOffsetX: 0,
+      headlineOffsetY: 0,
+      subtitleOffsetX: 0,
+      subtitleOffsetY: 0,
       textPosition: position,
     });
   },
@@ -337,16 +377,35 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setSubtitleSize: (size) => {
     set({ subtitleSize: size });
   },
-  setTextOverlayPosition: (offsetX, offsetY) => {
+  setTextLayerPosition: (layerId, offsetX, offsetY) => {
+    const offsetKeys = getTextLayerOffsetKeys(layerId);
+
     set({
       activeTemplateId: null,
       textLayoutPreset: "custom",
-      textOffsetX: Math.max(-1, Math.min(1, offsetX)),
-      textOffsetY: Math.max(-1, Math.min(1, offsetY)),
+      [offsetKeys.x]: clampOffset(offsetX),
+      [offsetKeys.y]: clampOffset(offsetY),
     });
   },
-  resetTextOverlayPosition: () => {
-    set({ textOffsetX: 0, textOffsetY: 0 });
+  resetTextLayerPosition: (layerId) => {
+    if (layerId) {
+      const offsetKeys = getTextLayerOffsetKeys(layerId);
+
+      set({
+        [offsetKeys.x]: 0,
+        [offsetKeys.y]: 0,
+      });
+      return;
+    }
+
+    set({
+      badgeOffsetX: 0,
+      badgeOffsetY: 0,
+      headlineOffsetX: 0,
+      headlineOffsetY: 0,
+      subtitleOffsetX: 0,
+      subtitleOffsetY: 0,
+    });
   },
   toggleBadge: () => {
     set((state) => ({
@@ -354,7 +413,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
   applyTextLayoutPreset: (presetId) => {
-    set(createTextLayoutPresetSettings(presetId));
+    set(createTextLayoutPresetSettings(presetId, get().textOverlayEnabled));
   },
   resetTextOverlaySettings: () => {
     set(createDefaultTextOverlaySettings());

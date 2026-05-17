@@ -22,7 +22,7 @@ import { createImageShadowCss } from "@/lib/editor-defaults";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
-import type { TextPosition } from "@/types/editor";
+import type { TextLayerId, TextPosition } from "@/types/editor";
 
 type CanvasArtworkMode = "preview" | "export";
 
@@ -31,8 +31,9 @@ type TextDragGuide = {
   vertical: number | null;
 };
 
-type TextDragState = {
+type TextLayerDragState = {
   canvasRect: DOMRect;
+  layerId: TextLayerId;
   moved: boolean;
   pointerId: number;
   startClientX: number;
@@ -40,6 +41,17 @@ type TextDragState = {
   startOffsetX: number;
   startOffsetY: number;
   textRect: DOMRect;
+};
+
+type MockupDragState = {
+  canvasRect: DOMRect;
+  mockupRect: DOMRect;
+  moved: boolean;
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startOffsetX: number;
+  startOffsetY: number;
 };
 
 type CanvasArtworkProps = {
@@ -121,6 +133,36 @@ function clampTextOffset(value: number) {
   return Math.max(-1, Math.min(1, value));
 }
 
+function clampDeltaToBounds(
+  delta: number,
+  elementStart: number,
+  elementEnd: number,
+  boundsStart: number,
+  boundsEnd: number,
+) {
+  const elementSize = elementEnd - elementStart;
+  const boundsSize = boundsEnd - boundsStart;
+
+  if (elementSize >= boundsSize) {
+    const elementCenter = elementStart + elementSize / 2 + delta;
+    const boundsCenter = boundsStart + boundsSize / 2;
+
+    return delta + boundsCenter - elementCenter;
+  }
+
+  let clampedDelta = delta;
+
+  if (elementStart + clampedDelta < boundsStart) {
+    clampedDelta += boundsStart - (elementStart + clampedDelta);
+  }
+
+  if (elementEnd + clampedDelta > boundsEnd) {
+    clampedDelta += boundsEnd - (elementEnd + clampedDelta);
+  }
+
+  return clampedDelta;
+}
+
 const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   function CanvasArtwork(
     {
@@ -135,10 +177,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   ) {
     const shouldReduceMotion = useReducedMotion();
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
-    const textOverlayRef = useRef<HTMLDivElement | null>(null);
-    const textDragStateRef = useRef<TextDragState | null>(null);
-    const suppressNextTextClickRef = useRef(false);
+    const textDragStateRef = useRef<TextLayerDragState | null>(null);
+    const mockupDragStateRef = useRef<MockupDragState | null>(null);
+    const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
+    const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
       horizontal: null,
       vertical: null,
@@ -150,6 +193,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const imagePadding = useEditorStore((state) => state.imagePadding);
     const imageRadius = useEditorStore((state) => state.imageRadius);
     const imageScale = useEditorStore((state) => state.imageScale);
+    const imageOffsetX = useEditorStore((state) => state.imageOffsetX);
+    const imageOffsetY = useEditorStore((state) => state.imageOffsetY);
     const imageShadow = useEditorStore((state) => state.imageShadow);
     const imageBorderEnabled = useEditorStore(
       (state) => state.imageBorderEnabled,
@@ -179,10 +224,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const headlineSize = useEditorStore((state) => state.headlineSize);
     const subtitleSize = useEditorStore((state) => state.subtitleSize);
     const badgeEnabled = useEditorStore((state) => state.badgeEnabled);
-    const textOffsetX = useEditorStore((state) => state.textOffsetX);
-    const textOffsetY = useEditorStore((state) => state.textOffsetY);
-    const setTextOverlayPosition = useEditorStore(
-      (state) => state.setTextOverlayPosition,
+    const badgeOffsetX = useEditorStore((state) => state.badgeOffsetX);
+    const badgeOffsetY = useEditorStore((state) => state.badgeOffsetY);
+    const headlineOffsetX = useEditorStore((state) => state.headlineOffsetX);
+    const headlineOffsetY = useEditorStore((state) => state.headlineOffsetY);
+    const subtitleOffsetX = useEditorStore((state) => state.subtitleOffsetX);
+    const subtitleOffsetY = useEditorStore((state) => state.subtitleOffsetY);
+    const setImagePosition = useEditorStore(
+      (state) => state.setImagePosition,
+    );
+    const setTextLayerPosition = useEditorStore(
+      (state) => state.setTextLayerPosition,
     );
     const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
     const perspective = useEditorStore((state) => state.perspective);
@@ -225,6 +277,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       !isExportMode &&
       backgroundParallaxEnabled &&
       backgroundParallaxStrength > 0 &&
+      !isDraggingCanvasItem &&
       !shouldReduceMotion;
     const applyBackgroundParallax = useCallback((x = 0, y = 0) => {
       const canvasShell = canvasShellRef.current;
@@ -263,7 +316,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }, [applyBackgroundParallax, canParallaxBackground]);
 
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
-      if (!canParallaxBackground || event.pointerType === "touch") {
+      if (
+        !canParallaxBackground ||
+        event.pointerType === "touch" ||
+        textDragStateRef.current ||
+        mockupDragStateRef.current
+      ) {
         return;
       }
 
@@ -286,36 +344,64 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       scheduleBackgroundParallax();
     }
 
-    function handleTextPointerDown(event: PointerEvent<HTMLDivElement>) {
+    const textLayerOffsets = {
+      badge: { x: badgeOffsetX, y: badgeOffsetY },
+      headline: { x: headlineOffsetX, y: headlineOffsetY },
+      subtitle: { x: subtitleOffsetX, y: subtitleOffsetY },
+    } satisfies Record<TextLayerId, { x: number; y: number }>;
+
+    function handleTextLayerPointerDown(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLDivElement>,
+    ) {
       if (isExportMode || event.button !== 0) {
         return;
       }
 
       const canvasShell = canvasShellRef.current;
-      const textOverlay = textOverlayRef.current;
 
-      if (!canvasShell || !textOverlay) {
+      if (!canvasShell) {
         return;
       }
 
+      const eventTarget = event.target;
+
+      if (
+        eventTarget instanceof HTMLElement &&
+        eventTarget.closest("[contenteditable='true']")
+      ) {
+        return;
+      }
+
+      const layerOffset = textLayerOffsets[layerId];
+
       textDragStateRef.current = {
         canvasRect: canvasShell.getBoundingClientRect(),
+        layerId,
         moved: false,
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
-        startOffsetX: textOffsetX,
-        startOffsetY: textOffsetY,
-        textRect: textOverlay.getBoundingClientRect(),
+        startOffsetX: layerOffset.x,
+        startOffsetY: layerOffset.y,
+        textRect: event.currentTarget.getBoundingClientRect(),
       };
 
+      setIsDraggingCanvasItem(true);
       event.currentTarget.setPointerCapture(event.pointerId);
     }
 
-    function handleTextPointerMove(event: PointerEvent<HTMLDivElement>) {
+    function handleTextLayerPointerMove(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLDivElement>,
+    ) {
       const dragState = textDragStateRef.current;
 
-      if (!dragState || dragState.pointerId !== event.pointerId) {
+      if (
+        !dragState ||
+        dragState.pointerId !== event.pointerId ||
+        dragState.layerId !== layerId
+      ) {
         return;
       }
 
@@ -389,7 +475,23 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
 
       setTextDragGuide(guide);
-      setTextOverlayPosition(
+      deltaX = clampDeltaToBounds(
+        deltaX,
+        dragState.textRect.left,
+        dragState.textRect.right,
+        dragState.canvasRect.left,
+        dragState.canvasRect.right,
+      );
+      deltaY = clampDeltaToBounds(
+        deltaY,
+        dragState.textRect.top,
+        dragState.textRect.bottom,
+        dragState.canvasRect.top,
+        dragState.canvasRect.bottom,
+      );
+
+      setTextLayerPosition(
+        dragState.layerId,
         clampTextOffset(
           dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
         ),
@@ -399,15 +501,25 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       );
     }
 
-    function handleTextPointerEnd(event: PointerEvent<HTMLDivElement>) {
+    function handleTextLayerPointerEnd(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLDivElement>,
+    ) {
       const dragState = textDragStateRef.current;
 
-      if (!dragState || dragState.pointerId !== event.pointerId) {
+      if (
+        !dragState ||
+        dragState.pointerId !== event.pointerId ||
+        dragState.layerId !== layerId
+      ) {
         return;
       }
 
-      suppressNextTextClickRef.current = dragState.moved;
+      suppressNextTextClickRef.current = dragState.moved
+        ? dragState.layerId
+        : null;
       textDragStateRef.current = null;
+      setIsDraggingCanvasItem(false);
       setTextDragGuide({ horizontal: null, vertical: null });
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -415,14 +527,101 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
     }
 
-    function handleTextClickCapture(event: MouseEvent<HTMLDivElement>) {
-      if (!suppressNextTextClickRef.current) {
+    function handleTextLayerClickCapture(
+      layerId: TextLayerId,
+      event: MouseEvent<HTMLDivElement>,
+    ) {
+      if (suppressNextTextClickRef.current !== layerId) {
         return;
       }
 
-      suppressNextTextClickRef.current = false;
+      suppressNextTextClickRef.current = null;
       event.preventDefault();
       event.stopPropagation();
+    }
+
+    function handleMockupPointerDown(event: PointerEvent<HTMLDivElement>) {
+      if (isExportMode || event.button !== 0) {
+        return;
+      }
+
+      const canvasShell = canvasShellRef.current;
+
+      if (!canvasShell) {
+        return;
+      }
+
+      mockupDragStateRef.current = {
+        canvasRect: canvasShell.getBoundingClientRect(),
+        mockupRect: event.currentTarget.getBoundingClientRect(),
+        moved: false,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startOffsetX: imageOffsetX,
+        startOffsetY: imageOffsetY,
+      };
+
+      setIsDraggingCanvasItem(true);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleMockupPointerMove(event: PointerEvent<HTMLDivElement>) {
+      const dragState = mockupDragStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      let deltaX = event.clientX - dragState.startClientX;
+      let deltaY = event.clientY - dragState.startClientY;
+      const dragDistance = Math.hypot(deltaX, deltaY);
+
+      if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      dragState.moved = true;
+      event.preventDefault();
+
+      deltaX = clampDeltaToBounds(
+        deltaX,
+        dragState.mockupRect.left,
+        dragState.mockupRect.right,
+        dragState.canvasRect.left,
+        dragState.canvasRect.right,
+      );
+      deltaY = clampDeltaToBounds(
+        deltaY,
+        dragState.mockupRect.top,
+        dragState.mockupRect.bottom,
+        dragState.canvasRect.top,
+        dragState.canvasRect.bottom,
+      );
+
+      setImagePosition(
+        clampTextOffset(
+          dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
+        ),
+        clampTextOffset(
+          dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
+        ),
+      );
+    }
+
+    function handleMockupPointerEnd(event: PointerEvent<HTMLDivElement>) {
+      const dragState = mockupDragStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      mockupDragStateRef.current = null;
+      setIsDraggingCanvasItem(false);
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
     }
 
     const screenshotMotionProps = {
@@ -477,11 +676,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       rotateY,
       rotateZ,
       translateY,
-      hoverTiltEnabled: isExportMode ? false : hoverTiltEnabled,
+      hoverTiltEnabled:
+        isExportMode || isDraggingCanvasItem ? false : hoverTiltEnabled,
       hoverTiltSensitivity,
     };
-    const textPlacementStyle = {
-      transform: `translate(calc(${textOffsetX} * 50cqw), calc(${textOffsetY} * 50cqh))`,
+    const imagePlacementStyle = {
+      transform: `translate(calc(${imageOffsetX} * 50cqw), calc(${imageOffsetY} * 50cqh))`,
     } satisfies CSSProperties;
     const screenshotPreview = browserFrameEnabled ? (
       <motion.div
@@ -514,20 +714,24 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     );
     const textOverlay = hasTextOverlay ? (
       <TextOverlay
-        ref={textOverlayRef}
         badgeEnabled={badgeEnabled}
+        badgeOffsetX={badgeOffsetX}
+        badgeOffsetY={badgeOffsetY}
         badgeText={badgeText}
+        headlineOffsetX={headlineOffsetX}
+        headlineOffsetY={headlineOffsetY}
         headlineSize={headlineSize}
         headlineText={headlineText}
         isEditable={!isExportMode}
         isExportMode={isExportMode}
         isMovable={!isExportMode}
-        onClickCapture={handleTextClickCapture}
-        onPointerCancel={handleTextPointerEnd}
-        onPointerDown={handleTextPointerDown}
-        onPointerMove={handleTextPointerMove}
-        onPointerUp={handleTextPointerEnd}
-        placementStyle={textPlacementStyle}
+        onLayerClickCapture={handleTextLayerClickCapture}
+        onLayerPointerCancel={handleTextLayerPointerEnd}
+        onLayerPointerDown={handleTextLayerPointerDown}
+        onLayerPointerMove={handleTextLayerPointerMove}
+        onLayerPointerUp={handleTextLayerPointerEnd}
+        subtitleOffsetX={subtitleOffsetX}
+        subtitleOffsetY={subtitleOffsetY}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
         textAlign={textAlign}
@@ -640,15 +844,27 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           {hasTextOverlay && textPosition === "left" && textOverlay}
 
           <div className={cn("relative z-[1] flex", screenshotSlotClasses)}>
-            <TiltedMockupWrapper
+            <div
               className={cn(
-                "flex max-h-full max-w-full",
+                "flex max-h-full max-w-full touch-none",
                 screenshotShellClasses,
+                !isExportMode && "cursor-grab active:cursor-grabbing",
               )}
-              settings={tiltSettings}
+              onPointerCancel={handleMockupPointerEnd}
+              onPointerDown={handleMockupPointerDown}
+              onPointerMove={handleMockupPointerMove}
+              onPointerUp={handleMockupPointerEnd}
+              style={imagePlacementStyle}
             >
-              <AnimatePresence mode="wait">{screenshotPreview}</AnimatePresence>
-            </TiltedMockupWrapper>
+              <TiltedMockupWrapper
+                className="flex max-h-full max-w-full"
+                settings={tiltSettings}
+              >
+                <AnimatePresence mode="wait">
+                  {screenshotPreview}
+                </AnimatePresence>
+              </TiltedMockupWrapper>
+            </div>
           </div>
 
           {hasTextOverlay && textPosition === "center" && (

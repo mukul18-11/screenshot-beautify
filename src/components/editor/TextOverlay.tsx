@@ -8,29 +8,50 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
-  type MouseEventHandler,
-  type PointerEventHandler,
+  type MouseEvent,
+  type PointerEvent,
+  type Ref,
 } from "react";
 
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
-import type { TextAlign, TextPosition } from "@/types/editor";
+import type { TextAlign, TextLayerId, TextPosition } from "@/types/editor";
 
 type TextOverlayProps = {
   badgeEnabled: boolean;
+  badgeOffsetX: number;
+  badgeOffsetY: number;
   badgeText: string;
   className?: string;
+  headlineOffsetX: number;
+  headlineOffsetY: number;
   headlineSize: number;
   headlineText: string;
   isEditable?: boolean;
   isExportMode?: boolean;
   isMovable?: boolean;
-  onClickCapture?: MouseEventHandler<HTMLDivElement>;
-  onPointerCancel?: PointerEventHandler<HTMLDivElement>;
-  onPointerDown?: PointerEventHandler<HTMLDivElement>;
-  onPointerMove?: PointerEventHandler<HTMLDivElement>;
-  onPointerUp?: PointerEventHandler<HTMLDivElement>;
-  placementStyle?: CSSProperties;
+  onLayerClickCapture?: (
+    layerId: TextLayerId,
+    event: MouseEvent<HTMLDivElement>,
+  ) => void;
+  onLayerPointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLDivElement>,
+  ) => void;
+  onLayerPointerDown?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLDivElement>,
+  ) => void;
+  onLayerPointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLDivElement>,
+  ) => void;
+  onLayerPointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLDivElement>,
+  ) => void;
+  subtitleOffsetX: number;
+  subtitleOffsetY: number;
   subtitleSize: number;
   subtitleText: string;
   textAlign: TextAlign;
@@ -60,6 +81,12 @@ function getTextWidthClass(textPosition: TextPosition) {
   }
 
   return "max-w-[82%]";
+}
+
+function createLayerPlacementStyle(offsetX: number, offsetY: number) {
+  return {
+    transform: `translate(calc(${offsetX} * 50cqw), calc(${offsetY} * 50cqh))`,
+  } satisfies CSSProperties;
 }
 
 type EditableTextProps = {
@@ -111,7 +138,7 @@ function EditableText({
     setIsEditing(false);
   }, [onCommit]);
 
-  function handleClick(event: React.MouseEvent) {
+  function handleClick(event: MouseEvent<HTMLElement>) {
     if (!isEditable) {
       return;
     }
@@ -165,10 +192,13 @@ function EditableText({
 
   return (
     <Tag
-      ref={ref as React.Ref<HTMLHeadingElement & HTMLParagraphElement & HTMLSpanElement>}
+      ref={ref as Ref<
+        HTMLHeadingElement & HTMLParagraphElement & HTMLSpanElement
+      >}
       className={cn(
         className,
         isEditable && "px-2 py-1",
+        isEditing && "select-text",
         isEditable && !isEditing &&
           "cursor-pointer rounded-md transition-colors hover:ring-2 hover:ring-white/30",
         isEditing &&
@@ -190,19 +220,24 @@ function EditableText({
 const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   function TextOverlay({
   badgeEnabled,
+  badgeOffsetX,
+  badgeOffsetY,
   badgeText,
   className,
+  headlineOffsetX,
+  headlineOffsetY,
   headlineSize,
   headlineText,
   isEditable = false,
   isExportMode = false,
   isMovable = false,
-  onClickCapture,
-  onPointerCancel,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
-  placementStyle,
+  onLayerClickCapture,
+  onLayerPointerCancel,
+  onLayerPointerDown,
+  onLayerPointerMove,
+  onLayerPointerUp,
+  subtitleOffsetX,
+  subtitleOffsetY,
   subtitleSize,
   subtitleText,
   textAlign,
@@ -236,64 +271,117 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   const subtitleStyle = {
     fontSize: `${subtitleSize}px`,
   } satisfies CSSProperties;
+  const badgePlacementStyle = createLayerPlacementStyle(
+    badgeOffsetX,
+    badgeOffsetY,
+  );
+  const headlinePlacementStyle = createLayerPlacementStyle(
+    headlineOffsetX,
+    headlineOffsetY,
+  );
+  const subtitlePlacementStyle = createLayerPlacementStyle(
+    subtitleOffsetX,
+    subtitleOffsetY,
+  );
+
+  function createLayerInteractionProps(layerId: TextLayerId) {
+    return {
+      onClickCapture(event: MouseEvent<HTMLDivElement>) {
+        onLayerClickCapture?.(layerId, event);
+      },
+      onPointerCancel(event: PointerEvent<HTMLDivElement>) {
+        onLayerPointerCancel?.(layerId, event);
+      },
+      onPointerDown(event: PointerEvent<HTMLDivElement>) {
+        onLayerPointerDown?.(layerId, event);
+      },
+      onPointerMove(event: PointerEvent<HTMLDivElement>) {
+        onLayerPointerMove?.(layerId, event);
+      },
+      onPointerUp(event: PointerEvent<HTMLDivElement>) {
+        onLayerPointerUp?.(layerId, event);
+      },
+    };
+  }
 
   return (
     <div
       className={cn(
-        "relative z-10 flex min-w-0 shrink-0 touch-none select-none flex-col gap-3 overflow-hidden",
+        "relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
         getTextAlignClass(textAlign),
         getTextWidthClass(textPosition),
-        isMovable && "cursor-move",
         className,
       )}
       ref={forwardedRef}
-      onClickCapture={onClickCapture}
-      onPointerCancel={onPointerCancel}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      style={{ ...textStyle, ...placementStyle }}
+      style={textStyle}
     >
       {shouldShowBadge && (
         <div
+          {...createLayerInteractionProps("badge")}
           className={cn(
-            "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 text-[11px] font-bold uppercase leading-none tracking-normal shadow-sm",
-            !isExportMode && "backdrop-blur-md",
+            "relative max-w-full touch-none",
+            isMovable && "cursor-move select-none",
           )}
+          style={badgePlacementStyle}
         >
-          <EditableText
-            tag="span"
-            value={normalizedBadgeText}
-            isEditable={isEditable}
-            onCommit={setBadgeText}
-            placeholder="BADGE"
-            className="block truncate"
-          />
+          <div
+            className={cn(
+              "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 text-[11px] font-bold uppercase leading-tight tracking-normal shadow-sm",
+              !isExportMode && "backdrop-blur-md",
+            )}
+          >
+            <EditableText
+              tag="span"
+              value={normalizedBadgeText}
+              isEditable={isEditable}
+              onCommit={setBadgeText}
+              placeholder="BADGE"
+              className="block max-w-full whitespace-normal break-words [overflow-wrap:anywhere]"
+            />
+          </div>
         </div>
       )}
 
       {normalizedHeadlineText && (
-        <EditableText
-          tag="h2"
-          value={normalizedHeadlineText}
-          isEditable={isEditable}
-          onCommit={setHeadlineText}
-          placeholder="Headline text"
-          className="max-w-full overflow-hidden text-balance font-black leading-[0.98] tracking-normal [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] sm:max-w-[14em]"
-          style={headlineStyle}
-        />
+        <div
+          {...createLayerInteractionProps("headline")}
+          className={cn(
+            "relative max-w-full touch-none",
+            isMovable && "cursor-move select-none",
+          )}
+          style={headlinePlacementStyle}
+        >
+          <EditableText
+            tag="h2"
+            value={normalizedHeadlineText}
+            isEditable={isEditable}
+            onCommit={setHeadlineText}
+            placeholder="Headline text"
+            className="max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]"
+            style={headlineStyle}
+          />
+        </div>
       )}
 
       {normalizedSubtitleText && (
-        <EditableText
-          tag="p"
-          value={normalizedSubtitleText}
-          isEditable={isEditable}
-          onCommit={setSubtitleText}
-          placeholder="Subtitle text"
-          className="max-w-full overflow-hidden text-pretty font-medium leading-snug opacity-90 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3]"
-          style={subtitleStyle}
-        />
+        <div
+          {...createLayerInteractionProps("subtitle")}
+          className={cn(
+            "relative max-w-full touch-none",
+            isMovable && "cursor-move select-none",
+          )}
+          style={subtitlePlacementStyle}
+        >
+          <EditableText
+            tag="p"
+            value={normalizedSubtitleText}
+            isEditable={isEditable}
+            onCommit={setSubtitleText}
+            placeholder="Subtitle text"
+            className="max-w-full text-pretty break-words font-medium leading-snug opacity-90 [overflow-wrap:anywhere]"
+            style={subtitleStyle}
+          />
+        </div>
       )}
     </div>
   );

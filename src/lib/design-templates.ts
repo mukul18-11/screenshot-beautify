@@ -15,7 +15,6 @@ import type {
 
 export type DesignTemplateSettings = BeautifySettings &
   BrowserFrameSettings &
-  TextOverlaySettings &
   TiltSettings;
 
 export const DESIGN_TEMPLATE_FILTERS = [
@@ -98,8 +97,12 @@ function textOverlay(
     headlineSize,
     subtitleSize,
     badgeEnabled,
-    textOffsetX: 0,
-    textOffsetY: 0,
+    badgeOffsetX: 0,
+    badgeOffsetY: 0,
+    headlineOffsetX: 0,
+    headlineOffsetY: 0,
+    subtitleOffsetX: 0,
+    subtitleOffsetY: 0,
   };
 }
 
@@ -512,11 +515,12 @@ export function createDesignTemplateSettings(
     ...template.canvas,
     ...template.background,
     ...template.imageStyle,
+    imageOffsetX: 0,
+    imageOffsetY: 0,
     imageShadow: {
       ...template.imageStyle.imageShadow,
     },
     ...template.browserFrame,
-    ...template.textOverlay,
     ...template.tilt,
   };
 }

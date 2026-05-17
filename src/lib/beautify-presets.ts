@@ -139,6 +139,8 @@ export function createBeautifyPresetSettings(
     imagePadding: preset.imagePadding,
     imageRadius: preset.imageRadius,
     imageScale: preset.imageScale,
+    imageOffsetX: 0,
+    imageOffsetY: 0,
     imageShadow: {
       ...preset.imageShadow,
     },

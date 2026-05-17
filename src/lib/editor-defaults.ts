@@ -33,6 +33,8 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   imagePadding: 96,
   imageRadius: 24,
   imageScale: 92,
+  imageOffsetX: 0,
+  imageOffsetY: 0,
   imageShadow: DEFAULT_IMAGE_SHADOW,
   imageBorderEnabled: true,
 };
@@ -57,8 +59,12 @@ export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
   headlineSize: 44,
   subtitleSize: 20,
   badgeEnabled: true,
-  textOffsetX: 0,
-  textOffsetY: 0,
+  badgeOffsetX: 0,
+  badgeOffsetY: 0,
+  headlineOffsetX: 0,
+  headlineOffsetY: 0,
+  subtitleOffsetX: 0,
+  subtitleOffsetY: 0,
 };
 
 export const DEFAULT_TILT_SETTINGS: TiltSettings = {

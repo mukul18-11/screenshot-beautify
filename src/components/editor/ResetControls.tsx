@@ -19,6 +19,8 @@ function hasBeautifyChanges(settings: ReturnType<typeof useEditorStore.getState>
     settings.imagePadding !== DEFAULT_BEAUTIFY_SETTINGS.imagePadding ||
     settings.imageRadius !== DEFAULT_BEAUTIFY_SETTINGS.imageRadius ||
     settings.imageScale !== DEFAULT_BEAUTIFY_SETTINGS.imageScale ||
+    settings.imageOffsetX !== DEFAULT_BEAUTIFY_SETTINGS.imageOffsetX ||
+    settings.imageOffsetY !== DEFAULT_BEAUTIFY_SETTINGS.imageOffsetY ||
     settings.imageBorderEnabled !==
       DEFAULT_BEAUTIFY_SETTINGS.imageBorderEnabled ||
     settings.imageShadow.enabled !==

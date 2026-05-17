@@ -137,6 +137,34 @@ export default function BrowserFrame({
     borderBottomRightRadius: `${innerRadius}px`,
   } satisfies CSSProperties;
 
+  if (variant === "macos") {
+    return (
+      <div
+        className={cn(
+          "relative h-full max-h-full w-full max-w-full overflow-hidden",
+          frameClasses.surface,
+        )}
+        style={frameStyle}
+      >
+        {/* Object URLs from local uploads are not compatible with next/image optimization. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageSrc}
+          alt={imageAlt}
+          onLoad={onImageLoad}
+          className="absolute inset-0 block h-full w-full object-cover"
+        />
+        <div className="relative z-10">
+          <MacosTopBar
+            frameClasses={frameClasses}
+            showUrl={showUrl}
+            url={url}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -145,19 +173,7 @@ export default function BrowserFrame({
       )}
       style={frameStyle}
     >
-      {variant === "macos" ? (
-        <MacosTopBar
-          frameClasses={frameClasses}
-          showUrl={showUrl}
-          url={url}
-        />
-      ) : (
-        <MinimalTopBar
-          frameClasses={frameClasses}
-          showUrl={showUrl}
-          url={url}
-        />
-      )}
+      <MinimalTopBar frameClasses={frameClasses} showUrl={showUrl} url={url} />
 
       <div
         className={cn("min-h-0 flex-1 overflow-hidden", frameClasses.body)}
