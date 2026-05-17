@@ -152,7 +152,9 @@ export default function BrowserFrame({
           src={imageSrc}
           alt={imageAlt}
           onLoad={onImageLoad}
-          className="absolute inset-0 block h-full w-full object-cover"
+          draggable={false}
+          onDragStart={(event) => event.preventDefault()}
+          className="absolute inset-0 block h-full w-full object-cover select-none [-webkit-user-drag:none]"
         />
         <div className="relative z-10">
           <MacosTopBar
@@ -185,7 +187,9 @@ export default function BrowserFrame({
           src={imageSrc}
           alt={imageAlt}
           onLoad={onImageLoad}
-          className="block h-full w-full object-contain"
+          draggable={false}
+          onDragStart={(event) => event.preventDefault()}
+          className="block h-full w-full object-contain select-none [-webkit-user-drag:none]"
         />
       </div>
     </div>

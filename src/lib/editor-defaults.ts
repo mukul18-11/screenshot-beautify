@@ -106,8 +106,8 @@ export const BEAUTIFY_SETTING_LIMITS = {
     step: 1,
   },
   imageScale: {
-    min: 70,
-    max: 110,
+    min: 35,
+    max: 180,
     step: 1,
   },
   imageShadowBlur: {

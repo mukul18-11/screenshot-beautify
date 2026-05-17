@@ -18,7 +18,10 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import BrowserFrame from "@/components/editor/BrowserFrame";
 import TextOverlay from "@/components/editor/TextOverlay";
 import TiltedMockupWrapper from "@/components/editor/TiltedMockupWrapper";
-import { createImageShadowCss } from "@/lib/editor-defaults";
+import {
+  BEAUTIFY_SETTING_LIMITS,
+  createImageShadowCss,
+} from "@/lib/editor-defaults";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
@@ -52,6 +55,23 @@ type MockupDragState = {
   startClientY: number;
   startOffsetX: number;
   startOffsetY: number;
+};
+
+type ResizeHandleId = "n" | "s" | "e" | "w" | "nw" | "ne" | "sw" | "se";
+
+type MockupResizeState = {
+  anchorX: number;
+  anchorY: number;
+  canvasRect: DOMRect;
+  handleId: ResizeHandleId;
+  mockupRect: DOMRect;
+  moved: boolean;
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startOffsetX: number;
+  startOffsetY: number;
+  startScale: number;
 };
 
 type CanvasArtworkProps = {
@@ -128,9 +148,23 @@ function mergeRefs<T>(
 
 const DRAG_THRESHOLD_PX = 4;
 const SNAP_THRESHOLD_PX = 12;
+const RESIZE_HANDLES = [
+  "nw",
+  "n",
+  "ne",
+  "e",
+  "se",
+  "s",
+  "sw",
+  "w",
+] as const satisfies readonly ResizeHandleId[];
 
 function clampTextOffset(value: number) {
   return Math.max(-1, Math.min(1, value));
+}
+
+function clampValue(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function clampDeltaToBounds(
@@ -163,6 +197,75 @@ function clampDeltaToBounds(
   return clampedDelta;
 }
 
+function getResizeHandleDirections(handleId: ResizeHandleId) {
+  return {
+    x: handleId.includes("e") ? 1 : handleId.includes("w") ? -1 : 0,
+    y: handleId.includes("s") ? 1 : handleId.includes("n") ? -1 : 0,
+  };
+}
+
+function getResizeHandleAnchor(handleId: ResizeHandleId, rect: DOMRect) {
+  const directions = getResizeHandleDirections(handleId);
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  return {
+    x: directions.x > 0 ? rect.left : directions.x < 0 ? rect.right : centerX,
+    y: directions.y > 0 ? rect.top : directions.y < 0 ? rect.bottom : centerY,
+  };
+}
+
+function getResizeHandlePositionClass(handleId: ResizeHandleId) {
+  const positionClasses = {
+    e: "right-0 top-1/2 h-7 w-2 -translate-y-1/2 translate-x-1/2 cursor-ew-resize",
+    n: "left-1/2 top-0 h-2 w-7 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize",
+    ne: "right-0 top-0 h-3 w-3 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
+    nw: "left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
+    s: "bottom-0 left-1/2 h-2 w-7 -translate-x-1/2 translate-y-1/2 cursor-ns-resize",
+    se: "bottom-0 right-0 h-3 w-3 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
+    sw: "bottom-0 left-0 h-3 w-3 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
+    w: "left-0 top-1/2 h-7 w-2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize",
+  } satisfies Record<ResizeHandleId, string>;
+
+  return positionClasses[handleId];
+}
+
+function calculateResizeRatio(
+  dragState: MockupResizeState,
+  clientX: number,
+  clientY: number,
+) {
+  const directions = getResizeHandleDirections(dragState.handleId);
+  const startVectorX = dragState.startClientX - dragState.anchorX;
+  const startVectorY = dragState.startClientY - dragState.anchorY;
+  const currentVectorX = clientX - dragState.anchorX;
+  const currentVectorY = clientY - dragState.anchorY;
+
+  if (directions.x !== 0 && directions.y !== 0) {
+    const startLengthSquared =
+      startVectorX * startVectorX + startVectorY * startVectorY;
+
+    if (startLengthSquared <= 0) {
+      return 1;
+    }
+
+    return (
+      (currentVectorX * startVectorX + currentVectorY * startVectorY) /
+      startLengthSquared
+    );
+  }
+
+  if (directions.x !== 0 && Math.abs(startVectorX) > 0) {
+    return currentVectorX / startVectorX;
+  }
+
+  if (directions.y !== 0 && Math.abs(startVectorY) > 0) {
+    return currentVectorY / startVectorY;
+  }
+
+  return 1;
+}
+
 const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   function CanvasArtwork(
     {
@@ -177,11 +280,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   ) {
     const shouldReduceMotion = useReducedMotion();
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
+    const mockupFrameRef = useRef<HTMLDivElement | null>(null);
+    const mockupVisualRef = useRef<HTMLDivElement | null>(null);
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
     const mockupDragStateRef = useRef<MockupDragState | null>(null);
+    const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
     const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
+    const [isMockupSelected, setIsMockupSelected] = useState(false);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
       horizontal: null,
       vertical: null,
@@ -233,6 +340,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const setImagePosition = useEditorStore(
       (state) => state.setImagePosition,
     );
+    const setImageScale = useEditorStore((state) => state.setImageScale);
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
     );
@@ -320,7 +428,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         !canParallaxBackground ||
         event.pointerType === "touch" ||
         textDragStateRef.current ||
-        mockupDragStateRef.current
+        mockupDragStateRef.current ||
+        mockupResizeStateRef.current
       ) {
         return;
       }
@@ -342,6 +451,23 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
 
       scheduleBackgroundParallax();
+    }
+
+    function handleCanvasPointerDown(event: PointerEvent<HTMLDivElement>) {
+      if (isExportMode) {
+        return;
+      }
+
+      const eventTarget = event.target;
+      const mockupFrame = mockupFrameRef.current;
+
+      if (
+        eventTarget instanceof Node &&
+        mockupFrame &&
+        !mockupFrame.contains(eventTarget)
+      ) {
+        setIsMockupSelected(false);
+      }
     }
 
     const textLayerOffsets = {
@@ -546,14 +672,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
 
       const canvasShell = canvasShellRef.current;
+      const mockupVisual = mockupVisualRef.current;
 
-      if (!canvasShell) {
+      if (!canvasShell || !mockupVisual) {
         return;
       }
 
+      event.preventDefault();
+      setIsMockupSelected(true);
       mockupDragStateRef.current = {
         canvasRect: canvasShell.getBoundingClientRect(),
-        mockupRect: event.currentTarget.getBoundingClientRect(),
+        mockupRect: mockupVisual.getBoundingClientRect(),
         moved: false,
         pointerId: event.pointerId,
         startClientX: event.clientX,
@@ -624,27 +753,167 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
     }
 
+    function handleResizePointerDown(
+      handleId: ResizeHandleId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      if (isExportMode || event.button !== 0) {
+        return;
+      }
+
+      const canvasShell = canvasShellRef.current;
+      const mockupVisual = mockupVisualRef.current;
+
+      if (!canvasShell || !mockupVisual) {
+        return;
+      }
+
+      const mockupRect = mockupVisual.getBoundingClientRect();
+      const anchor = getResizeHandleAnchor(handleId, mockupRect);
+
+      event.preventDefault();
+      event.stopPropagation();
+      setIsMockupSelected(true);
+      setIsDraggingCanvasItem(true);
+      mockupResizeStateRef.current = {
+        anchorX: anchor.x,
+        anchorY: anchor.y,
+        canvasRect: canvasShell.getBoundingClientRect(),
+        handleId,
+        mockupRect,
+        moved: false,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startOffsetX: imageOffsetX,
+        startOffsetY: imageOffsetY,
+        startScale: imageScale,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleResizePointerMove(
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = mockupResizeStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - dragState.startClientX;
+      const deltaY = event.clientY - dragState.startClientY;
+      const dragDistance = Math.hypot(deltaX, deltaY);
+
+      if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      dragState.moved = true;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const rawRatio = calculateResizeRatio(
+        dragState,
+        event.clientX,
+        event.clientY,
+      );
+      const fitScale =
+        dragState.startScale *
+        Math.min(
+          dragState.canvasRect.width / dragState.mockupRect.width,
+          dragState.canvasRect.height / dragState.mockupRect.height,
+        );
+      const maxScale = Math.max(
+        BEAUTIFY_SETTING_LIMITS.imageScale.min,
+        Math.min(BEAUTIFY_SETTING_LIMITS.imageScale.max, fitScale),
+      );
+      const constrainedScale = clampValue(
+        dragState.startScale * rawRatio,
+        BEAUTIFY_SETTING_LIMITS.imageScale.min,
+        maxScale,
+      );
+      const nextScale = clampValue(
+        Math.round(constrainedScale),
+        BEAUTIFY_SETTING_LIMITS.imageScale.min,
+        Math.floor(maxScale),
+      );
+      const scaleRatio = nextScale / dragState.startScale;
+      const directions = getResizeHandleDirections(dragState.handleId);
+      const startCenterX =
+        dragState.mockupRect.left + dragState.mockupRect.width / 2;
+      const startCenterY =
+        dragState.mockupRect.top + dragState.mockupRect.height / 2;
+      const nextWidth = dragState.mockupRect.width * scaleRatio;
+      const nextHeight = dragState.mockupRect.height * scaleRatio;
+      let nextCenterX = startCenterX;
+      let nextCenterY = startCenterY;
+
+      if (directions.x > 0) {
+        nextCenterX = dragState.anchorX + nextWidth / 2;
+      } else if (directions.x < 0) {
+        nextCenterX = dragState.anchorX - nextWidth / 2;
+      }
+
+      if (directions.y > 0) {
+        nextCenterY = dragState.anchorY + nextHeight / 2;
+      } else if (directions.y < 0) {
+        nextCenterY = dragState.anchorY - nextHeight / 2;
+      }
+
+      nextCenterX = clampValue(
+        nextCenterX,
+        dragState.canvasRect.left + nextWidth / 2,
+        dragState.canvasRect.right - nextWidth / 2,
+      );
+      nextCenterY = clampValue(
+        nextCenterY,
+        dragState.canvasRect.top + nextHeight / 2,
+        dragState.canvasRect.bottom - nextHeight / 2,
+      );
+
+      setImageScale(Math.round(nextScale));
+      setImagePosition(
+        clampTextOffset(
+          dragState.startOffsetX +
+            ((nextCenterX - startCenterX) / dragState.canvasRect.width) * 2,
+        ),
+        clampTextOffset(
+          dragState.startOffsetY +
+            ((nextCenterY - startCenterY) / dragState.canvasRect.height) * 2,
+        ),
+      );
+    }
+
+    function handleResizePointerEnd(
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = mockupResizeStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      mockupResizeStateRef.current = null;
+      setIsDraggingCanvasItem(false);
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }
+
     const screenshotMotionProps = {
       initial: {
         opacity: isExportMode ? 1 : 0,
-        scale:
-          isExportMode || shouldReduceMotion
-            ? screenshotScale
-            : screenshotScale * 0.96,
       },
       animate: {
         opacity: isExportMode || !isLoading ? 1 : 0,
-        scale:
-          !isExportMode && isLoading && !shouldReduceMotion
-            ? screenshotScale * 0.98
-            : screenshotScale,
       },
       exit: {
         opacity: isExportMode ? 1 : 0,
-        scale:
-          isExportMode || shouldReduceMotion
-            ? screenshotScale
-            : screenshotScale * 0.98,
       },
       transition: { duration: isExportMode ? 0 : 0.26, ease: "easeOut" },
     } as const;
@@ -683,6 +952,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const imagePlacementStyle = {
       transform: `translate(calc(${imageOffsetX} * 50cqw), calc(${imageOffsetY} * 50cqh))`,
     } satisfies CSSProperties;
+    const mockupScaleStyle = {
+      transform: `scale(${screenshotScale})`,
+      transformOrigin: "center",
+      transition:
+        isExportMode || shouldReduceMotion || isDraggingCanvasItem
+          ? undefined
+          : "transform 180ms ease-out",
+    } satisfies CSSProperties;
     const screenshotPreview = browserFrameEnabled ? (
       <motion.div
         key={`${uploadedImage.id}-browser-frame`}
@@ -707,8 +984,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         src={uploadedImage.objectUrl}
         alt={uploadedImage.name}
         onLoad={onImageLoad}
+        draggable={false}
+        onDragStart={(event) => event.preventDefault()}
         {...screenshotMotionProps}
-        className={cn("block h-full object-contain", screenshotShellClasses)}
+        className={cn(
+          "block h-full select-none object-contain [-webkit-user-drag:none]",
+          screenshotShellClasses,
+        )}
         style={screenshotShellStyle}
       />
     );
@@ -746,6 +1028,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         ref={mergeRefs(canvasShellRef, forwardedRef)}
         layout={!isExportMode}
         onPointerCancel={handleCanvasPointerLeave}
+        onPointerDown={handleCanvasPointerDown}
         onPointerLeave={handleCanvasPointerLeave}
         onPointerMove={handleCanvasPointerMove}
         transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}
@@ -845,25 +1128,58 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
           <div className={cn("relative z-[1] flex", screenshotSlotClasses)}>
             <div
+              ref={mockupFrameRef}
               className={cn(
-                "flex max-h-full max-w-full touch-none",
+                "flex max-h-full max-w-full touch-none select-none",
                 screenshotShellClasses,
                 !isExportMode && "cursor-grab active:cursor-grabbing",
               )}
+              aria-selected={!isExportMode ? isMockupSelected : undefined}
               onPointerCancel={handleMockupPointerEnd}
               onPointerDown={handleMockupPointerDown}
               onPointerMove={handleMockupPointerMove}
               onPointerUp={handleMockupPointerEnd}
               style={imagePlacementStyle}
             >
-              <TiltedMockupWrapper
-                className="flex max-h-full max-w-full"
-                settings={tiltSettings}
+              <div
+                ref={mockupVisualRef}
+                className="relative flex max-h-full max-w-full"
+                style={mockupScaleStyle}
               >
-                <AnimatePresence mode="wait">
-                  {screenshotPreview}
-                </AnimatePresence>
-              </TiltedMockupWrapper>
+                <TiltedMockupWrapper
+                  className="flex max-h-full max-w-full"
+                  settings={tiltSettings}
+                >
+                  <AnimatePresence mode="wait">
+                    {screenshotPreview}
+                  </AnimatePresence>
+                </TiltedMockupWrapper>
+
+                {!isExportMode && isMockupSelected && (
+                  <div
+                    className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
+                    style={{ borderRadius: `${imageRadius}px` }}
+                  >
+                    {RESIZE_HANDLES.map((handleId) => (
+                      <button
+                        key={handleId}
+                        type="button"
+                        aria-label={`Resize screenshot ${handleId}`}
+                        className={cn(
+                          "pointer-events-auto absolute rounded-full border border-cyan-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300",
+                          getResizeHandlePositionClass(handleId),
+                        )}
+                        onPointerCancel={handleResizePointerEnd}
+                        onPointerDown={(event) =>
+                          handleResizePointerDown(handleId, event)
+                        }
+                        onPointerMove={handleResizePointerMove}
+                        onPointerUp={handleResizePointerEnd}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
