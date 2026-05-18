@@ -68,6 +68,9 @@ type EditorStore = BeautifySettings &
     setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
     setImageBorderEnabled: (enabled: boolean) => void;
     toggleImageBorder: () => void;
+    setImageZoom: (value: number) => void;
+    setImageZoomOffset: (offsetX: number, offsetY: number) => void;
+    resetImageZoom: () => void;
     resetBeautifySettings: () => void;
     toggleBrowserFrame: () => void;
     setBrowserFrameTheme: (theme: BrowserFrameTheme) => void;
@@ -293,6 +296,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         bottom: 0,
         left: 0,
       },
+      imageZoom: 100,
+      imageZoomOffsetX: 0,
+      imageZoomOffsetY: 0,
     });
   },
   resetImagePosition: () => {
@@ -305,6 +311,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         bottom: 0,
         left: 0,
       },
+      imageZoom: 100,
+      imageZoomOffsetX: 0,
+      imageZoomOffsetY: 0,
     });
   },
   setImageShadow: (partialShadow) => {
@@ -322,6 +331,36 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((state) => ({
       imageBorderEnabled: !state.imageBorderEnabled,
     }));
+  },
+  setImageZoom: (value) => {
+    const clamped = Math.max(100, Math.min(400, Math.round(value)));
+    if (clamped <= 100) {
+      set({ imageZoom: 100, imageZoomOffsetX: 0, imageZoomOffsetY: 0 });
+    } else {
+      set((state) => {
+        // Clamp offsets so the image stays within bounds at new zoom
+        const maxOff = 1 - 1 / (clamped / 100);
+        return {
+          imageZoom: clamped,
+          imageZoomOffsetX: Math.max(-maxOff, Math.min(maxOff, state.imageZoomOffsetX)),
+          imageZoomOffsetY: Math.max(-maxOff, Math.min(maxOff, state.imageZoomOffsetY)),
+        };
+      });
+    }
+  },
+  setImageZoomOffset: (offsetX, offsetY) => {
+    set((state) => {
+      const zoom = state.imageZoom / 100;
+      if (zoom <= 1) return {};
+      const maxOff = 1 - 1 / zoom;
+      return {
+        imageZoomOffsetX: Math.max(-maxOff, Math.min(maxOff, offsetX)),
+        imageZoomOffsetY: Math.max(-maxOff, Math.min(maxOff, offsetY)),
+      };
+    });
+  },
+  resetImageZoom: () => {
+    set({ imageZoom: 100, imageZoomOffsetX: 0, imageZoomOffsetY: 0 });
   },
   resetBeautifySettings: () => {
     set({

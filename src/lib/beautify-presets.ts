@@ -151,5 +151,8 @@ export function createBeautifyPresetSettings(
       ...preset.imageShadow,
     },
     imageBorderEnabled: preset.imageBorderEnabled,
+    imageZoom: 100,
+    imageZoomOffsetX: 0,
+    imageZoomOffsetY: 0,
   };
 }

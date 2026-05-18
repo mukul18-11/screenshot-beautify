@@ -1,9 +1,10 @@
 "use client";
 
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, RotateCcw, ZoomIn } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import EditorSliderRow from "@/components/editor/EditorSliderRow";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -19,6 +20,13 @@ export default function ImageStyleControls() {
   const imageBorderEnabled = useEditorStore(
     (state) => state.imageBorderEnabled,
   );
+  const imageZoom = useEditorStore((state) => state.imageZoom);
+  const imageZoomOffsetX = useEditorStore(
+    (state) => state.imageZoomOffsetX,
+  );
+  const imageZoomOffsetY = useEditorStore(
+    (state) => state.imageZoomOffsetY,
+  );
   const setImagePadding = useEditorStore((state) => state.setImagePadding);
   const setImageRadius = useEditorStore((state) => state.setImageRadius);
   const setImageScale = useEditorStore((state) => state.setImageScale);
@@ -26,7 +34,13 @@ export default function ImageStyleControls() {
   const setImageBorderEnabled = useEditorStore(
     (state) => state.setImageBorderEnabled,
   );
+  const setImageZoom = useEditorStore((state) => state.setImageZoom);
+  const setImageZoomOffset = useEditorStore(
+    (state) => state.setImageZoomOffset,
+  );
+  const resetImageZoom = useEditorStore((state) => state.resetImageZoom);
   const shadowOpacityPercent = Math.round(imageShadow.opacity * 100);
+  const isZoomed = imageZoom > 100;
 
   return (
     <motion.section
@@ -150,6 +164,71 @@ export default function ImageStyleControls() {
             aria-label="Toggle subtle screenshot border"
           />
         </div>
+
+        <Separator className="!my-3 bg-slate-100" />
+
+        {/* Zoom & focus */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ZoomIn className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+            <span className="text-[13px] font-semibold text-slate-700 dark:text-white">
+              Zoom &amp; focus
+            </span>
+          </div>
+          {isZoomed && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={resetImageZoom}
+              className="h-6 gap-1 px-1.5 text-[11px] text-slate-400 hover:text-slate-700"
+              aria-label="Reset zoom"
+            >
+              <RotateCcw className="h-3 w-3" aria-hidden="true" />
+              Reset
+            </Button>
+          )}
+        </div>
+
+        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+          Scroll on the image to zoom in. Drag to pan when zoomed.
+        </p>
+
+        <EditorSliderRow
+          label="Zoom"
+          labelClassName="text-slate-600 dark:text-slate-300"
+          min={BEAUTIFY_SETTING_LIMITS.imageZoom.min}
+          max={BEAUTIFY_SETTING_LIMITS.imageZoom.max}
+          step={BEAUTIFY_SETTING_LIMITS.imageZoom.step}
+          value={imageZoom}
+          suffix="%"
+          onChange={setImageZoom}
+        />
+
+        {isZoomed && (
+          <div className="space-y-3 pl-1">
+            <EditorSliderRow
+              label="Pan X"
+              labelClassName="text-slate-600 dark:text-slate-300"
+              min={-100}
+              max={100}
+              step={1}
+              value={Math.round(imageZoomOffsetX * 100)}
+              suffix=""
+              onChange={(v) => setImageZoomOffset(v / 100, imageZoomOffsetY)}
+            />
+            <EditorSliderRow
+              label="Pan Y"
+              labelClassName="text-slate-600 dark:text-slate-300"
+              min={-100}
+              max={100}
+              step={1}
+              value={Math.round(imageZoomOffsetY * 100)}
+              suffix=""
+              onChange={(v) => setImageZoomOffset(imageZoomOffsetX, v / 100)}
+            />
+          </div>
+        )}
       </div>
     </motion.section>
   );

@@ -12,6 +12,7 @@ import {
   type MutableRefObject,
   type PointerEvent,
   type SyntheticEvent,
+  type WheelEvent,
 } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -81,6 +82,16 @@ type MockupResizeState = {
   startOffsetX: number;
   startOffsetY: number;
   startScale: number;
+};
+
+type ZoomPanDragState = {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startZoomOffsetX: number;
+  startZoomOffsetY: number;
+  imgRect: DOMRect;
+  moved: boolean;
 };
 
 type MockupTransformControlsProps = {
@@ -440,6 +451,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       horizontal: null,
       vertical: null,
     });
+    const zoomPanDragStateRef = useRef<ZoomPanDragState | null>(null);
     const canvasWidth = useEditorStore((state) => state.canvasWidth);
     const canvasHeight = useEditorStore((state) => state.canvasHeight);
     const backgroundType = useEditorStore((state) => state.backgroundType);
@@ -453,6 +465,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const imageShadow = useEditorStore((state) => state.imageShadow);
     const imageBorderEnabled = useEditorStore(
       (state) => state.imageBorderEnabled,
+    );
+    const imageZoom = useEditorStore((state) => state.imageZoom);
+    const imageZoomOffsetX = useEditorStore(
+      (state) => state.imageZoomOffsetX,
+    );
+    const imageZoomOffsetY = useEditorStore(
+      (state) => state.imageZoomOffsetY,
     );
     const browserFrameEnabled = useEditorStore(
       (state) => state.browserFrameEnabled,
@@ -493,6 +512,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     );
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
+    );
+    const setImageZoom = useEditorStore((state) => state.setImageZoom);
+    const setImageZoomOffset = useEditorStore(
+      (state) => state.setImageZoomOffset,
     );
     const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
     const perspective = useEditorStore((state) => state.perspective);
@@ -769,6 +792,112 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleImageLoad(event: SyntheticEvent<HTMLImageElement>) {
       onImageLoad?.(event);
+    }
+
+    function handleScreenshotWheel(event: WheelEvent<HTMLDivElement>) {
+      if (isExportMode) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const delta = -event.deltaY;
+      const step = delta > 0 ? 10 : -10;
+      const currentZoom = useEditorStore.getState().imageZoom;
+      const nextZoom = Math.max(100, Math.min(400, currentZoom + step));
+
+      if (nextZoom === currentZoom) return;
+
+      // When zooming toward a point, adjust the pan offsets so the area
+      // under the cursor stays visually stable.
+      const imgEl = event.currentTarget;
+      const rect = imgEl.getBoundingClientRect();
+      const cursorFracX = (event.clientX - rect.left) / rect.width;
+      const cursorFracY = (event.clientY - rect.top) / rect.height;
+      const cursorNormX = (cursorFracX - 0.5) * 2; // -1..1
+      const cursorNormY = (cursorFracY - 0.5) * 2;
+
+      const oldZoom = currentZoom / 100;
+      const newZoom = nextZoom / 100;
+      const state = useEditorStore.getState();
+
+      // Calculate new offset to keep the cursor-point anchored
+      let newOffX = state.imageZoomOffsetX;
+      let newOffY = state.imageZoomOffsetY;
+
+      if (newZoom > 1) {
+        const zoomRatio = oldZoom / newZoom;
+        newOffX = state.imageZoomOffsetX * zoomRatio + cursorNormX * (1 - zoomRatio) * (1 - 1 / newZoom);
+        newOffY = state.imageZoomOffsetY * zoomRatio + cursorNormY * (1 - zoomRatio) * (1 - 1 / newZoom);
+        const maxOff = 1 - 1 / newZoom;
+        newOffX = Math.max(-maxOff, Math.min(maxOff, newOffX));
+        newOffY = Math.max(-maxOff, Math.min(maxOff, newOffY));
+      } else {
+        newOffX = 0;
+        newOffY = 0;
+      }
+
+      setImageZoom(nextZoom);
+      setImageZoomOffset(newOffX, newOffY);
+    }
+
+    function handleZoomPanPointerDown(event: PointerEvent<HTMLDivElement>) {
+      if (isExportMode || event.button !== 0) return;
+      const currentZoom = useEditorStore.getState().imageZoom;
+      if (currentZoom <= 100) return; // No pan if not zoomed
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      zoomPanDragStateRef.current = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startZoomOffsetX: useEditorStore.getState().imageZoomOffsetX,
+        startZoomOffsetY: useEditorStore.getState().imageZoomOffsetY,
+        imgRect: event.currentTarget.getBoundingClientRect(),
+        moved: false,
+      };
+
+      setIsDraggingCanvasItem(true);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleZoomPanPointerMove(event: PointerEvent<HTMLDivElement>) {
+      const drag = zoomPanDragStateRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      const deltaX = event.clientX - drag.startClientX;
+      const deltaY = event.clientY - drag.startClientY;
+      const distance = Math.hypot(deltaX, deltaY);
+
+      if (!drag.moved && distance < DRAG_THRESHOLD_PX) return;
+      drag.moved = true;
+      event.preventDefault();
+
+      const currentZoom = useEditorStore.getState().imageZoom / 100;
+      if (currentZoom <= 1) return;
+
+      // Convert pixel delta to normalized offset change (opposite direction)
+      const normalizedDeltaX = -(deltaX / drag.imgRect.width) * 2 / currentZoom;
+      const normalizedDeltaY = -(deltaY / drag.imgRect.height) * 2 / currentZoom;
+
+      const nextOffsetX = drag.startZoomOffsetX + normalizedDeltaX;
+      const nextOffsetY = drag.startZoomOffsetY + normalizedDeltaY;
+
+      scheduleTransformUpdate(() => {
+        setImageZoomOffset(nextOffsetX, nextOffsetY);
+      });
+    }
+
+    function handleZoomPanPointerEnd(event: PointerEvent<HTMLDivElement>) {
+      const drag = zoomPanDragStateRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      zoomPanDragStateRef.current = null;
+      setIsDraggingCanvasItem(false);
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
     }
 
     const textLayerOffsets = {
@@ -1346,6 +1475,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       width: `${100 / cropRatios.width}%`,
       willChange: "transform",
     } satisfies CSSProperties;
+    const zoomScale = imageZoom / 100;
+    const isZoomed = imageZoom > 100;
+    const zoomTransformStyle = {
+      transform: isZoomed
+        ? `scale(${zoomScale}) translate(${-imageZoomOffsetX * 100}%, ${-imageZoomOffsetY * 100}%)`
+        : undefined,
+      transformOrigin: "center",
+      willChange: isZoomed ? "transform" : undefined,
+    } satisfies CSSProperties;
     const hasTextOverlay =
       textOverlayEnabled &&
       ((badgeEnabled && badgeText.trim().length > 0) ||
@@ -1393,8 +1531,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onDragStart={(event) => event.preventDefault()}
         {...screenshotMotionProps}
         className={cn(
-          "block h-full w-full select-none object-cover will-change-transform [-webkit-user-drag:none]",
+          "block h-full w-full select-none object-cover [-webkit-user-drag:none]",
+          isZoomed ? "will-change-transform" : "will-change-auto",
         )}
+        style={zoomTransformStyle}
       />
     );
     const textOverlay = hasTextOverlay ? (
@@ -1580,6 +1720,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                             screenshotShellClasses,
                           )}
                           style={screenshotCropStyle}
+                          onWheel={handleScreenshotWheel}
+                          onPointerDown={handleZoomPanPointerDown}
+                          onPointerMove={handleZoomPanPointerMove}
+                          onPointerUp={handleZoomPanPointerEnd}
+                          onPointerCancel={handleZoomPanPointerEnd}
                         >
                           <div style={cropContentStyle}>
                             <AnimatePresence mode="wait">
@@ -1596,6 +1741,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                         screenshotShellClasses,
                       )}
                       style={{ ...screenshotCropStyle, ...mockupDecorationStyle }}
+                      onWheel={handleScreenshotWheel}
+                      onPointerDown={handleZoomPanPointerDown}
+                      onPointerMove={handleZoomPanPointerMove}
+                      onPointerUp={handleZoomPanPointerEnd}
+                      onPointerCancel={handleZoomPanPointerEnd}
                     >
                       <div style={cropContentStyle}>
                         <AnimatePresence mode="wait">

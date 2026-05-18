@@ -45,6 +45,9 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   imageCrop: DEFAULT_IMAGE_CROP,
   imageShadow: DEFAULT_IMAGE_SHADOW,
   imageBorderEnabled: true,
+  imageZoom: 100,
+  imageZoomOffsetX: 0,
+  imageZoomOffsetY: 0,
 };
 
 export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
@@ -110,6 +113,11 @@ export const BEAUTIFY_SETTING_LIMITS = {
   imageScale: {
     min: 10,
     max: 180,
+    step: 1,
+  },
+  imageZoom: {
+    min: 100,
+    max: 400,
     step: 1,
   },
   imageShadowBlur: {

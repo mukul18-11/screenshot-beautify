@@ -77,6 +77,9 @@ export type BeautifySettings = {
   imageCrop: ImageCrop;
   imageShadow: ImageShadow;
   imageBorderEnabled: boolean;
+  imageZoom: number;
+  imageZoomOffsetX: number;
+  imageZoomOffsetY: number;
 };
 
 export type BrowserFrameSettings = {
