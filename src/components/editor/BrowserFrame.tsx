@@ -1,18 +1,22 @@
-import type { CSSProperties, SyntheticEvent } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 import type { BrowserFrameStyle, BrowserFrameTheme } from "@/types/editor";
 
 type BrowserFrameProps = {
-  imageAlt: string;
-  imageSrc: string;
-  onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
+  children: ReactNode;
   radius: number;
   showUrl: boolean;
   theme: BrowserFrameTheme;
   url: string;
   variant: BrowserFrameStyle;
 };
+
+/** macOS-style top bar height in px (traffic lights + optional URL bar). */
+export const MACOS_TOP_BAR_HEIGHT = 40;
+
+/** Minimal-style top bar height in px. */
+export const MINIMAL_TOP_BAR_HEIGHT = 32;
 
 const DOTS = [
   "bg-[#ff5f57] ring-[#e34840]/35",
@@ -52,9 +56,10 @@ function MacosTopBar({
   return (
     <div
       className={cn(
-        "flex h-10 shrink-0 items-center gap-3 border-b px-3",
+        "flex shrink-0 items-center gap-3 border-b px-3",
         frameClasses.topBar,
       )}
+      style={{ height: `${MACOS_TOP_BAR_HEIGHT}px` }}
     >
       <div className="flex w-14 shrink-0 items-center gap-1.5">
         {DOTS.map((dotClass) => (
@@ -97,9 +102,10 @@ function MinimalTopBar({
   return (
     <div
       className={cn(
-        "flex h-8 shrink-0 items-center border-b px-3",
+        "flex shrink-0 items-center border-b px-3",
         frameClasses.topBar,
       )}
+      style={{ height: `${MINIMAL_TOP_BAR_HEIGHT}px` }}
     >
       {showUrl ? (
         <p
@@ -118,9 +124,7 @@ function MinimalTopBar({
 }
 
 export default function BrowserFrame({
-  imageAlt,
-  imageSrc,
-  onImageLoad,
+  children,
   radius,
   showUrl,
   theme,
@@ -137,60 +141,32 @@ export default function BrowserFrame({
     borderBottomRightRadius: `${innerRadius}px`,
   } satisfies CSSProperties;
 
-  if (variant === "macos") {
-    return (
-      <div
-        className={cn(
-          "relative h-full max-h-full w-full max-w-full overflow-hidden",
-          frameClasses.surface,
-        )}
-        style={frameStyle}
-      >
-        {/* Object URLs from local uploads are not compatible with next/image optimization. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          onLoad={onImageLoad}
-          draggable={false}
-          onDragStart={(event) => event.preventDefault()}
-          className="absolute inset-0 block h-full w-full select-none object-cover will-change-transform [-webkit-user-drag:none]"
-        />
-        <div className="relative z-10">
-          <MacosTopBar
-            frameClasses={frameClasses}
-            showUrl={showUrl}
-            url={url}
-          />
-        </div>
-      </div>
+  const TopBar =
+    variant === "macos" ? (
+      <MacosTopBar
+        frameClasses={frameClasses}
+        showUrl={showUrl}
+        url={url}
+      />
+    ) : (
+      <MinimalTopBar frameClasses={frameClasses} showUrl={showUrl} url={url} />
     );
-  }
 
   return (
     <div
       className={cn(
-        "flex h-full max-h-full w-full max-w-full flex-col overflow-hidden",
+        "flex w-full max-w-full flex-col overflow-hidden",
         frameClasses.surface,
       )}
       style={frameStyle}
     >
-      <MinimalTopBar frameClasses={frameClasses} showUrl={showUrl} url={url} />
+      {TopBar}
 
       <div
         className={cn("min-h-0 flex-1 overflow-hidden", frameClasses.body)}
         style={imageWrapStyle}
       >
-        {/* Object URLs from local uploads are not compatible with next/image optimization. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          onLoad={onImageLoad}
-          draggable={false}
-          onDragStart={(event) => event.preventDefault()}
-          className="block h-full w-full select-none object-cover will-change-transform [-webkit-user-drag:none]"
-        />
+        {children}
       </div>
     </div>
   );

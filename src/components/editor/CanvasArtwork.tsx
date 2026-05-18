@@ -1323,16 +1323,20 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       transition: { duration: isExportMode ? 0 : 0.26, ease: "easeOut" },
     } as const;
     const cropRatios = getCropRatios(imageCrop);
+    const croppedImageWidth = uploadedImage.width * cropRatios.width;
+    const croppedImageHeight = uploadedImage.height * cropRatios.height;
     const screenshotCropStyle = {
-      aspectRatio: `${uploadedImage.width * cropRatios.width} / ${
-        uploadedImage.height * cropRatios.height
-      }`,
+      aspectRatio: `${croppedImageWidth} / ${croppedImageHeight}`,
+      width: `${croppedImageWidth}px`,
+    } satisfies CSSProperties;
+    /** Border, shadow, and radius apply to the BrowserFrame wrapper when it's
+     *  enabled, or directly to the crop container when it isn't. */
+    const mockupDecorationStyle = {
       border: imageBorderEnabled
         ? "1px solid rgba(255, 255, 255, 0.72)"
         : "none",
       borderRadius: `${imageRadius}px`,
       boxShadow: screenshotShadow,
-      width: `${uploadedImage.width * cropRatios.width}px`,
     } satisfies CSSProperties;
     const cropContentStyle = {
       height: `${100 / cropRatios.height}%`,
@@ -1379,24 +1383,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           : "transform 180ms ease-out",
       willChange: "transform",
     } satisfies CSSProperties;
-    const screenshotPreview = browserFrameEnabled ? (
-      <motion.div
-        key={`${uploadedImage.id}-browser-frame`}
-        {...screenshotMotionProps}
-        className="inline-flex h-full w-full overflow-hidden"
-      >
-        <BrowserFrame
-          imageAlt={uploadedImage.name}
-          imageSrc={uploadedImage.objectUrl}
-          onImageLoad={handleImageLoad}
-          radius={imageRadius}
-          showUrl={browserFrameShowUrl}
-          theme={browserFrameTheme}
-          url={browserFrameUrl}
-          variant={browserFrameStyle}
-        />
-      </motion.div>
-    ) : (
+    const screenshotPreview = (
       <motion.img
         key={`${uploadedImage.id}-screenshot`}
         src={uploadedImage.objectUrl}
@@ -1572,19 +1559,51 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   className={cn("flex", screenshotShellClasses)}
                   settings={tiltSettings}
                 >
-                  <motion.div
-                    className={cn(
-                      "relative overflow-hidden",
-                      screenshotShellClasses,
-                    )}
-                    style={screenshotCropStyle}
-                  >
-                    <div style={cropContentStyle}>
-                      <AnimatePresence mode="wait">
-                        {screenshotPreview}
-                      </AnimatePresence>
+                  {browserFrameEnabled ? (
+                    <div
+                      className={cn(
+                        "overflow-hidden",
+                        screenshotShellClasses,
+                      )}
+                      style={mockupDecorationStyle}
+                    >
+                      <BrowserFrame
+                        radius={0}
+                        showUrl={browserFrameShowUrl}
+                        theme={browserFrameTheme}
+                        url={browserFrameUrl}
+                        variant={browserFrameStyle}
+                      >
+                        <motion.div
+                          className={cn(
+                            "relative overflow-hidden",
+                            screenshotShellClasses,
+                          )}
+                          style={screenshotCropStyle}
+                        >
+                          <div style={cropContentStyle}>
+                            <AnimatePresence mode="wait">
+                              {screenshotPreview}
+                            </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      </BrowserFrame>
                     </div>
-                  </motion.div>
+                  ) : (
+                    <motion.div
+                      className={cn(
+                        "relative overflow-hidden",
+                        screenshotShellClasses,
+                      )}
+                      style={{ ...screenshotCropStyle, ...mockupDecorationStyle }}
+                    >
+                      <div style={cropContentStyle}>
+                        <AnimatePresence mode="wait">
+                          {screenshotPreview}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )}
                 </TiltedMockupWrapper>
 
                 {showMockupControls && (
