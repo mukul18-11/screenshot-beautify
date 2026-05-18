@@ -4,7 +4,6 @@ import {
   forwardRef,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -127,16 +126,21 @@ function getScreenshotSlotClasses(
 function getScreenshotShellClasses(
   textOverlayEnabled: boolean,
   textPosition: TextPosition,
+  isExportMode: boolean,
 ) {
-  if (!textOverlayEnabled || textPosition === "center") {
+  if (isExportMode) {
     return "max-h-full max-w-full";
+  }
+
+  if (!textOverlayEnabled || textPosition === "center") {
+    return "max-w-full";
   }
 
   if (textPosition === "left" || textPosition === "right") {
-    return "max-h-full max-w-full";
+    return "max-w-full";
   }
 
-  return "max-h-full max-w-[92%]";
+  return "max-w-[92%]";
 }
 
 function mergeRefs<T>(
@@ -157,7 +161,7 @@ function mergeRefs<T>(
 }
 
 const DRAG_THRESHOLD_PX = 4;
-const FIT_ON_UPLOAD_PADDING_PX = 80;
+const MIN_VISIBLE_MOCKUP_PX = 48;
 const SNAP_THRESHOLD_PX = 12;
 const RESIZE_HANDLES = [
   "nw",
@@ -169,79 +173,6 @@ const RESIZE_HANDLES = [
   "sw",
   "w",
 ] as const satisfies readonly ResizeHandleId[];
-
-function calculateFitScale(
-  availableWidth: number,
-  availableHeight: number,
-  imageNaturalWidth: number,
-  imageNaturalHeight: number,
-) {
-  if (
-    availableWidth <= 0 ||
-    availableHeight <= 0 ||
-    imageNaturalWidth <= 0 ||
-    imageNaturalHeight <= 0
-  ) {
-    return 1;
-  }
-
-  return Math.min(
-    availableWidth / imageNaturalWidth,
-    availableHeight / imageNaturalHeight,
-    1,
-  );
-}
-
-function fitImageToCanvas(
-  imageNaturalWidth: number,
-  imageNaturalHeight: number,
-  canvasWidth: number,
-  canvasHeight: number,
-) {
-  const padding = FIT_ON_UPLOAD_PADDING_PX;
-  const scale = calculateFitScale(
-    canvasWidth - padding * 2,
-    canvasHeight - padding * 2,
-    imageNaturalWidth,
-    imageNaturalHeight,
-  );
-  const offsetX = (canvasWidth - imageNaturalWidth * scale) / 2;
-  const offsetY = (canvasHeight - imageNaturalHeight * scale) / 2;
-
-  return {
-    offsetX,
-    offsetY,
-    scale,
-  };
-}
-
-function calculateFitScalePercent(
-  displayWidth: number,
-  displayHeight: number,
-  availableWidth: number,
-  availableHeight: number,
-  imageNaturalWidth: number,
-  imageNaturalHeight: number,
-) {
-  const fit = fitImageToCanvas(
-    imageNaturalWidth,
-    imageNaturalHeight,
-    displayWidth,
-    displayHeight,
-  );
-  const layoutScale = calculateFitScale(
-    availableWidth,
-    availableHeight,
-    imageNaturalWidth,
-    imageNaturalHeight,
-  );
-
-  if (layoutScale <= 0) {
-    return fit.scale * 100;
-  }
-
-  return (fit.scale / layoutScale) * 100;
-}
 
 function isCornerResizeHandle(handleId: ResizeHandleId) {
   const directions = getResizeHandleDirections(handleId);
@@ -277,6 +208,35 @@ function clampDeltaToBounds(
   }
 
   return clampedDelta;
+}
+
+function clampDeltaToVisibleBounds(
+  delta: number,
+  elementStart: number,
+  elementEnd: number,
+  boundsStart: number,
+  boundsEnd: number,
+) {
+  const elementSize = elementEnd - elementStart;
+  const minVisible = Math.min(MIN_VISIBLE_MOCKUP_PX, elementSize);
+  const minStart = boundsStart + minVisible - elementSize;
+  const maxStart = boundsEnd - minVisible;
+  const nextStart = clampValue(elementStart + delta, minStart, maxStart);
+
+  return delta + nextStart - (elementStart + delta);
+}
+
+function clampCenterToVisibleBounds(
+  center: number,
+  elementSize: number,
+  boundsStart: number,
+  boundsEnd: number,
+) {
+  const minVisible = Math.min(MIN_VISIBLE_MOCKUP_PX, elementSize);
+  const minCenter = boundsStart + minVisible - elementSize / 2;
+  const maxCenter = boundsEnd - minVisible + elementSize / 2;
+
+  return clampValue(center, minCenter, maxCenter);
 }
 
 function getResizeHandleDirections(handleId: ResizeHandleId) {
@@ -362,7 +322,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   ) {
     const shouldReduceMotion = useReducedMotion();
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
-    const canvasContentRef = useRef<HTMLDivElement | null>(null);
     const mockupFrameRef = useRef<HTMLDivElement | null>(null);
     const mockupVisualRef = useRef<HTMLDivElement | null>(null);
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
@@ -599,86 +558,25 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       };
     }, []);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
       if (isExportMode) {
         return;
       }
 
-      let animationFrame: number | null = null;
+      const fitKey = [uploadedImage.id, canvasWidth, canvasHeight].join(":");
 
-      const fitToRenderedCanvas = () => {
-        const canvasShell = canvasShellRef.current;
-        const canvasContent = canvasContentRef.current;
+      if (fittedImageKeyRef.current === fitKey) {
+        return;
+      }
 
-        if (!canvasShell || !canvasContent) {
-          return;
-        }
-
-        const displayWidth = canvasShell.offsetWidth;
-        const displayHeight = canvasShell.offsetHeight;
-
-        if (displayWidth <= 0 || displayHeight <= 0) {
-          return;
-        }
-
-        const contentStyle = window.getComputedStyle(canvasContent);
-        const availableWidth = Math.max(
-          0,
-          canvasContent.clientWidth -
-            Number.parseFloat(contentStyle.paddingLeft) -
-            Number.parseFloat(contentStyle.paddingRight),
-        );
-        const availableHeight = Math.max(
-          0,
-          canvasContent.clientHeight -
-            Number.parseFloat(contentStyle.paddingTop) -
-            Number.parseFloat(contentStyle.paddingBottom),
-        );
-        const fitKey = [
-          uploadedImage.id,
-          uploadedImage.width,
-          uploadedImage.height,
-          canvasWidth,
-          canvasHeight,
-          displayWidth,
-          displayHeight,
-          availableWidth,
-          availableHeight,
-        ].join(":");
-
-        if (fittedImageKeyRef.current === fitKey) {
-          return;
-        }
-
-        const initialScalePercent = calculateFitScalePercent(
-          displayWidth,
-          displayHeight,
-          availableWidth,
-          availableHeight,
-          uploadedImage.width,
-          uploadedImage.height,
-        );
-
-        fittedImageKeyRef.current = fitKey;
-        fitUploadedImage(initialScalePercent);
-      };
-
-      fitToRenderedCanvas();
-      animationFrame = requestAnimationFrame(fitToRenderedCanvas);
-
-      return () => {
-        if (animationFrame !== null) {
-          cancelAnimationFrame(animationFrame);
-        }
-      };
+      fittedImageKeyRef.current = fitKey;
+      fitUploadedImage(100);
     }, [
       canvasHeight,
       canvasWidth,
       fitUploadedImage,
       isExportMode,
-      uploadedImage.height,
       uploadedImage.id,
-      uploadedImage.width,
     ]);
 
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -984,14 +882,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       dragState.moved = true;
       event.preventDefault();
 
-      deltaX = clampDeltaToBounds(
+      deltaX = clampDeltaToVisibleBounds(
         deltaX,
         dragState.mockupRect.left,
         dragState.mockupRect.right,
         dragState.canvasRect.left,
         dragState.canvasRect.right,
       );
-      deltaY = clampDeltaToBounds(
+      deltaY = clampDeltaToVisibleBounds(
         deltaY,
         dragState.mockupRect.top,
         dragState.mockupRect.bottom,
@@ -1162,15 +1060,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           nextCenterY = dragState.mockupRect.bottom - nextHeight / 2;
         }
 
-        nextCenterX = clampValue(
+        nextCenterX = clampCenterToVisibleBounds(
           nextCenterX,
-          dragState.canvasRect.left + nextWidth / 2,
-          dragState.canvasRect.right - nextWidth / 2,
+          nextWidth,
+          dragState.canvasRect.left,
+          dragState.canvasRect.right,
         );
-        nextCenterY = clampValue(
+        nextCenterY = clampCenterToVisibleBounds(
           nextCenterY,
-          dragState.canvasRect.top + nextHeight / 2,
-          dragState.canvasRect.bottom - nextHeight / 2,
+          nextHeight,
+          dragState.canvasRect.top,
+          dragState.canvasRect.bottom,
         );
 
         const nextOffsetX = clampUnitOffset(
@@ -1197,16 +1097,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         event.clientX,
         event.clientY,
       );
-      const fitScale =
-        dragState.startScale *
-        Math.min(
-          dragState.canvasRect.width / dragState.mockupRect.width,
-          dragState.canvasRect.height / dragState.mockupRect.height,
-        );
-      const maxScale = Math.max(
-        BEAUTIFY_SETTING_LIMITS.imageScale.min,
-        Math.min(BEAUTIFY_SETTING_LIMITS.imageScale.max, fitScale),
-      );
+      const maxScale = BEAUTIFY_SETTING_LIMITS.imageScale.max;
       const constrainedScale = clampValue(
         dragState.startScale * rawRatio,
         BEAUTIFY_SETTING_LIMITS.imageScale.min,
@@ -1235,15 +1126,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         nextCenterY = dragState.anchorY - nextHeight / 2;
       }
 
-      nextCenterX = clampValue(
+      nextCenterX = clampCenterToVisibleBounds(
         nextCenterX,
-        dragState.canvasRect.left + nextWidth / 2,
-        dragState.canvasRect.right - nextWidth / 2,
+        nextWidth,
+        dragState.canvasRect.left,
+        dragState.canvasRect.right,
       );
-      nextCenterY = clampValue(
+      nextCenterY = clampCenterToVisibleBounds(
         nextCenterY,
-        dragState.canvasRect.top + nextHeight / 2,
-        dragState.canvasRect.bottom - nextHeight / 2,
+        nextHeight,
+        dragState.canvasRect.top,
+        dragState.canvasRect.bottom,
       );
 
       const nextOffsetX = clampUnitOffset(
@@ -1329,6 +1222,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const screenshotShellClasses = getScreenshotShellClasses(
       hasTextOverlay,
       textPosition,
+      isExportMode,
     );
     const tiltSettings = {
       tiltEnabled,
@@ -1381,7 +1275,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onDragStart={(event) => event.preventDefault()}
         {...screenshotMotionProps}
         className={cn(
-          "block h-full w-full select-none object-contain will-change-transform [-webkit-user-drag:none]",
+          "block h-full w-full select-none object-cover will-change-transform [-webkit-user-drag:none]",
         )}
       />
     );
@@ -1423,7 +1317,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onPointerLeave={handleCanvasPointerLeave}
         onPointerMove={handleCanvasPointerMove}
         transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}
-        className={cn("relative overflow-hidden", className)}
+        className={cn(
+          "relative",
+          isExportMode ? "overflow-hidden" : "overflow-visible",
+          className,
+        )}
         style={{
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
           containerType: "size",
@@ -1439,49 +1337,53 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             animate={{ opacity: 1 }}
             exit={{ opacity: isExportMode || shouldReduceMotion ? 1 : 0 }}
             transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}
-            className="absolute inset-0 overflow-hidden"
-            style={{
-              transform:
-                !isExportMode && backgroundParallaxEnabled
-                  ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) scale(1.04)"
-                  : undefined,
-              transition:
-                isExportMode || shouldReduceMotion
-                  ? undefined
-                  : "transform 280ms ease-out",
-              willChange:
-                !isExportMode && backgroundParallaxEnabled
-                  ? "transform"
-                  : undefined,
-            }}
+            className="absolute inset-0 overflow-hidden rounded-[inherit]"
           >
-            {backgroundType === "image-blur" ? (
-              <>
-                <div
-                  className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
-                  style={{
-                    backgroundImage: `url(${uploadedImage.objectUrl})`,
-                    backgroundPosition: "center",
-                    backgroundSize: "cover",
-                  }}
-                  aria-hidden="true"
-                />
+            <div
+              className="absolute inset-0"
+              style={{
+                transform:
+                  !isExportMode && backgroundParallaxEnabled
+                    ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) scale(1.04)"
+                    : undefined,
+                transition:
+                  isExportMode || shouldReduceMotion
+                    ? undefined
+                    : "transform 280ms ease-out",
+                willChange:
+                  !isExportMode && backgroundParallaxEnabled
+                    ? "transform"
+                    : undefined,
+              }}
+            >
+              {backgroundType === "image-blur" ? (
+                <>
+                  <div
+                    className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
+                    style={{
+                      backgroundImage: `url(${uploadedImage.objectUrl})`,
+                      backgroundPosition: "center",
+                      backgroundSize: "cover",
+                    }}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: backgroundValue }}
+                  />
+                </>
+              ) : (
                 <div
                   className="absolute inset-0"
                   style={{ background: backgroundValue }}
                 />
-              </>
-            ) : (
-              <div
-                className="absolute inset-0"
-                style={{ background: backgroundValue }}
-              />
-            )}
+              )}
+            </div>
           </motion.div>
         </AnimatePresence>
 
         <div
-          className="absolute inset-0 opacity-25 mix-blend-soft-light"
+          className="absolute inset-0 overflow-hidden rounded-[inherit] opacity-25 mix-blend-soft-light"
           style={{
             backgroundImage:
               "linear-gradient(90deg, rgba(255,255,255,0.32) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.22) 1px, transparent 1px)",
@@ -1506,10 +1408,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         )}
 
         <motion.div
-          ref={canvasContentRef}
           layout={!isExportMode}
           className={cn(
-            "relative flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
+            "relative flex h-full w-full min-w-0 items-center justify-center",
+            isExportMode ? "overflow-hidden" : "overflow-visible",
             hasTextOverlay && getContentLayoutClasses(textPosition),
           )}
           style={{ padding: canvasPadding }}
@@ -1522,7 +1424,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             <div
               ref={mockupFrameRef}
               className={cn(
-                "flex max-h-full max-w-full touch-none select-none",
+                "flex touch-none select-none",
                 screenshotShellClasses,
                 !isExportMode && "cursor-grab active:cursor-grabbing",
               )}
@@ -1535,16 +1437,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             >
               <div
                 ref={mockupVisualRef}
-                className="relative flex max-h-full max-w-full"
+                className={cn("relative flex", screenshotShellClasses)}
                 style={mockupScaleStyle}
               >
                 <TiltedMockupWrapper
-                  className="flex max-h-full max-w-full"
+                  className={cn("flex", screenshotShellClasses)}
                   settings={tiltSettings}
                 >
                   <motion.div
                     className={cn(
-                      "relative max-h-full max-w-full overflow-hidden",
+                      "relative overflow-hidden",
                       screenshotShellClasses,
                     )}
                     style={screenshotCropStyle}
