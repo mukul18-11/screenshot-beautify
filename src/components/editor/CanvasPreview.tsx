@@ -1,5 +1,7 @@
 "use client";
 
+import type { SyntheticEvent } from "react";
+
 import { motion, useReducedMotion } from "motion/react";
 
 import CanvasArtwork from "@/components/editor/CanvasArtwork";
@@ -7,7 +9,7 @@ import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 
 type CanvasPreviewProps = {
   isLoading?: boolean;
-  onImageLoad?: () => void;
+  onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
   uploadedImage: UploadedImage;
 };
 

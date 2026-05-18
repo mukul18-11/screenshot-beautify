@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, SyntheticEvent } from "react";
 
 import { cn } from "@/lib/utils";
 import type { BrowserFrameStyle, BrowserFrameTheme } from "@/types/editor";
@@ -6,7 +6,7 @@ import type { BrowserFrameStyle, BrowserFrameTheme } from "@/types/editor";
 type BrowserFrameProps = {
   imageAlt: string;
   imageSrc: string;
-  onImageLoad?: () => void;
+  onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
   radius: number;
   showUrl: boolean;
   theme: BrowserFrameTheme;

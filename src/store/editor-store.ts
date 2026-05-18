@@ -71,6 +71,7 @@ type EditorStore = BeautifySettings &
       offsetY?: number;
       scale?: number;
     }) => void;
+    fitUploadedImage: (scale: number) => void;
     resetImagePosition: () => void;
     setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
     setImageBorderEnabled: (enabled: boolean) => void;
@@ -219,6 +220,14 @@ function clampImageCrop(crop: ImageCrop): ImageCrop {
   return { top, right, bottom, left };
 }
 
+function clampFitScale(scale: number) {
+  if (!Number.isFinite(scale)) {
+    return 100;
+  }
+
+  return Math.max(1, Math.min(180, Math.floor(scale * 100) / 100));
+}
+
 function getTextLayerOffsetKeys(layerId: TextLayerId) {
   return {
     x: `${layerId}OffsetX`,
@@ -333,6 +342,19 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         typeof offsetY === "number" ? clampOffset(offsetY) : state.imageOffsetY,
       imageCrop: crop ? clampImageCrop(crop) : state.imageCrop,
     }));
+  },
+  fitUploadedImage: (scale) => {
+    set({
+      imageScale: clampFitScale(scale),
+      imageOffsetX: 0,
+      imageOffsetY: 0,
+      imageCrop: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      },
+    });
   },
   resetImagePosition: () => {
     set({

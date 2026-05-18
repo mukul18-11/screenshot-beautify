@@ -1,5 +1,10 @@
 import { getBackgroundPreset } from "@/lib/background-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
+import {
+  DEFAULT_BROWSER_FRAME_SETTINGS,
+  DEFAULT_TEXT_OVERLAY_SETTINGS,
+  DEFAULT_TILT_SETTINGS,
+} from "@/lib/editor-defaults";
 import type {
   BeautifySettings,
   BrowserFrameSettings,
@@ -15,6 +20,7 @@ import type {
 
 export type DesignTemplateSettings = BeautifySettings &
   BrowserFrameSettings &
+  TextOverlaySettings &
   TiltSettings;
 
 export const DESIGN_TEMPLATE_FILTERS = [
@@ -58,23 +64,25 @@ function shadow(
 }
 
 function browserFrame(
-  enabled: boolean,
+  _enabled: boolean,
   theme: BrowserFrameSettings["browserFrameTheme"],
   style: BrowserFrameSettings["browserFrameStyle"],
   url: string,
-  showUrl = true,
+  _showUrl?: boolean,
 ): BrowserFrameSettings {
+  void _showUrl;
+
   return {
-    browserFrameEnabled: enabled,
+    browserFrameEnabled: false,
     browserFrameTheme: theme,
     browserFrameStyle: style,
     browserFrameUrl: url,
-    browserFrameShowUrl: showUrl,
+    browserFrameShowUrl: false,
   };
 }
 
 function textOverlay(
-  enabled: boolean,
+  _enabled: boolean,
   headlineText: string,
   subtitleText: string,
   badgeText: string,
@@ -86,7 +94,7 @@ function textOverlay(
   badgeEnabled = true,
 ): TextOverlaySettings {
   return {
-    textOverlayEnabled: enabled,
+    textOverlayEnabled: false,
     headlineText,
     subtitleText,
     badgeText,
@@ -107,30 +115,30 @@ function textOverlay(
 }
 
 function tilt(
-  enabled: boolean,
-  presetId: string,
-  perspective: number,
-  rotateX: number,
-  rotateY: number,
-  rotateZ: number,
-  translateY: number,
-  tiltShadowMultiplier: number,
-  hoverTiltEnabled = false,
-  backgroundParallaxEnabled = false,
+  _enabled: boolean,
+  _presetId: string,
+  _perspective: number,
+  _rotateX: number,
+  _rotateY: number,
+  _rotateZ: number,
+  _translateY: number,
+  _tiltShadowMultiplier: number,
+  _hoverTiltEnabled?: boolean,
+  _backgroundParallaxEnabled?: boolean,
 ): TiltSettings {
+  void _enabled;
+  void _presetId;
+  void _perspective;
+  void _rotateX;
+  void _rotateY;
+  void _rotateZ;
+  void _translateY;
+  void _tiltShadowMultiplier;
+  void _hoverTiltEnabled;
+  void _backgroundParallaxEnabled;
+
   return {
-    tiltEnabled: enabled,
-    tiltPresetId: presetId,
-    perspective,
-    rotateX,
-    rotateY,
-    rotateZ,
-    translateY,
-    tiltShadowMultiplier,
-    hoverTiltEnabled,
-    hoverTiltSensitivity: 8,
-    backgroundParallaxEnabled,
-    backgroundParallaxStrength: backgroundParallaxEnabled ? 10 : 8,
+    ...DEFAULT_TILT_SETTINGS,
   };
 }
 
@@ -526,7 +534,8 @@ export function createDesignTemplateSettings(
     imageShadow: {
       ...template.imageStyle.imageShadow,
     },
-    ...template.browserFrame,
-    ...template.tilt,
+    ...DEFAULT_BROWSER_FRAME_SETTINGS,
+    ...DEFAULT_TEXT_OVERLAY_SETTINGS,
+    ...DEFAULT_TILT_SETTINGS,
   };
 }

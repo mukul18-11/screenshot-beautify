@@ -24,6 +24,9 @@ export default function ImagePreview({
   const shouldReduceMotion = useReducedMotion();
   const [loadedImageId, setLoadedImageId] = useState<string | null>(null);
   const isLoading = loadedImageId !== uploadedImage.id;
+  const handleImageLoad = () => {
+    setLoadedImageId(uploadedImage.id);
+  };
 
   return (
     <motion.div
@@ -95,7 +98,7 @@ export default function ImagePreview({
       <div className="relative flex min-h-[380px] items-center justify-center overflow-hidden rounded-2xl sm:min-h-[460px]">
         <CanvasPreview
           isLoading={isLoading}
-          onImageLoad={() => setLoadedImageId(uploadedImage.id)}
+          onImageLoad={handleImageLoad}
           uploadedImage={uploadedImage}
         />
 

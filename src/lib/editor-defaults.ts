@@ -53,7 +53,7 @@ export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
   browserFrameTheme: "light",
   browserFrameStyle: "macos",
   browserFrameUrl: "yourproduct.com",
-  browserFrameShowUrl: true,
+  browserFrameShowUrl: false,
 };
 
 export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
@@ -115,7 +115,7 @@ export const BEAUTIFY_SETTING_LIMITS = {
     step: 1,
   },
   imageScale: {
-    min: 35,
+    min: 10,
     max: 180,
     step: 1,
   },

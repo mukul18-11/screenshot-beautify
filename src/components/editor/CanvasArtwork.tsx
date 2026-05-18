@@ -11,6 +11,7 @@ import {
   type MouseEvent,
   type MutableRefObject,
   type PointerEvent,
+  type SyntheticEvent,
 } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -79,7 +80,7 @@ type CanvasArtworkProps = {
   className?: string;
   isLoading?: boolean;
   mode: CanvasArtworkMode;
-  onImageLoad?: () => void;
+  onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
   style?: CSSProperties;
   uploadedImage: UploadedImage;
 };
@@ -148,6 +149,7 @@ function mergeRefs<T>(
 }
 
 const DRAG_THRESHOLD_PX = 4;
+const FIT_ON_UPLOAD_PADDING_PX = 80;
 const MIN_CROP_RATIO = 0.18;
 const SNAP_THRESHOLD_PX = 12;
 const RESIZE_HANDLES = [
@@ -171,6 +173,56 @@ function clampCropInset(value: number) {
 
 function clampValue(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function calculateFitScale(
+  availableWidth: number,
+  availableHeight: number,
+  imageNaturalWidth: number,
+  imageNaturalHeight: number,
+) {
+  if (
+    availableWidth <= 0 ||
+    availableHeight <= 0 ||
+    imageNaturalWidth <= 0 ||
+    imageNaturalHeight <= 0
+  ) {
+    return 1;
+  }
+
+  return Math.min(
+    availableWidth / imageNaturalWidth,
+    availableHeight / imageNaturalHeight,
+    1,
+  );
+}
+
+function calculateFitOnUploadScalePercent(
+  canvasWidth: number,
+  canvasHeight: number,
+  imagePadding: number,
+  imageNaturalWidth: number,
+  imageNaturalHeight: number,
+) {
+  const targetScale = calculateFitScale(
+    canvasWidth - FIT_ON_UPLOAD_PADDING_PX * 2,
+    canvasHeight - FIT_ON_UPLOAD_PADDING_PX * 2,
+    imageNaturalWidth,
+    imageNaturalHeight,
+  );
+  const paddingRatio = imagePadding / Math.min(canvasWidth, canvasHeight);
+  const layoutScale = calculateFitScale(
+    canvasWidth - canvasWidth * paddingRatio * 2,
+    canvasHeight - canvasHeight * paddingRatio * 2,
+    imageNaturalWidth,
+    imageNaturalHeight,
+  );
+
+  if (layoutScale <= 0) {
+    return targetScale * 100;
+  }
+
+  return (targetScale / layoutScale) * 100;
 }
 
 function getCropRatios(crop: ImageCrop) {
@@ -304,6 +356,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
     const mockupDragStateRef = useRef<MockupDragState | null>(null);
     const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
+    const fittedImageIdRef = useRef<string | null>(null);
     const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
     const textDragFrameRef = useRef<number | null>(null);
@@ -365,6 +418,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const subtitleOffsetY = useEditorStore((state) => state.subtitleOffsetY);
     const setImageTransform = useEditorStore(
       (state) => state.setImageTransform,
+    );
+    const fitUploadedImage = useEditorStore(
+      (state) => state.fitUploadedImage,
     );
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
@@ -577,6 +633,26 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       ) {
         setIsMockupSelected(false);
       }
+    }
+
+    function handleImageLoad(event: SyntheticEvent<HTMLImageElement>) {
+      onImageLoad?.(event);
+
+      if (isExportMode || fittedImageIdRef.current === uploadedImage.id) {
+        return;
+      }
+
+      const imageElement = event.currentTarget;
+      const initialScalePercent = calculateFitOnUploadScalePercent(
+        canvasWidth,
+        canvasHeight,
+        imagePadding,
+        imageElement.naturalWidth,
+        imageElement.naturalHeight,
+      );
+
+      fittedImageIdRef.current = uploadedImage.id;
+      fitUploadedImage(initialScalePercent);
     }
 
     const textLayerOffsets = {
@@ -1210,7 +1286,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         <BrowserFrame
           imageAlt={uploadedImage.name}
           imageSrc={uploadedImage.objectUrl}
-          onImageLoad={onImageLoad}
+          onImageLoad={handleImageLoad}
           radius={imageRadius}
           showUrl={browserFrameShowUrl}
           theme={browserFrameTheme}
@@ -1223,7 +1299,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         key={`${uploadedImage.id}-screenshot`}
         src={uploadedImage.objectUrl}
         alt={uploadedImage.name}
-        onLoad={onImageLoad}
+        onLoad={handleImageLoad}
         draggable={false}
         onDragStart={(event) => event.preventDefault()}
         {...screenshotMotionProps}
