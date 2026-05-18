@@ -1,6 +1,6 @@
 "use client";
 
-import type { SyntheticEvent } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 
 import { motion, useReducedMotion } from "motion/react";
 
@@ -19,10 +19,34 @@ export default function CanvasPreview({
   uploadedImage,
 }: CanvasPreviewProps) {
   const shouldReduceMotion = useReducedMotion();
+  const previewFrameRef = useRef<HTMLDivElement | null>(null);
+  const [previewWidthPx, setPreviewWidthPx] = useState(0);
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
   const aspectRatio = canvasWidth / canvasHeight;
   const previewWidth = `min(100%, 1040px, calc(70vh * ${aspectRatio}))`;
+  const previewScale = previewWidthPx > 0 ? previewWidthPx / canvasWidth : 0;
+
+  useEffect(() => {
+    const previewFrame = previewFrameRef.current;
+
+    if (!previewFrame) {
+      return;
+    }
+
+    const updatePreviewWidth = () => {
+      setPreviewWidthPx(previewFrame.getBoundingClientRect().width);
+    };
+
+    updatePreviewWidth();
+
+    const resizeObserver = new ResizeObserver(updatePreviewWidth);
+    resizeObserver.observe(previewFrame);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   return (
     <motion.div
@@ -40,14 +64,37 @@ export default function CanvasPreview({
       transition={{ duration: 0.28, ease: "easeOut" }}
       className="flex w-full items-center justify-center px-1 py-2 sm:px-3 sm:py-4"
     >
-      <CanvasArtwork
-        mode="preview"
-        isLoading={isLoading}
-        onImageLoad={onImageLoad}
-        uploadedImage={uploadedImage}
-        className="rounded-2xl shadow-2xl shadow-slate-950/15 ring-1 ring-black/[0.04]"
-        style={{ width: previewWidth }}
-      />
+      <div
+        ref={previewFrameRef}
+        className="relative shadow-2xl shadow-slate-950/15 ring-1 ring-black/[0.04]"
+        style={{
+          aspectRatio: `${canvasWidth} / ${canvasHeight}`,
+          width: previewWidth,
+        }}
+      >
+        <div
+          className="absolute left-0 top-0"
+          style={{
+            height: `${canvasHeight}px`,
+            opacity: previewScale > 0 ? 1 : 0,
+            transform: `scale(${previewScale})`,
+            transformOrigin: "top left",
+            width: `${canvasWidth}px`,
+          }}
+        >
+          <CanvasArtwork
+            mode="preview"
+            isLoading={isLoading}
+            onImageLoad={onImageLoad}
+            uploadedImage={uploadedImage}
+            className="bg-white"
+            style={{
+              height: `${canvasHeight}px`,
+              width: `${canvasWidth}px`,
+            }}
+          />
+        </div>
+      </div>
     </motion.div>
   );
 }

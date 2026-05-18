@@ -126,12 +126,7 @@ function getScreenshotSlotClasses(
 function getScreenshotShellClasses(
   textOverlayEnabled: boolean,
   textPosition: TextPosition,
-  isExportMode: boolean,
 ) {
-  if (isExportMode) {
-    return "max-h-full max-w-full";
-  }
-
   if (!textOverlayEnabled || textPosition === "center") {
     return "max-w-full";
   }
@@ -1222,7 +1217,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const screenshotShellClasses = getScreenshotShellClasses(
       hasTextOverlay,
       textPosition,
-      isExportMode,
     );
     const tiltSettings = {
       tiltEnabled,
@@ -1318,8 +1312,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onPointerMove={handleCanvasPointerMove}
         transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}
         className={cn(
-          "relative",
-          isExportMode ? "overflow-hidden" : "overflow-visible",
+          "relative overflow-hidden",
           className,
         )}
         style={{
@@ -1410,8 +1403,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         <motion.div
           layout={!isExportMode}
           className={cn(
-            "relative flex h-full w-full min-w-0 items-center justify-center",
-            isExportMode ? "overflow-hidden" : "overflow-visible",
+            "relative flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
             hasTextOverlay && getContentLayoutClasses(textPosition),
           )}
           style={{ padding: canvasPadding }}
