@@ -517,6 +517,12 @@ export function createDesignTemplateSettings(
     ...template.imageStyle,
     imageOffsetX: 0,
     imageOffsetY: 0,
+    imageCrop: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
     imageShadow: {
       ...template.imageStyle.imageShadow,
     },

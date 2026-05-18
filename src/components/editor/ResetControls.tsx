@@ -21,6 +21,10 @@ function hasBeautifyChanges(settings: ReturnType<typeof useEditorStore.getState>
     settings.imageScale !== DEFAULT_BEAUTIFY_SETTINGS.imageScale ||
     settings.imageOffsetX !== DEFAULT_BEAUTIFY_SETTINGS.imageOffsetX ||
     settings.imageOffsetY !== DEFAULT_BEAUTIFY_SETTINGS.imageOffsetY ||
+    settings.imageCrop.top !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.top ||
+    settings.imageCrop.right !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.right ||
+    settings.imageCrop.bottom !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.bottom ||
+    settings.imageCrop.left !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.left ||
     settings.imageBorderEnabled !==
       DEFAULT_BEAUTIFY_SETTINGS.imageBorderEnabled ||
     settings.imageShadow.enabled !==

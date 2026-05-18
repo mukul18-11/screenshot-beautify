@@ -4,6 +4,7 @@ import type {
   BeautifySettings,
   BrowserFrameSettings,
   ExportSettings,
+  ImageCrop,
   ImageShadow,
   TemplateSettings,
   TextOverlaySettings,
@@ -23,6 +24,13 @@ export const DEFAULT_IMAGE_SHADOW: ImageShadow = {
   offsetY: 24,
 };
 
+export const DEFAULT_IMAGE_CROP: ImageCrop = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+};
+
 export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   canvasPreset: defaultCanvasPreset.id,
   canvasWidth: defaultCanvasPreset.width,
@@ -35,6 +43,7 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   imageScale: 92,
   imageOffsetX: 0,
   imageOffsetY: 0,
+  imageCrop: DEFAULT_IMAGE_CROP,
   imageShadow: DEFAULT_IMAGE_SHADOW,
   imageBorderEnabled: true,
 };

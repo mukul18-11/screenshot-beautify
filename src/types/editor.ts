@@ -63,6 +63,13 @@ export type ImageShadow = {
   offsetY: number;
 };
 
+export type ImageCrop = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 export type BeautifySettings = {
   canvasPreset: string;
   canvasWidth: number;
@@ -75,6 +82,7 @@ export type BeautifySettings = {
   imageScale: number;
   imageOffsetX: number;
   imageOffsetY: number;
+  imageCrop: ImageCrop;
   imageShadow: ImageShadow;
   imageBorderEnabled: boolean;
 };

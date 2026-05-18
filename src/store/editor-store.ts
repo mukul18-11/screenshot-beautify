@@ -28,6 +28,7 @@ import type {
   BrowserFrameTheme,
   ExportScale,
   ExportSettings,
+  ImageCrop,
   ImageShadow,
   Phase3Settings,
   Phase4Settings,
@@ -63,6 +64,13 @@ type EditorStore = BeautifySettings &
     setImageRadius: (value: number) => void;
     setImageScale: (value: number) => void;
     setImagePosition: (offsetX: number, offsetY: number) => void;
+    setImageCrop: (crop: ImageCrop) => void;
+    setImageTransform: (transform: {
+      crop?: ImageCrop;
+      offsetX?: number;
+      offsetY?: number;
+      scale?: number;
+    }) => void;
     resetImagePosition: () => void;
     setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
     setImageBorderEnabled: (enabled: boolean) => void;
@@ -128,6 +136,9 @@ function revokeObjectUrl(uploadedImage: UploadedImage | null) {
 function createDefaultBeautifySettings(): BeautifySettings {
   return {
     ...DEFAULT_BEAUTIFY_SETTINGS,
+    imageCrop: {
+      ...DEFAULT_BEAUTIFY_SETTINGS.imageCrop,
+    },
     imageShadow: {
       ...DEFAULT_BEAUTIFY_SETTINGS.imageShadow,
     },
@@ -193,6 +204,19 @@ function createTextLayoutPresetSettings(
 
 function clampOffset(value: number) {
   return Math.max(-1, Math.min(1, value));
+}
+
+function clampCropValue(value: number) {
+  return Math.max(0, Math.min(0.82, value));
+}
+
+function clampImageCrop(crop: ImageCrop): ImageCrop {
+  const left = clampCropValue(crop.left);
+  const right = Math.min(clampCropValue(crop.right), 0.82 - left);
+  const top = clampCropValue(crop.top);
+  const bottom = Math.min(clampCropValue(crop.bottom), 0.82 - top);
+
+  return { top, right, bottom, left };
 }
 
 function getTextLayerOffsetKeys(layerId: TextLayerId) {
@@ -292,10 +316,34 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       imageOffsetY: clampOffset(offsetY),
     });
   },
+  setImageCrop: (crop) => {
+    set({
+      activeTemplateId: null,
+      imageCrop: clampImageCrop(crop),
+    });
+  },
+  setImageTransform: ({ crop, offsetX, offsetY, scale }) => {
+    set((state) => ({
+      activeTemplateId: null,
+      imageScale:
+        typeof scale === "number" ? Math.round(scale) : state.imageScale,
+      imageOffsetX:
+        typeof offsetX === "number" ? clampOffset(offsetX) : state.imageOffsetX,
+      imageOffsetY:
+        typeof offsetY === "number" ? clampOffset(offsetY) : state.imageOffsetY,
+      imageCrop: crop ? clampImageCrop(crop) : state.imageCrop,
+    }));
+  },
   resetImagePosition: () => {
     set({
       imageOffsetX: 0,
       imageOffsetY: 0,
+      imageCrop: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      },
     });
   },
   setImageShadow: (partialShadow) => {

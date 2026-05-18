@@ -25,7 +25,7 @@ import {
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
-import type { TextLayerId, TextPosition } from "@/types/editor";
+import type { ImageCrop, TextLayerId, TextPosition } from "@/types/editor";
 
 type CanvasArtworkMode = "preview" | "export";
 
@@ -69,6 +69,7 @@ type MockupResizeState = {
   pointerId: number;
   startClientX: number;
   startClientY: number;
+  startCrop: ImageCrop;
   startOffsetX: number;
   startOffsetY: number;
   startScale: number;
@@ -147,6 +148,7 @@ function mergeRefs<T>(
 }
 
 const DRAG_THRESHOLD_PX = 4;
+const MIN_CROP_RATIO = 0.18;
 const SNAP_THRESHOLD_PX = 12;
 const RESIZE_HANDLES = [
   "nw",
@@ -163,8 +165,25 @@ function clampTextOffset(value: number) {
   return Math.max(-1, Math.min(1, value));
 }
 
+function clampCropInset(value: number) {
+  return Math.max(0, Math.min(1 - MIN_CROP_RATIO, value));
+}
+
 function clampValue(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function getCropRatios(crop: ImageCrop) {
+  return {
+    width: Math.max(MIN_CROP_RATIO, 1 - crop.left - crop.right),
+    height: Math.max(MIN_CROP_RATIO, 1 - crop.top - crop.bottom),
+  };
+}
+
+function isCornerResizeHandle(handleId: ResizeHandleId) {
+  const directions = getResizeHandleDirections(handleId);
+
+  return directions.x !== 0 && directions.y !== 0;
 }
 
 function clampDeltaToBounds(
@@ -287,6 +306,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
     const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
+    const textDragFrameRef = useRef<number | null>(null);
+    const textDragActiveRef = useRef(false);
+    const textDragUpdateRef = useRef<(() => void) | null>(null);
+    const transformFrameRef = useRef<number | null>(null);
+    const transformDragActiveRef = useRef(false);
+    const transformUpdateRef = useRef<(() => void) | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
@@ -302,6 +327,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const imageScale = useEditorStore((state) => state.imageScale);
     const imageOffsetX = useEditorStore((state) => state.imageOffsetX);
     const imageOffsetY = useEditorStore((state) => state.imageOffsetY);
+    const imageCrop = useEditorStore((state) => state.imageCrop);
     const imageShadow = useEditorStore((state) => state.imageShadow);
     const imageBorderEnabled = useEditorStore(
       (state) => state.imageBorderEnabled,
@@ -337,10 +363,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const headlineOffsetY = useEditorStore((state) => state.headlineOffsetY);
     const subtitleOffsetX = useEditorStore((state) => state.subtitleOffsetX);
     const subtitleOffsetY = useEditorStore((state) => state.subtitleOffsetY);
-    const setImagePosition = useEditorStore(
-      (state) => state.setImagePosition,
+    const setImageTransform = useEditorStore(
+      (state) => state.setImageTransform,
     );
-    const setImageScale = useEditorStore((state) => state.setImageScale);
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
     );
@@ -410,6 +435,70 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       },
       [applyBackgroundParallax],
     );
+    const scheduleTextDragUpdate = useCallback((update: () => void) => {
+      if (!textDragActiveRef.current) {
+        return;
+      }
+
+      textDragUpdateRef.current = update;
+
+      if (textDragFrameRef.current !== null) {
+        return;
+      }
+
+      textDragFrameRef.current = requestAnimationFrame(() => {
+        if (!textDragActiveRef.current) {
+          textDragFrameRef.current = null;
+          textDragUpdateRef.current = null;
+          return;
+        }
+
+        textDragFrameRef.current = null;
+        const pendingUpdate = textDragUpdateRef.current;
+        textDragUpdateRef.current = null;
+        pendingUpdate?.();
+      });
+    }, []);
+    const cancelTextDragUpdate = useCallback(() => {
+      if (textDragFrameRef.current !== null) {
+        cancelAnimationFrame(textDragFrameRef.current);
+        textDragFrameRef.current = null;
+      }
+
+      textDragUpdateRef.current = null;
+    }, []);
+    const scheduleTransformUpdate = useCallback((update: () => void) => {
+      if (!transformDragActiveRef.current) {
+        return;
+      }
+
+      transformUpdateRef.current = update;
+
+      if (transformFrameRef.current !== null) {
+        return;
+      }
+
+      transformFrameRef.current = requestAnimationFrame(() => {
+        if (!transformDragActiveRef.current) {
+          transformFrameRef.current = null;
+          transformUpdateRef.current = null;
+          return;
+        }
+
+        transformFrameRef.current = null;
+        const pendingUpdate = transformUpdateRef.current;
+        transformUpdateRef.current = null;
+        pendingUpdate?.();
+      });
+    }, []);
+    const cancelTransformUpdate = useCallback(() => {
+      if (transformFrameRef.current !== null) {
+        cancelAnimationFrame(transformFrameRef.current);
+        transformFrameRef.current = null;
+      }
+
+      transformUpdateRef.current = null;
+    }, []);
 
     useEffect(() => {
       if (!canParallaxBackground) {
@@ -422,6 +511,26 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         }
       };
     }, [applyBackgroundParallax, canParallaxBackground]);
+
+    useEffect(() => {
+      return () => {
+        textDragActiveRef.current = false;
+        transformDragActiveRef.current = false;
+
+        if (textDragFrameRef.current !== null) {
+          cancelAnimationFrame(textDragFrameRef.current);
+          textDragFrameRef.current = null;
+        }
+
+        if (transformFrameRef.current !== null) {
+          cancelAnimationFrame(transformFrameRef.current);
+          transformFrameRef.current = null;
+        }
+
+        textDragUpdateRef.current = null;
+        transformUpdateRef.current = null;
+      };
+    }, []);
 
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
       if (
@@ -499,8 +608,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
+      textDragActiveRef.current = false;
+      cancelTextDragUpdate();
       const layerOffset = textLayerOffsets[layerId];
 
+      textDragActiveRef.current = true;
       textDragStateRef.current = {
         canvasRect: canvasShell.getBoundingClientRect(),
         layerId,
@@ -600,7 +712,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         guide.horizontal = snapY.guide;
       }
 
-      setTextDragGuide(guide);
       deltaX = clampDeltaToBounds(
         deltaX,
         dragState.textRect.left,
@@ -616,15 +727,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         dragState.canvasRect.bottom,
       );
 
-      setTextLayerPosition(
-        dragState.layerId,
-        clampTextOffset(
-          dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
-        ),
-        clampTextOffset(
-          dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
-        ),
+      const nextOffsetX = clampTextOffset(
+        dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
       );
+      const nextOffsetY = clampTextOffset(
+        dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
+      );
+
+      scheduleTextDragUpdate(() => {
+        setTextDragGuide(guide);
+        setTextLayerPosition(dragState.layerId, nextOffsetX, nextOffsetY);
+      });
     }
 
     function handleTextLayerPointerEnd(
@@ -632,6 +745,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event: PointerEvent<HTMLDivElement>,
     ) {
       const dragState = textDragStateRef.current;
+      textDragActiveRef.current = false;
+      cancelTextDragUpdate();
 
       if (
         !dragState ||
@@ -680,6 +795,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       event.preventDefault();
       setIsMockupSelected(true);
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
+      transformDragActiveRef.current = true;
       mockupDragStateRef.current = {
         canvasRect: canvasShell.getBoundingClientRect(),
         mockupRect: mockupVisual.getBoundingClientRect(),
@@ -728,18 +846,25 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         dragState.canvasRect.bottom,
       );
 
-      setImagePosition(
-        clampTextOffset(
-          dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
-        ),
-        clampTextOffset(
-          dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
-        ),
+      const nextOffsetX = clampTextOffset(
+        dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
       );
+      const nextOffsetY = clampTextOffset(
+        dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
+      );
+
+      scheduleTransformUpdate(() => {
+        setImageTransform({
+          offsetX: nextOffsetX,
+          offsetY: nextOffsetY,
+        });
+      });
     }
 
     function handleMockupPointerEnd(event: PointerEvent<HTMLDivElement>) {
       const dragState = mockupDragStateRef.current;
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
         return;
@@ -775,6 +900,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.stopPropagation();
       setIsMockupSelected(true);
       setIsDraggingCanvasItem(true);
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
+      transformDragActiveRef.current = true;
       mockupResizeStateRef.current = {
         anchorX: anchor.x,
         anchorY: anchor.y,
@@ -785,6 +913,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
+        startCrop: imageCrop,
         startOffsetX: imageOffsetX,
         startOffsetY: imageOffsetY,
         startScale: imageScale,
@@ -814,6 +943,102 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.preventDefault();
       event.stopPropagation();
 
+      const directions = getResizeHandleDirections(dragState.handleId);
+      const startCenterX =
+        dragState.mockupRect.left + dragState.mockupRect.width / 2;
+      const startCenterY =
+        dragState.mockupRect.top + dragState.mockupRect.height / 2;
+
+      if (!isCornerResizeHandle(dragState.handleId)) {
+        const startCropRatios = getCropRatios(dragState.startCrop);
+        const fullWidth = dragState.mockupRect.width / startCropRatios.width;
+        const fullHeight = dragState.mockupRect.height / startCropRatios.height;
+        const nextCrop = { ...dragState.startCrop };
+
+        if (directions.x > 0) {
+          nextCrop.right = clampCropInset(
+            dragState.startCrop.right - deltaX / fullWidth,
+          );
+        } else if (directions.x < 0) {
+          nextCrop.left = clampCropInset(
+            dragState.startCrop.left + deltaX / fullWidth,
+          );
+        }
+
+        if (directions.y > 0) {
+          nextCrop.bottom = clampCropInset(
+            dragState.startCrop.bottom - deltaY / fullHeight,
+          );
+        } else if (directions.y < 0) {
+          nextCrop.top = clampCropInset(
+            dragState.startCrop.top + deltaY / fullHeight,
+          );
+        }
+
+        if (nextCrop.left + nextCrop.right > 1 - MIN_CROP_RATIO) {
+          if (directions.x > 0) {
+            nextCrop.right = 1 - MIN_CROP_RATIO - nextCrop.left;
+          } else if (directions.x < 0) {
+            nextCrop.left = 1 - MIN_CROP_RATIO - nextCrop.right;
+          }
+        }
+
+        if (nextCrop.top + nextCrop.bottom > 1 - MIN_CROP_RATIO) {
+          if (directions.y > 0) {
+            nextCrop.bottom = 1 - MIN_CROP_RATIO - nextCrop.top;
+          } else if (directions.y < 0) {
+            nextCrop.top = 1 - MIN_CROP_RATIO - nextCrop.bottom;
+          }
+        }
+
+        const nextCropRatios = getCropRatios(nextCrop);
+        const nextWidth = fullWidth * nextCropRatios.width;
+        const nextHeight = fullHeight * nextCropRatios.height;
+        let nextCenterX = startCenterX;
+        let nextCenterY = startCenterY;
+
+        if (directions.x > 0) {
+          nextCenterX = dragState.mockupRect.left + nextWidth / 2;
+        } else if (directions.x < 0) {
+          nextCenterX = dragState.mockupRect.right - nextWidth / 2;
+        }
+
+        if (directions.y > 0) {
+          nextCenterY = dragState.mockupRect.top + nextHeight / 2;
+        } else if (directions.y < 0) {
+          nextCenterY = dragState.mockupRect.bottom - nextHeight / 2;
+        }
+
+        nextCenterX = clampValue(
+          nextCenterX,
+          dragState.canvasRect.left + nextWidth / 2,
+          dragState.canvasRect.right - nextWidth / 2,
+        );
+        nextCenterY = clampValue(
+          nextCenterY,
+          dragState.canvasRect.top + nextHeight / 2,
+          dragState.canvasRect.bottom - nextHeight / 2,
+        );
+
+        const nextOffsetX = clampTextOffset(
+          dragState.startOffsetX +
+            ((nextCenterX - startCenterX) / dragState.canvasRect.width) * 2,
+        );
+        const nextOffsetY = clampTextOffset(
+          dragState.startOffsetY +
+            ((nextCenterY - startCenterY) / dragState.canvasRect.height) * 2,
+        );
+
+        scheduleTransformUpdate(() => {
+          setImageTransform({
+            crop: nextCrop,
+            offsetX: nextOffsetX,
+            offsetY: nextOffsetY,
+          });
+        });
+        return;
+      }
+
       const rawRatio = calculateResizeRatio(
         dragState,
         event.clientX,
@@ -840,11 +1065,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         Math.floor(maxScale),
       );
       const scaleRatio = nextScale / dragState.startScale;
-      const directions = getResizeHandleDirections(dragState.handleId);
-      const startCenterX =
-        dragState.mockupRect.left + dragState.mockupRect.width / 2;
-      const startCenterY =
-        dragState.mockupRect.top + dragState.mockupRect.height / 2;
       const nextWidth = dragState.mockupRect.width * scaleRatio;
       const nextHeight = dragState.mockupRect.height * scaleRatio;
       let nextCenterX = startCenterX;
@@ -873,23 +1093,30 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         dragState.canvasRect.bottom - nextHeight / 2,
       );
 
-      setImageScale(Math.round(nextScale));
-      setImagePosition(
-        clampTextOffset(
-          dragState.startOffsetX +
-            ((nextCenterX - startCenterX) / dragState.canvasRect.width) * 2,
-        ),
-        clampTextOffset(
-          dragState.startOffsetY +
-            ((nextCenterY - startCenterY) / dragState.canvasRect.height) * 2,
-        ),
+      const nextOffsetX = clampTextOffset(
+        dragState.startOffsetX +
+          ((nextCenterX - startCenterX) / dragState.canvasRect.width) * 2,
       );
+      const nextOffsetY = clampTextOffset(
+        dragState.startOffsetY +
+          ((nextCenterY - startCenterY) / dragState.canvasRect.height) * 2,
+      );
+
+      scheduleTransformUpdate(() => {
+        setImageTransform({
+          offsetX: nextOffsetX,
+          offsetY: nextOffsetY,
+          scale: Math.round(nextScale),
+        });
+      });
     }
 
     function handleResizePointerEnd(
       event: PointerEvent<HTMLButtonElement>,
     ) {
       const dragState = mockupResizeStateRef.current;
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
         return;
@@ -917,13 +1144,25 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       },
       transition: { duration: isExportMode ? 0 : 0.26, ease: "easeOut" },
     } as const;
-    const screenshotShellStyle = {
-      aspectRatio: `${uploadedImage.width} / ${uploadedImage.height}`,
+    const cropRatios = getCropRatios(imageCrop);
+    const screenshotCropStyle = {
+      aspectRatio: `${uploadedImage.width * cropRatios.width} / ${
+        uploadedImage.height * cropRatios.height
+      }`,
       border: imageBorderEnabled
         ? "1px solid rgba(255, 255, 255, 0.72)"
         : "none",
       borderRadius: `${imageRadius}px`,
       boxShadow: screenshotShadow,
+      width: `${uploadedImage.width * cropRatios.width}px`,
+    } satisfies CSSProperties;
+    const cropContentStyle = {
+      height: `${100 / cropRatios.height}%`,
+      left: `${(-imageCrop.left / cropRatios.width) * 100}%`,
+      position: "absolute",
+      top: `${(-imageCrop.top / cropRatios.height) * 100}%`,
+      width: `${100 / cropRatios.width}%`,
+      willChange: "transform",
     } satisfies CSSProperties;
     const hasTextOverlay =
       textOverlayEnabled &&
@@ -951,6 +1190,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     };
     const imagePlacementStyle = {
       transform: `translate(calc(${imageOffsetX} * 50cqw), calc(${imageOffsetY} * 50cqh))`,
+      willChange: "transform",
     } satisfies CSSProperties;
     const mockupScaleStyle = {
       transform: `scale(${screenshotScale})`,
@@ -959,13 +1199,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         isExportMode || shouldReduceMotion || isDraggingCanvasItem
           ? undefined
           : "transform 180ms ease-out",
+      willChange: "transform",
     } satisfies CSSProperties;
     const screenshotPreview = browserFrameEnabled ? (
       <motion.div
         key={`${uploadedImage.id}-browser-frame`}
         {...screenshotMotionProps}
-        className={cn("inline-flex h-full overflow-hidden", screenshotShellClasses)}
-        style={screenshotShellStyle}
+        className="inline-flex h-full w-full overflow-hidden"
       >
         <BrowserFrame
           imageAlt={uploadedImage.name}
@@ -988,10 +1228,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onDragStart={(event) => event.preventDefault()}
         {...screenshotMotionProps}
         className={cn(
-          "block h-full select-none object-contain [-webkit-user-drag:none]",
-          screenshotShellClasses,
+          "block h-full w-full select-none object-cover will-change-transform [-webkit-user-drag:none]",
         )}
-        style={screenshotShellStyle}
       />
     );
     const textOverlay = hasTextOverlay ? (
@@ -1150,9 +1388,19 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   className="flex max-h-full max-w-full"
                   settings={tiltSettings}
                 >
-                  <AnimatePresence mode="wait">
-                    {screenshotPreview}
-                  </AnimatePresence>
+                  <motion.div
+                    className={cn(
+                      "relative max-h-full max-w-full overflow-hidden",
+                      screenshotShellClasses,
+                    )}
+                    style={screenshotCropStyle}
+                  >
+                    <div style={cropContentStyle}>
+                      <AnimatePresence mode="wait">
+                        {screenshotPreview}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
                 </TiltedMockupWrapper>
 
                 {!isExportMode && isMockupSelected && (
