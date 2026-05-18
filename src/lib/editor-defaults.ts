@@ -6,7 +6,6 @@ import type {
   ExportSettings,
   ImageCrop,
   ImageShadow,
-  TemplateSettings,
   TextOverlaySettings,
   TiltSettings,
 } from "@/types/editor";
@@ -61,7 +60,6 @@ export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
   headlineText: "Launch-ready in seconds",
   subtitleText: "Turn a plain screenshot into a polished product visual.",
   badgeText: "New launch",
-  textLayoutPreset: "launch-top",
   textPosition: "top",
   textAlign: "center",
   textColor: "#ffffff",
@@ -96,11 +94,6 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   exportFileName: "screenshot-beautifier",
   isExporting: false,
   lastExportedAt: null,
-};
-
-export const DEFAULT_TEMPLATE_SETTINGS: TemplateSettings = {
-  activeTemplateId: null,
-  lastAppliedTemplateId: null,
 };
 
 export const BEAUTIFY_SETTING_LIMITS = {

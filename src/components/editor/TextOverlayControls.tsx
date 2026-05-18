@@ -3,9 +3,9 @@
 import { Type } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
 import { cn } from "@/lib/utils";
@@ -33,16 +33,6 @@ type TextFieldProps = {
   onChange: (value: string) => void;
   placeholder: string;
   value: string;
-};
-
-type SliderRowProps = {
-  disabled: boolean;
-  label: string;
-  max: number;
-  min: number;
-  onChange: (value: number) => void;
-  step: number;
-  value: number;
 };
 
 const POSITION_OPTIONS = [
@@ -154,50 +144,6 @@ function TextField({
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
-      />
-    </div>
-  );
-}
-
-function SliderRow({
-  disabled,
-  label,
-  max,
-  min,
-  onChange,
-  step,
-  value,
-}: SliderRowProps) {
-  const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-slider`;
-
-  return (
-    <div className={cn("space-y-2", disabled && "opacity-40")}>
-      <div className="flex items-center justify-between gap-3">
-        <Label
-          htmlFor={inputId}
-          className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
-        >
-          {label}
-        </Label>
-        <span className="text-[11px] font-semibold tabular-nums text-slate-400">
-          {value}px
-        </span>
-      </div>
-      <Slider
-        id={inputId}
-        min={min}
-        max={max}
-        step={step}
-        value={[value]}
-        disabled={disabled}
-        onValueChange={(values) => {
-          const [nextValue] = values;
-
-          if (typeof nextValue === "number") {
-            onChange(nextValue);
-          }
-        }}
-        aria-label={label}
       />
     </div>
   );
@@ -358,22 +304,24 @@ export default function TextOverlayControls() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <SliderRow
+                <EditorSliderRow
                   label="Headline"
                   min={BEAUTIFY_SETTING_LIMITS.headlineSize.min}
                   max={BEAUTIFY_SETTING_LIMITS.headlineSize.max}
                   step={BEAUTIFY_SETTING_LIMITS.headlineSize.step}
                   value={headlineSize}
+                  suffix="px"
                   disabled={false}
                   onChange={setHeadlineSize}
                 />
 
-                <SliderRow
+                <EditorSliderRow
                   label="Subtitle"
                   min={BEAUTIFY_SETTING_LIMITS.subtitleSize.min}
                   max={BEAUTIFY_SETTING_LIMITS.subtitleSize.max}
                   step={BEAUTIFY_SETTING_LIMITS.subtitleSize.step}
                   value={subtitleSize}
+                  suffix="px"
                   disabled={false}
                   onChange={setSubtitleSize}
                 />

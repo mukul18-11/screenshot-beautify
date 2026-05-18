@@ -3,70 +3,12 @@
 import { Image as ImageIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
+import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
-import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
-
-type SliderRowProps = {
-  disabled?: boolean;
-  label: string;
-  max: number;
-  min: number;
-  onChange: (value: number) => void;
-  step: number;
-  suffix?: string;
-  value: number;
-};
-
-function SliderRow({
-  disabled = false,
-  label,
-  max,
-  min,
-  onChange,
-  step,
-  suffix = "",
-  value,
-}: SliderRowProps) {
-  const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-slider`;
-
-  return (
-    <div className={cn("space-y-2", disabled && "opacity-40")}>
-      <div className="flex items-center justify-between gap-3">
-        <Label
-          htmlFor={inputId}
-          className="text-[13px] font-medium text-slate-600 dark:text-slate-300"
-        >
-          {label}
-        </Label>
-        <span className="text-[11px] font-semibold tabular-nums text-slate-400">
-          {value}
-          {suffix}
-        </span>
-      </div>
-      <Slider
-        id={inputId}
-        min={min}
-        max={max}
-        step={step}
-        value={[value]}
-        disabled={disabled}
-        onValueChange={(values) => {
-          const [nextValue] = values;
-
-          if (typeof nextValue === "number") {
-            onChange(nextValue);
-          }
-        }}
-        aria-label={label}
-      />
-    </div>
-  );
-}
 
 export default function ImageStyleControls() {
   const shouldReduceMotion = useReducedMotion();
@@ -102,8 +44,9 @@ export default function ImageStyleControls() {
       </div>
 
       <div className="space-y-4">
-        <SliderRow
+        <EditorSliderRow
           label="Padding"
+          labelClassName="text-slate-600 dark:text-slate-300"
           min={BEAUTIFY_SETTING_LIMITS.imagePadding.min}
           max={BEAUTIFY_SETTING_LIMITS.imagePadding.max}
           step={BEAUTIFY_SETTING_LIMITS.imagePadding.step}
@@ -111,8 +54,9 @@ export default function ImageStyleControls() {
           suffix="px"
           onChange={setImagePadding}
         />
-        <SliderRow
+        <EditorSliderRow
           label="Corner radius"
+          labelClassName="text-slate-600 dark:text-slate-300"
           min={BEAUTIFY_SETTING_LIMITS.imageRadius.min}
           max={BEAUTIFY_SETTING_LIMITS.imageRadius.max}
           step={BEAUTIFY_SETTING_LIMITS.imageRadius.step}
@@ -120,8 +64,9 @@ export default function ImageStyleControls() {
           suffix="px"
           onChange={setImageRadius}
         />
-        <SliderRow
+        <EditorSliderRow
           label="Scale"
+          labelClassName="text-slate-600 dark:text-slate-300"
           min={BEAUTIFY_SETTING_LIMITS.imageScale.min}
           max={BEAUTIFY_SETTING_LIMITS.imageScale.max}
           step={BEAUTIFY_SETTING_LIMITS.imageScale.step}
@@ -148,9 +93,10 @@ export default function ImageStyleControls() {
         </div>
 
         <div className="space-y-3 pl-1">
-          <SliderRow
+          <EditorSliderRow
             disabled={!imageShadow.enabled}
             label="Blur"
+            labelClassName="text-slate-600 dark:text-slate-300"
             min={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.min}
             max={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.max}
             step={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.step}
@@ -158,9 +104,10 @@ export default function ImageStyleControls() {
             suffix="px"
             onChange={(blur) => setImageShadow({ blur })}
           />
-          <SliderRow
+          <EditorSliderRow
             disabled={!imageShadow.enabled}
             label="Opacity"
+            labelClassName="text-slate-600 dark:text-slate-300"
             min={Math.round(
               BEAUTIFY_SETTING_LIMITS.imageShadowOpacity.min * 100,
             )}
@@ -174,9 +121,10 @@ export default function ImageStyleControls() {
             suffix="%"
             onChange={(opacity) => setImageShadow({ opacity: opacity / 100 })}
           />
-          <SliderRow
+          <EditorSliderRow
             disabled={!imageShadow.enabled}
             label="Offset Y"
+            labelClassName="text-slate-600 dark:text-slate-300"
             min={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.min}
             max={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.max}
             step={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.step}

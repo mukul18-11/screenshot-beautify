@@ -9,17 +9,12 @@ import {
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
   DEFAULT_EXPORT_SETTINGS,
-  DEFAULT_TEMPLATE_SETTINGS,
   DEFAULT_TEXT_OVERLAY_SETTINGS,
   DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
-import {
-  createDesignTemplateSettings,
-  getDesignTemplate,
-} from "@/lib/design-templates";
+import { clampImageCrop, clampUnitOffset } from "@/lib/editor-geometry";
 import { sanitizeFileName } from "@/lib/export-utils";
 import { createTiltPresetSettings } from "@/lib/tilt-presets";
-import { getTextLayoutPreset } from "@/lib/text-layout-presets";
 import type {
   BackgroundType,
   BeautifySettings,
@@ -33,8 +28,6 @@ import type {
   Phase3Settings,
   Phase4Settings,
   Phase5Settings,
-  Phase6Settings,
-  TemplateSettings,
   TextAlign,
   TextLayerId,
   TextOverlaySettings,
@@ -48,8 +41,7 @@ export type { UploadedImage } from "@/types/editor";
 type EditorStore = BeautifySettings &
   Phase3Settings &
   Phase4Settings &
-  Phase5Settings &
-  Phase6Settings & {
+  Phase5Settings & {
     uploadedImage: UploadedImage | null;
     lastBeautifyPresetId: string | null;
     setUploadedImage: (uploadedImage: UploadedImage | null) => void;
@@ -98,7 +90,6 @@ type EditorStore = BeautifySettings &
     ) => void;
     resetTextLayerPosition: (layerId?: TextLayerId) => void;
     toggleBadge: () => void;
-    applyTextLayoutPreset: (presetId: string) => void;
     resetTextOverlaySettings: () => void;
     toggleTilt: () => void;
     setTiltEnabled: (value: boolean) => void;
@@ -122,8 +113,6 @@ type EditorStore = BeautifySettings &
     markExported: () => void;
     resetExportSettings: () => void;
     resetEditorForNewUpload: () => void;
-    applyDesignTemplate: (templateId: string) => void;
-    setActiveTemplateId: (templateId: string | null) => void;
   };
 
 function revokeObjectUrl(uploadedImage: UploadedImage | null) {
@@ -170,56 +159,6 @@ function createDefaultExportSettings(): ExportSettings {
   };
 }
 
-function createDefaultTemplateSettings(): TemplateSettings {
-  return {
-    ...DEFAULT_TEMPLATE_SETTINGS,
-  };
-}
-
-function createTextLayoutPresetSettings(
-  presetId: string,
-  textOverlayEnabled: boolean,
-): TextOverlaySettings {
-  const preset = getTextLayoutPreset(presetId);
-
-  return {
-    textOverlayEnabled,
-    headlineText: preset.headlineText,
-    subtitleText: preset.subtitleText,
-    badgeText: preset.badgeText,
-    textLayoutPreset: preset.id,
-    textPosition: preset.textPosition,
-    textAlign: preset.textAlign,
-    textColor: preset.textColor,
-    headlineSize: preset.headlineSize,
-    subtitleSize: preset.subtitleSize,
-    badgeEnabled: preset.badgeEnabled,
-    badgeOffsetX: preset.badgeOffsetX,
-    badgeOffsetY: preset.badgeOffsetY,
-    headlineOffsetX: preset.headlineOffsetX,
-    headlineOffsetY: preset.headlineOffsetY,
-    subtitleOffsetX: preset.subtitleOffsetX,
-    subtitleOffsetY: preset.subtitleOffsetY,
-  };
-}
-
-function clampOffset(value: number) {
-  return Math.max(-1, Math.min(1, value));
-}
-
-function clampCropValue(value: number) {
-  return Math.max(0, Math.min(0.82, value));
-}
-
-function clampImageCrop(crop: ImageCrop): ImageCrop {
-  const left = clampCropValue(crop.left);
-  const right = Math.min(clampCropValue(crop.right), 0.82 - left);
-  const top = clampCropValue(crop.top);
-  const bottom = Math.min(clampCropValue(crop.bottom), 0.82 - top);
-
-  return { top, right, bottom, left };
-}
-
 function clampFitScale(scale: number) {
   if (!Number.isFinite(scale)) {
     return 100;
@@ -257,7 +196,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   ...createDefaultTextOverlaySettings(),
   ...createDefaultTiltSettings(),
   ...createDefaultExportSettings(),
-  ...createDefaultTemplateSettings(),
   setUploadedImage: (uploadedImage) => {
     const previousImage = get().uploadedImage;
 
@@ -320,26 +258,27 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   setImagePosition: (offsetX, offsetY) => {
     set({
-      activeTemplateId: null,
-      imageOffsetX: clampOffset(offsetX),
-      imageOffsetY: clampOffset(offsetY),
+      imageOffsetX: clampUnitOffset(offsetX),
+      imageOffsetY: clampUnitOffset(offsetY),
     });
   },
   setImageCrop: (crop) => {
     set({
-      activeTemplateId: null,
       imageCrop: clampImageCrop(crop),
     });
   },
   setImageTransform: ({ crop, offsetX, offsetY, scale }) => {
     set((state) => ({
-      activeTemplateId: null,
       imageScale:
         typeof scale === "number" ? Math.round(scale) : state.imageScale,
       imageOffsetX:
-        typeof offsetX === "number" ? clampOffset(offsetX) : state.imageOffsetX,
+        typeof offsetX === "number"
+          ? clampUnitOffset(offsetX)
+          : state.imageOffsetX,
       imageOffsetY:
-        typeof offsetY === "number" ? clampOffset(offsetY) : state.imageOffsetY,
+        typeof offsetY === "number"
+          ? clampUnitOffset(offsetY)
+          : state.imageOffsetY,
       imageCrop: crop ? clampImageCrop(crop) : state.imageCrop,
     }));
   },
@@ -425,7 +364,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   setTextPosition: (position) => {
     set({
-      textLayoutPreset: "custom",
       badgeOffsetX: 0,
       badgeOffsetY: 0,
       headlineOffsetX: 0,
@@ -451,10 +389,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     const offsetKeys = getTextLayerOffsetKeys(layerId);
 
     set({
-      activeTemplateId: null,
-      textLayoutPreset: "custom",
-      [offsetKeys.x]: clampOffset(offsetX),
-      [offsetKeys.y]: clampOffset(offsetY),
+      [offsetKeys.x]: clampUnitOffset(offsetX),
+      [offsetKeys.y]: clampUnitOffset(offsetY),
     });
   },
   resetTextLayerPosition: (layerId) => {
@@ -481,9 +417,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((state) => ({
       badgeEnabled: !state.badgeEnabled,
     }));
-  },
-  applyTextLayoutPreset: (presetId) => {
-    set(createTextLayoutPresetSettings(presetId, get().textOverlayEnabled));
   },
   resetTextOverlaySettings: () => {
     set(createDefaultTextOverlaySettings());
@@ -578,21 +511,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ...createDefaultBrowserFrameSettings(),
       ...createDefaultTextOverlaySettings(),
       ...createDefaultTiltSettings(),
-      ...createDefaultTemplateSettings(),
       lastBeautifyPresetId: null,
     });
-  },
-  applyDesignTemplate: (templateId) => {
-    const template = getDesignTemplate(templateId);
-
-    set({
-      ...createDesignTemplateSettings(template.id),
-      activeTemplateId: template.id,
-      lastAppliedTemplateId: template.id,
-      lastBeautifyPresetId: null,
-    });
-  },
-  setActiveTemplateId: (templateId) => {
-    set({ activeTemplateId: templateId });
   },
 }));

@@ -17,8 +17,8 @@ export default function CTASection() {
             Make your next product screenshot launch-ready
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">
-            Open the editor, paste a screenshot, pick a template, and export a
-            sharp PNG without sending the image anywhere.
+            Open the editor, paste a screenshot, choose a quick style, and
+            export a sharp PNG without sending the image anywhere.
           </p>
           <div className="mt-8">
             <Button

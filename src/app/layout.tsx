@@ -5,7 +5,7 @@ import "./globals.css";
 const siteTitle =
   "Screenshot Beautifier — Turn Screenshots into Launch-Ready Visuals";
 const siteDescription =
-  "Create beautiful product screenshots with templates, browser frames, text overlays, 3D tilt, and sharp PNG export. Everything runs in your browser.";
+  "Create beautiful product screenshots with quick styles, browser frames, text overlays, 3D tilt, and sharp PNG export. Everything runs in your browser.";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://screenshot-beautifier.app";
 
 export const metadata: Metadata = {

@@ -18,19 +18,18 @@ Phases 1-5 are complete. Do not rebuild them unless explicitly asked:
 
 - Upload, paste, replace, remove, preview, metadata, validation, local-only files.
 - Canvas presets, backgrounds, padding, radius, shadow, scale, reset controls.
-- Browser frame, text overlays, text layout presets, responsive editor polish.
+- Browser frame, text overlays, responsive editor polish.
 - CSS-based 3D tilt, perspective, rotation, floating depth, hover movement.
 - PNG export, clipboard copy, export scale, filename, toasts, hidden renderer.
 
-Current phase: Phase 6, templates, onboarding, and launch polish:
+Current phase: Phase 6, onboarding, and launch polish:
 
-- Built-in static design templates and one-click apply.
-- Better first-run onboarding and empty state.
+- Quick styles, better first-run onboarding, and empty state.
 - Landing page polish, SEO metadata, examples, FAQ, and final UI polish.
 
 Do not add unless explicitly requested: auth, payments, database, backend APIs,
-analytics, telemetry, AI/LLM APIs, saved projects, user templates, remote
-template storage, share links, Three.js/WebGL, GIF export, or video export.
+analytics, telemetry, AI/LLM APIs, saved projects, share links, Three.js/WebGL,
+GIF export, or video export.
 
 ## Product Principles
 
@@ -54,15 +53,15 @@ template storage, share links, Three.js/WebGL, GIF export, or video export.
 
 - App routes: `src/app/page.tsx`, `src/app/editor/page.tsx`, metadata/SEO files
   in `src/app`.
-- Editor UI: `src/components/editor/*` for upload, preview/artwork, template,
-  style, tilt, text, export, reset, and metadata components.
+- Editor UI: `src/components/editor/*` for upload, preview/artwork, quick
+  styles, tilt, text, export, reset, and metadata components.
 - Landing UI: `src/components/landing/*` for hero, examples, features, FAQ,
   how-it-works, and CTA sections.
 - Upload hooks: `src/hooks/useImageUpload.ts`, `src/hooks/useClipboardImage.ts`.
 - Store: `src/store/editor-store.ts`.
 - Shared types: `src/types/editor.ts`.
 - Presets and helpers: `src/lib/*` for validation, image utils, presets,
-  templates, defaults, export, examples, and tilt helpers.
+  defaults, export, examples, and tilt helpers.
 
 ## Data And Store
 
@@ -74,11 +73,10 @@ template storage, share links, Three.js/WebGL, GIF export, or video export.
   cookies, a backend, or a third party.
 - Zustand owns uploaded image state and editor appearance state.
 - Keep store actions explicit for upload, canvas, browser frame, text, tilt,
-  export, and templates.
-- Templates may update style settings only. They must not remove, replace,
-  upload, persist, or mutate the uploaded image.
-- Presets should not rewrite user-entered copy except when the user applies a
-  design template intentionally.
+  export, and quick styles.
+- Quick styles may update canvas, background, and screenshot styling only. They
+  must not remove, replace, upload, persist, mutate the uploaded image, or
+  rewrite user-entered copy.
 
 ## Upload And Clipboard
 
@@ -109,7 +107,7 @@ template storage, share links, Three.js/WebGL, GIF export, or video export.
 
 - Premium, calm, fast, launch-ready. Use clean spacing, restrained effects,
   sharp typography, and clear hierarchy.
-- Keep the editor focused on upload, paste, replace, templates, and canvas
+- Keep the editor focused on upload, paste, replace, quick styles, and canvas
   beautification controls.
 - Use lucide icons for button icons when available.
 - Use `motion/react` for subtle transitions and respect reduced motion.

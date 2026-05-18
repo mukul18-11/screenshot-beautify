@@ -19,7 +19,7 @@ export default function ExampleShowcase() {
         </h2>
         <p className="mt-4 text-base leading-7 text-slate-600">
           These are illustrative layouts showing the kinds of visuals you can
-          create with templates, frames, text overlays, and depth.
+          create with quick styles, frames, text overlays, and depth.
         </p>
       </div>
 

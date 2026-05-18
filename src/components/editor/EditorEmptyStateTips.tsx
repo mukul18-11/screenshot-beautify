@@ -1,12 +1,12 @@
 "use client";
 
-import { Box, Download, LayoutTemplate } from "lucide-react";
+import { Box, Download, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 const BENEFITS = [
   {
-    title: "Beautiful templates",
-    icon: LayoutTemplate,
+    title: "Quick styles",
+    icon: Sparkles,
   },
   {
     title: "3D depth & browser frames",

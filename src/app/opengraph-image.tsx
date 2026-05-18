@@ -72,7 +72,7 @@ export default function Image() {
               maxWidth: 860,
             }}
           >
-            Templates, browser frames, text overlays, 3D depth, and sharp PNG
+            Quick styles, browser frames, text overlays, 3D depth, and sharp PNG
             export. Everything runs in your browser.
           </div>
         </div>

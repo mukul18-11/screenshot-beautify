@@ -8,8 +8,8 @@ const STEPS = [
     description: "Drop a PNG, JPG, or WebP into the editor.",
   },
   {
-    title: "Pick a template",
-    description: "Choose a design made for launches, updates, and posts.",
+    title: "Apply a quick style",
+    description: "Choose a polished starting look for your screenshot.",
   },
   {
     title: "Customize style",

@@ -14,9 +14,9 @@ const FAQS = [
       "Yes. Use built-in canvas sizes and export sharp PNGs for X, LinkedIn, Product Hunt, decks, and hero images.",
   },
   {
-    question: "Are templates saved to an account?",
+    question: "Do I need an account?",
     answer:
-      "No. Phase 6 templates are built-in static presets and do not require login.",
+      "No. The editor runs locally in your browser and does not require login.",
   },
 ] as const;
 

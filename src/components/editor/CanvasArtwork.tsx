@@ -23,6 +23,13 @@ import {
   BEAUTIFY_SETTING_LIMITS,
   createImageShadowCss,
 } from "@/lib/editor-defaults";
+import {
+  clampCropInset,
+  clampUnitOffset,
+  clampValue,
+  getCropRatios,
+  MIN_CROP_RATIO,
+} from "@/lib/editor-geometry";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
@@ -150,7 +157,6 @@ function mergeRefs<T>(
 
 const DRAG_THRESHOLD_PX = 4;
 const FIT_ON_UPLOAD_PADDING_PX = 80;
-const MIN_CROP_RATIO = 0.18;
 const SNAP_THRESHOLD_PX = 12;
 const RESIZE_HANDLES = [
   "nw",
@@ -162,18 +168,6 @@ const RESIZE_HANDLES = [
   "sw",
   "w",
 ] as const satisfies readonly ResizeHandleId[];
-
-function clampTextOffset(value: number) {
-  return Math.max(-1, Math.min(1, value));
-}
-
-function clampCropInset(value: number) {
-  return Math.max(0, Math.min(1 - MIN_CROP_RATIO, value));
-}
-
-function clampValue(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
 
 function calculateFitScale(
   availableWidth: number,
@@ -223,13 +217,6 @@ function calculateFitOnUploadScalePercent(
   }
 
   return (targetScale / layoutScale) * 100;
-}
-
-function getCropRatios(crop: ImageCrop) {
-  return {
-    width: Math.max(MIN_CROP_RATIO, 1 - crop.left - crop.right),
-    height: Math.max(MIN_CROP_RATIO, 1 - crop.top - crop.bottom),
-  };
 }
 
 function isCornerResizeHandle(handleId: ResizeHandleId) {
@@ -803,10 +790,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         dragState.canvasRect.bottom,
       );
 
-      const nextOffsetX = clampTextOffset(
+      const nextOffsetX = clampUnitOffset(
         dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
       );
-      const nextOffsetY = clampTextOffset(
+      const nextOffsetY = clampUnitOffset(
         dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
       );
 
@@ -922,10 +909,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         dragState.canvasRect.bottom,
       );
 
-      const nextOffsetX = clampTextOffset(
+      const nextOffsetX = clampUnitOffset(
         dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
       );
-      const nextOffsetY = clampTextOffset(
+      const nextOffsetY = clampUnitOffset(
         dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
       );
 
@@ -1096,11 +1083,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           dragState.canvasRect.bottom - nextHeight / 2,
         );
 
-        const nextOffsetX = clampTextOffset(
+        const nextOffsetX = clampUnitOffset(
           dragState.startOffsetX +
             ((nextCenterX - startCenterX) / dragState.canvasRect.width) * 2,
         );
-        const nextOffsetY = clampTextOffset(
+        const nextOffsetY = clampUnitOffset(
           dragState.startOffsetY +
             ((nextCenterY - startCenterY) / dragState.canvasRect.height) * 2,
         );
@@ -1169,11 +1156,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         dragState.canvasRect.bottom - nextHeight / 2,
       );
 
-      const nextOffsetX = clampTextOffset(
+      const nextOffsetX = clampUnitOffset(
         dragState.startOffsetX +
           ((nextCenterX - startCenterX) / dragState.canvasRect.width) * 2,
       );
-      const nextOffsetY = clampTextOffset(
+      const nextOffsetY = clampUnitOffset(
         dragState.startOffsetY +
           ((nextCenterY - startCenterY) / dragState.canvasRect.height) * 2,
       );

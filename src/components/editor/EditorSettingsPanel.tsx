@@ -15,8 +15,6 @@ import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ExportControls from "@/components/editor/ExportControls";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
-import TemplateGallery from "@/components/editor/TemplateGallery";
-import TextLayoutPresetSelector from "@/components/editor/TextLayoutPresetSelector";
 import TextOverlayControls from "@/components/editor/TextOverlayControls";
 import TiltControls from "@/components/editor/TiltControls";
 import { Button } from "@/components/ui/button";
@@ -160,13 +158,11 @@ export default function EditorSettingsPanel({
             className="px-5 py-4"
           >
             <ImageInfoSection uploadedImage={uploadedImage} />
-            <TemplateGallery />
             <BeautifyPresetBar />
             <CanvasPresetSelector />
             <BackgroundControls />
             <ImageStyleControls />
             <BrowserFrameControls />
-            <TextLayoutPresetSelector />
             <TextOverlayControls />
             <TiltControls />
             <ExportControls uploadedImage={uploadedImage} />

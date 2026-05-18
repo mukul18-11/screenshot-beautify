@@ -3,25 +3,15 @@
 import { Box, RotateCcw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
+import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import TiltPresetSelector from "@/components/editor/TiltPresetSelector";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
-
-type SliderRowProps = {
-  label: string;
-  max: number;
-  min: number;
-  onChange: (value: number) => void;
-  step: number;
-  suffix?: string;
-  value: number;
-};
 
 function formatSliderValue(value: number, step: number) {
   if (step < 1) {
@@ -30,51 +20,6 @@ function formatSliderValue(value: number, step: number) {
 
   return String(value);
 }
-
-function SliderRow({
-  label,
-  max,
-  min,
-  onChange,
-  step,
-  suffix = "",
-  value,
-}: SliderRowProps) {
-  const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-tilt-slider`;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <Label
-          htmlFor={inputId}
-          className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
-        >
-          {label}
-        </Label>
-        <span className="text-[11px] font-semibold tabular-nums text-slate-400">
-          {formatSliderValue(value, step)}
-          {suffix}
-        </span>
-      </div>
-      <Slider
-        id={inputId}
-        min={min}
-        max={max}
-        step={step}
-        value={[value]}
-        onValueChange={(values) => {
-          const [nextValue] = values;
-
-          if (typeof nextValue === "number") {
-            onChange(nextValue);
-          }
-        }}
-        aria-label={label}
-      />
-    </div>
-  );
-}
-
 export default function TiltControls() {
   const shouldReduceMotion = useReducedMotion();
   const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
@@ -163,56 +108,83 @@ export default function TiltControls() {
             !tiltEnabled && "opacity-40",
           )}
         >
-          <SliderRow
+          <EditorSliderRow
+            idSuffix="tilt-slider"
             label="Perspective"
             min={BEAUTIFY_SETTING_LIMITS.perspective.min}
             max={BEAUTIFY_SETTING_LIMITS.perspective.max}
             step={BEAUTIFY_SETTING_LIMITS.perspective.step}
             value={perspective}
+            valueFormatter={(value) =>
+              formatSliderValue(value, BEAUTIFY_SETTING_LIMITS.perspective.step)
+            }
             onChange={setPerspective}
           />
-          <SliderRow
+          <EditorSliderRow
+            idSuffix="tilt-slider"
             label="Rotate X"
             min={BEAUTIFY_SETTING_LIMITS.rotateX.min}
             max={BEAUTIFY_SETTING_LIMITS.rotateX.max}
             step={BEAUTIFY_SETTING_LIMITS.rotateX.step}
             value={rotateX}
             suffix="°"
+            valueFormatter={(value) =>
+              formatSliderValue(value, BEAUTIFY_SETTING_LIMITS.rotateX.step)
+            }
             onChange={setRotateX}
           />
-          <SliderRow
+          <EditorSliderRow
+            idSuffix="tilt-slider"
             label="Rotate Y"
             min={BEAUTIFY_SETTING_LIMITS.rotateY.min}
             max={BEAUTIFY_SETTING_LIMITS.rotateY.max}
             step={BEAUTIFY_SETTING_LIMITS.rotateY.step}
             value={rotateY}
             suffix="°"
+            valueFormatter={(value) =>
+              formatSliderValue(value, BEAUTIFY_SETTING_LIMITS.rotateY.step)
+            }
             onChange={setRotateY}
           />
-          <SliderRow
+          <EditorSliderRow
+            idSuffix="tilt-slider"
             label="Rotate Z"
             min={BEAUTIFY_SETTING_LIMITS.rotateZ.min}
             max={BEAUTIFY_SETTING_LIMITS.rotateZ.max}
             step={BEAUTIFY_SETTING_LIMITS.rotateZ.step}
             value={rotateZ}
             suffix="°"
+            valueFormatter={(value) =>
+              formatSliderValue(value, BEAUTIFY_SETTING_LIMITS.rotateZ.step)
+            }
             onChange={setRotateZ}
           />
-          <SliderRow
+          <EditorSliderRow
+            idSuffix="tilt-slider"
             label="Lift"
             min={BEAUTIFY_SETTING_LIMITS.translateY.min}
             max={BEAUTIFY_SETTING_LIMITS.translateY.max}
             step={BEAUTIFY_SETTING_LIMITS.translateY.step}
             value={translateY}
             suffix="px"
+            valueFormatter={(value) =>
+              formatSliderValue(value, BEAUTIFY_SETTING_LIMITS.translateY.step)
+            }
             onChange={setTranslateY}
           />
-          <SliderRow
+          <EditorSliderRow
+            idSuffix="tilt-slider"
             label="Depth shadow"
             min={BEAUTIFY_SETTING_LIMITS.tiltShadowMultiplier.min}
             max={BEAUTIFY_SETTING_LIMITS.tiltShadowMultiplier.max}
             step={BEAUTIFY_SETTING_LIMITS.tiltShadowMultiplier.step}
             value={tiltShadowMultiplier}
+            valueFormatter={(value) =>
+              formatSliderValue(
+                value,
+                BEAUTIFY_SETTING_LIMITS.tiltShadowMultiplier.step,
+              )
+            }
             onChange={setTiltShadowMultiplier}
           />
         </div>
@@ -237,12 +209,19 @@ export default function TiltControls() {
           </div>
 
           <div className="pl-1">
-            <SliderRow
+            <EditorSliderRow
+              idSuffix="tilt-slider"
               label="Hover sensitivity"
               min={BEAUTIFY_SETTING_LIMITS.hoverTiltSensitivity.min}
               max={BEAUTIFY_SETTING_LIMITS.hoverTiltSensitivity.max}
               step={BEAUTIFY_SETTING_LIMITS.hoverTiltSensitivity.step}
               value={hoverTiltSensitivity}
+              valueFormatter={(value) =>
+                formatSliderValue(
+                  value,
+                  BEAUTIFY_SETTING_LIMITS.hoverTiltSensitivity.step,
+                )
+              }
               onChange={setHoverTiltSensitivity}
             />
           </div>
@@ -263,12 +242,19 @@ export default function TiltControls() {
           </div>
 
           <div className="pl-1">
-            <SliderRow
+            <EditorSliderRow
+              idSuffix="tilt-slider"
               label="Parallax strength"
               min={BEAUTIFY_SETTING_LIMITS.backgroundParallaxStrength.min}
               max={BEAUTIFY_SETTING_LIMITS.backgroundParallaxStrength.max}
               step={BEAUTIFY_SETTING_LIMITS.backgroundParallaxStrength.step}
               value={backgroundParallaxStrength}
+              valueFormatter={(value) =>
+                formatSliderValue(
+                  value,
+                  BEAUTIFY_SETTING_LIMITS.backgroundParallaxStrength.step,
+                )
+              }
               onChange={setBackgroundParallaxStrength}
             />
           </div>

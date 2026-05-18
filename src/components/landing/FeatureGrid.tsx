@@ -6,7 +6,7 @@ import {
   Frame,
   Image,
   Layers,
-  LayoutTemplate,
+  Palette,
   ShieldCheck,
   Type,
 } from "lucide-react";
@@ -19,9 +19,9 @@ const FEATURES = [
     icon: Image,
   },
   {
-    title: "One-click design templates",
-    description: "Start with launch-ready layouts for social and product use.",
-    icon: LayoutTemplate,
+    title: "One-click quick styles",
+    description: "Start with polished canvas, background, and screenshot styling.",
+    icon: Palette,
   },
   {
     title: "Premium backgrounds",
