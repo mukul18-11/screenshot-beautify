@@ -157,6 +157,8 @@ function mergeRefs<T>(
 
 const DRAG_THRESHOLD_PX = 4;
 const MIN_VISIBLE_MOCKUP_PX = 48;
+const MIN_RESIZED_MOCKUP_HEIGHT_PX = 96;
+const MIN_RESIZED_MOCKUP_WIDTH_PX = 144;
 const SNAP_THRESHOLD_PX = 12;
 const RESIZE_HANDLES = [
   "nw",
@@ -168,6 +170,7 @@ const RESIZE_HANDLES = [
   "sw",
   "w",
 ] as const satisfies readonly ResizeHandleId[];
+const EXPAND_CROP_DIRECTIONS = { x: 1, y: 1 };
 
 function isCornerResizeHandle(handleId: ResizeHandleId) {
   const directions = getResizeHandleDirections(handleId);
@@ -252,6 +255,62 @@ function getResizeHandleAnchor(handleId: ResizeHandleId, rect: DOMRect) {
   };
 }
 
+function constrainCropToRenderedSize(
+  crop: ImageCrop,
+  directions: ReturnType<typeof getResizeHandleDirections>,
+  fullWidth: number,
+  fullHeight: number,
+) {
+  const nextCrop = { ...crop };
+  const minWidthRatio = clampValue(
+    MIN_RESIZED_MOCKUP_WIDTH_PX / fullWidth,
+    MIN_CROP_RATIO,
+    1,
+  );
+  const minHeightRatio = clampValue(
+    MIN_RESIZED_MOCKUP_HEIGHT_PX / fullHeight,
+    MIN_CROP_RATIO,
+    1,
+  );
+
+  const maxHorizontalCrop = Math.max(0, 1 - minWidthRatio);
+  const maxVerticalCrop = Math.max(0, 1 - minHeightRatio);
+
+  if (nextCrop.left + nextCrop.right > maxHorizontalCrop) {
+    if (directions.x > 0) {
+      nextCrop.right = clampValue(
+        maxHorizontalCrop - nextCrop.left,
+        0,
+        maxHorizontalCrop,
+      );
+    } else if (directions.x < 0) {
+      nextCrop.left = clampValue(
+        maxHorizontalCrop - nextCrop.right,
+        0,
+        maxHorizontalCrop,
+      );
+    }
+  }
+
+  if (nextCrop.top + nextCrop.bottom > maxVerticalCrop) {
+    if (directions.y > 0) {
+      nextCrop.bottom = clampValue(
+        maxVerticalCrop - nextCrop.top,
+        0,
+        maxVerticalCrop,
+      );
+    } else if (directions.y < 0) {
+      nextCrop.top = clampValue(
+        maxVerticalCrop - nextCrop.bottom,
+        0,
+        maxVerticalCrop,
+      );
+    }
+  }
+
+  return nextCrop;
+}
+
 function getResizeHandlePositionClass(handleId: ResizeHandleId) {
   const positionClasses = {
     e: "right-0 top-1/2 h-7 w-2 -translate-y-1/2 translate-x-1/2 cursor-ew-resize",
@@ -332,6 +391,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformDragActiveRef = useRef(false);
     const transformUpdateRef = useRef<(() => void) | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
+    const [isMockupHovered, setIsMockupHovered] = useState(false);
+    const [isMockupFocusWithin, setIsMockupFocusWithin] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
       horizontal: null,
@@ -572,6 +633,49 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       fitUploadedImage,
       isExportMode,
       uploadedImage.id,
+    ]);
+
+    useEffect(() => {
+      if (isExportMode) {
+        return;
+      }
+
+      const cropRatios = getCropRatios(imageCrop);
+      const renderedWidth = uploadedImage.width * screenshotScale * cropRatios.width;
+      const renderedHeight =
+        uploadedImage.height * screenshotScale * cropRatios.height;
+
+      if (
+        renderedWidth >= MIN_RESIZED_MOCKUP_WIDTH_PX &&
+        renderedHeight >= MIN_RESIZED_MOCKUP_HEIGHT_PX
+      ) {
+        return;
+      }
+
+      const nextCrop = constrainCropToRenderedSize(
+        imageCrop,
+        EXPAND_CROP_DIRECTIONS,
+        uploadedImage.width * screenshotScale,
+        uploadedImage.height * screenshotScale,
+      );
+
+      if (
+        nextCrop.top === imageCrop.top &&
+        nextCrop.right === imageCrop.right &&
+        nextCrop.bottom === imageCrop.bottom &&
+        nextCrop.left === imageCrop.left
+      ) {
+        return;
+      }
+
+      setImageTransform({ crop: nextCrop });
+    }, [
+      imageCrop,
+      isExportMode,
+      screenshotScale,
+      setImageTransform,
+      uploadedImage.height,
+      uploadedImage.width,
     ]);
 
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -1021,23 +1125,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           );
         }
 
-        if (nextCrop.left + nextCrop.right > 1 - MIN_CROP_RATIO) {
-          if (directions.x > 0) {
-            nextCrop.right = 1 - MIN_CROP_RATIO - nextCrop.left;
-          } else if (directions.x < 0) {
-            nextCrop.left = 1 - MIN_CROP_RATIO - nextCrop.right;
-          }
-        }
+        const constrainedCrop = constrainCropToRenderedSize(
+          nextCrop,
+          directions,
+          fullWidth,
+          fullHeight,
+        );
 
-        if (nextCrop.top + nextCrop.bottom > 1 - MIN_CROP_RATIO) {
-          if (directions.y > 0) {
-            nextCrop.bottom = 1 - MIN_CROP_RATIO - nextCrop.top;
-          } else if (directions.y < 0) {
-            nextCrop.top = 1 - MIN_CROP_RATIO - nextCrop.bottom;
-          }
-        }
-
-        const nextCropRatios = getCropRatios(nextCrop);
+        const nextCropRatios = getCropRatios(constrainedCrop);
         const nextWidth = fullWidth * nextCropRatios.width;
         const nextHeight = fullHeight * nextCropRatios.height;
         let nextCenterX = startCenterX;
@@ -1079,7 +1174,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
         scheduleTransformUpdate(() => {
           setImageTransform({
-            crop: nextCrop,
+            crop: constrainedCrop,
             offsetX: nextOffsetX,
             offsetY: nextOffsetY,
           });
@@ -1301,6 +1396,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         className={cn(textPosition === "center" && "max-w-[72%]")}
       />
     ) : null;
+    const showMockupControls =
+      !isExportMode &&
+      isMockupSelected &&
+      (isMockupHovered || isDraggingCanvasItem || isMockupFocusWithin);
 
     return (
       <motion.div
@@ -1421,6 +1520,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                 !isExportMode && "cursor-grab active:cursor-grabbing",
               )}
               aria-selected={!isExportMode ? isMockupSelected : undefined}
+              onPointerEnter={() => setIsMockupHovered(true)}
+              onPointerLeave={() => setIsMockupHovered(false)}
               onPointerCancel={handleMockupPointerEnd}
               onPointerDown={handleMockupPointerDown}
               onPointerMove={handleMockupPointerMove}
@@ -1430,6 +1531,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
               <div
                 ref={mockupVisualRef}
                 className={cn("relative flex", screenshotShellClasses)}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setIsMockupFocusWithin(false);
+                  }
+                }}
+                onFocusCapture={() => setIsMockupFocusWithin(true)}
                 style={mockupScaleStyle}
               >
                 <TiltedMockupWrapper
@@ -1451,8 +1558,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   </motion.div>
                 </TiltedMockupWrapper>
 
-                {!isExportMode && isMockupSelected && (
+                {showMockupControls && (
                   <div
+                    data-export-ignore="true"
                     className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
                     style={{ borderRadius: `${imageRadius}px` }}
                   >
