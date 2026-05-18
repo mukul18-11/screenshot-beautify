@@ -83,6 +83,17 @@ type MockupResizeState = {
   startScale: number;
 };
 
+type MockupTransformControlsProps = {
+  imageRadius: number;
+  onResizePointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
+  onResizePointerDown: (
+    handleId: ResizeHandleId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onResizePointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
+  onResizePointerUp: (event: PointerEvent<HTMLButtonElement>) => void;
+};
+
 type CanvasArtworkProps = {
   className?: string;
   isLoading?: boolean;
@@ -326,6 +337,39 @@ function getResizeHandlePositionClass(handleId: ResizeHandleId) {
   return positionClasses[handleId];
 }
 
+function MockupTransformControls({
+  imageRadius,
+  onResizePointerCancel,
+  onResizePointerDown,
+  onResizePointerMove,
+  onResizePointerUp,
+}: MockupTransformControlsProps) {
+  return (
+    <div
+      data-export-ignore="true"
+      data-editor-live-overlay="mockup-transform"
+      className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
+      style={{ borderRadius: `${imageRadius}px` }}
+    >
+      {RESIZE_HANDLES.map((handleId) => (
+        <button
+          key={handleId}
+          type="button"
+          aria-label={`Resize screenshot ${handleId}`}
+          className={cn(
+            "pointer-events-auto absolute rounded-full border border-cyan-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300",
+            getResizeHandlePositionClass(handleId),
+          )}
+          onPointerCancel={onResizePointerCancel}
+          onPointerDown={(event) => onResizePointerDown(handleId, event)}
+          onPointerMove={onResizePointerMove}
+          onPointerUp={onResizePointerUp}
+        />
+      ))}
+    </div>
+  );
+}
+
 function calculateResizeRatio(
   dragState: MockupResizeState,
   clientX: number,
@@ -391,8 +435,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformDragActiveRef = useRef(false);
     const transformUpdateRef = useRef<(() => void) | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
-    const [isMockupHovered, setIsMockupHovered] = useState(false);
-    const [isMockupFocusWithin, setIsMockupFocusWithin] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
       horizontal: null,
@@ -1396,20 +1438,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         className={cn(textPosition === "center" && "max-w-[72%]")}
       />
     ) : null;
-    const showMockupControls =
-      !isExportMode &&
-      isMockupSelected &&
-      (isMockupHovered || isDraggingCanvasItem || isMockupFocusWithin);
+    const showMockupControls = !isExportMode && isMockupSelected;
 
     return (
-      <motion.div
+      <div
         ref={mergeRefs(canvasShellRef, forwardedRef)}
-        layout={!isExportMode}
         onPointerCancel={handleCanvasPointerLeave}
         onPointerDown={handleCanvasPointerDown}
         onPointerLeave={handleCanvasPointerLeave}
         onPointerMove={handleCanvasPointerMove}
-        transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}
         className={cn(
           "relative overflow-hidden",
           className,
@@ -1485,6 +1522,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
         {!isExportMode && textDragGuide.vertical !== null && (
           <div
+            data-export-ignore="true"
             className="pointer-events-none absolute bottom-0 top-0 z-20 w-px bg-cyan-300/80 shadow-[0_0_12px_rgba(103,232,249,0.65)]"
             style={{ left: `${textDragGuide.vertical * 100}%` }}
             aria-hidden="true"
@@ -1493,20 +1531,19 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
         {!isExportMode && textDragGuide.horizontal !== null && (
           <div
+            data-export-ignore="true"
             className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-cyan-300/80 shadow-[0_0_12px_rgba(103,232,249,0.65)]"
             style={{ top: `${textDragGuide.horizontal * 100}%` }}
             aria-hidden="true"
           />
         )}
 
-        <motion.div
-          layout={!isExportMode}
+        <div
           className={cn(
             "relative flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
             hasTextOverlay && getContentLayoutClasses(textPosition),
           )}
           style={{ padding: canvasPadding }}
-          transition={{ duration: isExportMode ? 0 : 0.24, ease: "easeOut" }}
         >
           {hasTextOverlay && textPosition === "top" && textOverlay}
           {hasTextOverlay && textPosition === "left" && textOverlay}
@@ -1520,8 +1557,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                 !isExportMode && "cursor-grab active:cursor-grabbing",
               )}
               aria-selected={!isExportMode ? isMockupSelected : undefined}
-              onPointerEnter={() => setIsMockupHovered(true)}
-              onPointerLeave={() => setIsMockupHovered(false)}
               onPointerCancel={handleMockupPointerEnd}
               onPointerDown={handleMockupPointerDown}
               onPointerMove={handleMockupPointerMove}
@@ -1531,12 +1566,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
               <div
                 ref={mockupVisualRef}
                 className={cn("relative flex", screenshotShellClasses)}
-                onBlurCapture={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget)) {
-                    setIsMockupFocusWithin(false);
-                  }
-                }}
-                onFocusCapture={() => setIsMockupFocusWithin(true)}
                 style={mockupScaleStyle}
               >
                 <TiltedMockupWrapper
@@ -1559,29 +1588,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                 </TiltedMockupWrapper>
 
                 {showMockupControls && (
-                  <div
-                    data-export-ignore="true"
-                    className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
-                    style={{ borderRadius: `${imageRadius}px` }}
-                  >
-                    {RESIZE_HANDLES.map((handleId) => (
-                      <button
-                        key={handleId}
-                        type="button"
-                        aria-label={`Resize screenshot ${handleId}`}
-                        className={cn(
-                          "pointer-events-auto absolute rounded-full border border-cyan-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300",
-                          getResizeHandlePositionClass(handleId),
-                        )}
-                        onPointerCancel={handleResizePointerEnd}
-                        onPointerDown={(event) =>
-                          handleResizePointerDown(handleId, event)
-                        }
-                        onPointerMove={handleResizePointerMove}
-                        onPointerUp={handleResizePointerEnd}
-                      />
-                    ))}
-                  </div>
+                  <MockupTransformControls
+                    imageRadius={imageRadius}
+                    onResizePointerCancel={handleResizePointerEnd}
+                    onResizePointerDown={handleResizePointerDown}
+                    onResizePointerMove={handleResizePointerMove}
+                    onResizePointerUp={handleResizePointerEnd}
+                  />
                 )}
               </div>
             </div>
@@ -1594,8 +1607,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           )}
           {hasTextOverlay && textPosition === "right" && textOverlay}
           {hasTextOverlay && textPosition === "bottom" && textOverlay}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     );
   },
 );

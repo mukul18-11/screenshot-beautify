@@ -158,6 +158,10 @@ function handleExportImageError() {
   throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
 }
 
+function shouldIncludeExportNode(node: HTMLElement) {
+  return !node.closest("[data-export-ignore='true']");
+}
+
 export async function createExportPngBlob({
   cacheBust = false,
   height,
@@ -180,6 +184,7 @@ export async function createExportPngBlob({
     cacheBust,
     canvasHeight: height,
     canvasWidth: width,
+    filter: shouldIncludeExportNode,
     height,
     onImageErrorHandler: handleExportImageError,
     pixelRatio: scale,

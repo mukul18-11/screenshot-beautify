@@ -66,7 +66,7 @@ export default function CanvasPreview({
     >
       <div
         ref={previewFrameRef}
-        className="relative shadow-2xl shadow-slate-950/15 ring-1 ring-black/[0.04]"
+        className="relative overflow-hidden rounded-lg shadow-2xl shadow-slate-950/15 ring-1 ring-black/[0.04]"
         style={{
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
           width: previewWidth,
@@ -83,6 +83,7 @@ export default function CanvasPreview({
           }}
         >
           <CanvasArtwork
+            key={uploadedImage.id}
             mode="preview"
             isLoading={isLoading}
             onImageLoad={onImageLoad}
