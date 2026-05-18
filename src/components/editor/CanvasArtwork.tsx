@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -191,32 +192,55 @@ function calculateFitScale(
   );
 }
 
-function calculateFitOnUploadScalePercent(
-  canvasWidth: number,
-  canvasHeight: number,
-  imagePadding: number,
+function fitImageToCanvas(
   imageNaturalWidth: number,
   imageNaturalHeight: number,
+  canvasWidth: number,
+  canvasHeight: number,
 ) {
-  const targetScale = calculateFitScale(
-    canvasWidth - FIT_ON_UPLOAD_PADDING_PX * 2,
-    canvasHeight - FIT_ON_UPLOAD_PADDING_PX * 2,
+  const padding = FIT_ON_UPLOAD_PADDING_PX;
+  const scale = calculateFitScale(
+    canvasWidth - padding * 2,
+    canvasHeight - padding * 2,
     imageNaturalWidth,
     imageNaturalHeight,
   );
-  const paddingRatio = imagePadding / Math.min(canvasWidth, canvasHeight);
+  const offsetX = (canvasWidth - imageNaturalWidth * scale) / 2;
+  const offsetY = (canvasHeight - imageNaturalHeight * scale) / 2;
+
+  return {
+    offsetX,
+    offsetY,
+    scale,
+  };
+}
+
+function calculateFitScalePercent(
+  displayWidth: number,
+  displayHeight: number,
+  availableWidth: number,
+  availableHeight: number,
+  imageNaturalWidth: number,
+  imageNaturalHeight: number,
+) {
+  const fit = fitImageToCanvas(
+    imageNaturalWidth,
+    imageNaturalHeight,
+    displayWidth,
+    displayHeight,
+  );
   const layoutScale = calculateFitScale(
-    canvasWidth - canvasWidth * paddingRatio * 2,
-    canvasHeight - canvasHeight * paddingRatio * 2,
+    availableWidth,
+    availableHeight,
     imageNaturalWidth,
     imageNaturalHeight,
   );
 
   if (layoutScale <= 0) {
-    return targetScale * 100;
+    return fit.scale * 100;
   }
 
-  return (targetScale / layoutScale) * 100;
+  return (fit.scale / layoutScale) * 100;
 }
 
 function isCornerResizeHandle(handleId: ResizeHandleId) {
@@ -338,12 +362,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   ) {
     const shouldReduceMotion = useReducedMotion();
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
+    const canvasContentRef = useRef<HTMLDivElement | null>(null);
     const mockupFrameRef = useRef<HTMLDivElement | null>(null);
     const mockupVisualRef = useRef<HTMLDivElement | null>(null);
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
     const mockupDragStateRef = useRef<MockupDragState | null>(null);
     const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
-    const fittedImageIdRef = useRef<string | null>(null);
+    const fittedImageKeyRef = useRef<string | null>(null);
     const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
     const textDragFrameRef = useRef<number | null>(null);
@@ -434,8 +459,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       (state) => state.backgroundParallaxStrength,
     );
     const isExportMode = mode === "export";
-    const paddingPercent =
-      (imagePadding / Math.min(canvasWidth, canvasHeight)) * 100;
+    const canvasPadding = `${(imagePadding / canvasWidth) * 100}cqw`;
     const screenshotScale = imageScale / 100;
     const screenshotShadow = createImageShadowCss({
       ...imageShadow,
@@ -575,6 +599,88 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       };
     }, []);
 
+    useLayoutEffect(() => {
+      if (isExportMode) {
+        return;
+      }
+
+      let animationFrame: number | null = null;
+
+      const fitToRenderedCanvas = () => {
+        const canvasShell = canvasShellRef.current;
+        const canvasContent = canvasContentRef.current;
+
+        if (!canvasShell || !canvasContent) {
+          return;
+        }
+
+        const displayWidth = canvasShell.offsetWidth;
+        const displayHeight = canvasShell.offsetHeight;
+
+        if (displayWidth <= 0 || displayHeight <= 0) {
+          return;
+        }
+
+        const contentStyle = window.getComputedStyle(canvasContent);
+        const availableWidth = Math.max(
+          0,
+          canvasContent.clientWidth -
+            Number.parseFloat(contentStyle.paddingLeft) -
+            Number.parseFloat(contentStyle.paddingRight),
+        );
+        const availableHeight = Math.max(
+          0,
+          canvasContent.clientHeight -
+            Number.parseFloat(contentStyle.paddingTop) -
+            Number.parseFloat(contentStyle.paddingBottom),
+        );
+        const fitKey = [
+          uploadedImage.id,
+          uploadedImage.width,
+          uploadedImage.height,
+          canvasWidth,
+          canvasHeight,
+          displayWidth,
+          displayHeight,
+          availableWidth,
+          availableHeight,
+        ].join(":");
+
+        if (fittedImageKeyRef.current === fitKey) {
+          return;
+        }
+
+        const initialScalePercent = calculateFitScalePercent(
+          displayWidth,
+          displayHeight,
+          availableWidth,
+          availableHeight,
+          uploadedImage.width,
+          uploadedImage.height,
+        );
+
+        fittedImageKeyRef.current = fitKey;
+        fitUploadedImage(initialScalePercent);
+      };
+
+      fitToRenderedCanvas();
+      animationFrame = requestAnimationFrame(fitToRenderedCanvas);
+
+      return () => {
+        if (animationFrame !== null) {
+          cancelAnimationFrame(animationFrame);
+        }
+      };
+    }, [
+      canvasHeight,
+      canvasWidth,
+      fitUploadedImage,
+      isExportMode,
+      uploadedImage.height,
+      uploadedImage.id,
+      uploadedImage.width,
+    ]);
+
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
       if (
         !canParallaxBackground ||
@@ -624,22 +730,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleImageLoad(event: SyntheticEvent<HTMLImageElement>) {
       onImageLoad?.(event);
-
-      if (isExportMode || fittedImageIdRef.current === uploadedImage.id) {
-        return;
-      }
-
-      const imageElement = event.currentTarget;
-      const initialScalePercent = calculateFitOnUploadScalePercent(
-        canvasWidth,
-        canvasHeight,
-        imagePadding,
-        imageElement.naturalWidth,
-        imageElement.naturalHeight,
-      );
-
-      fittedImageIdRef.current = uploadedImage.id;
-      fitUploadedImage(initialScalePercent);
     }
 
     const textLayerOffsets = {
@@ -1291,7 +1381,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onDragStart={(event) => event.preventDefault()}
         {...screenshotMotionProps}
         className={cn(
-          "block h-full w-full select-none object-cover will-change-transform [-webkit-user-drag:none]",
+          "block h-full w-full select-none object-contain will-change-transform [-webkit-user-drag:none]",
         )}
       />
     );
@@ -1416,12 +1506,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         )}
 
         <motion.div
+          ref={canvasContentRef}
           layout={!isExportMode}
           className={cn(
             "relative flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
             hasTextOverlay && getContentLayoutClasses(textPosition),
           )}
-          style={{ padding: `${paddingPercent}%` }}
+          style={{ padding: canvasPadding }}
           transition={{ duration: isExportMode ? 0 : 0.24, ease: "easeOut" }}
         >
           {hasTextOverlay && textPosition === "top" && textOverlay}
