@@ -141,17 +141,17 @@ export const BEAUTIFY_SETTING_LIMITS = {
   },
   headlineSize: {
     min: 24,
-    max: 72,
+    max: 160,
     step: 1,
   },
   subtitleSize: {
     min: 14,
-    max: 32,
+    max: 96,
     step: 1,
   },
   badgeSize: {
     min: 9,
-    max: 28,
+    max: 64,
     step: 1,
   },
   textRotation: {
