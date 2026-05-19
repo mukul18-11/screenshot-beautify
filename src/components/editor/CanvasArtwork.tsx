@@ -846,6 +846,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       event.preventDefault();
       event.stopPropagation();
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
+      transformDragActiveRef.current = true;
 
       zoomPanDragStateRef.current = {
         pointerId: event.pointerId,
@@ -872,6 +875,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       if (!drag.moved && distance < DRAG_THRESHOLD_PX) return;
       drag.moved = true;
       event.preventDefault();
+      event.stopPropagation();
 
       const currentZoom = useEditorStore.getState().imageZoom / 100;
       if (currentZoom <= 1) return;
@@ -892,8 +896,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const drag = zoomPanDragStateRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
 
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
       zoomPanDragStateRef.current = null;
       setIsDraggingCanvasItem(false);
+      event.stopPropagation();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -1718,8 +1725,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                           className={cn(
                             "relative overflow-hidden",
                             screenshotShellClasses,
+                            !isExportMode &&
+                              (isZoomed
+                                ? "cursor-grab active:cursor-grabbing"
+                                : "cursor-zoom-in"),
                           )}
-                          style={screenshotCropStyle}
+                          style={{
+                            ...screenshotCropStyle,
+                            touchAction: isZoomed ? "none" : "pan-y",
+                          }}
                           onWheel={handleScreenshotWheel}
                           onPointerDown={handleZoomPanPointerDown}
                           onPointerMove={handleZoomPanPointerMove}
@@ -1739,8 +1753,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                       className={cn(
                         "relative overflow-hidden",
                         screenshotShellClasses,
+                        !isExportMode &&
+                          (isZoomed
+                            ? "cursor-grab active:cursor-grabbing"
+                            : "cursor-zoom-in"),
                       )}
-                      style={{ ...screenshotCropStyle, ...mockupDecorationStyle }}
+                      style={{
+                        ...screenshotCropStyle,
+                        ...mockupDecorationStyle,
+                        touchAction: isZoomed ? "none" : "pan-y",
+                      }}
                       onWheel={handleScreenshotWheel}
                       onPointerDown={handleZoomPanPointerDown}
                       onPointerMove={handleZoomPanPointerMove}
