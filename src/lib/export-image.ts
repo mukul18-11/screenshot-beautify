@@ -158,7 +158,11 @@ function handleExportImageError() {
   throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
 }
 
-function shouldIncludeExportNode(node: HTMLElement) {
+function shouldIncludeExportNode(node: Node) {
+  if (!(node instanceof Element)) {
+    return true;
+  }
+
   return !node.closest("[data-export-ignore='true']");
 }
 
