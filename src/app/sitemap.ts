@@ -1,19 +1,19 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://screenshot-beautifier.app";
+import { SITE_URL } from "@/lib/site-metadata";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   return [
     {
-      url: siteUrl,
+      url: SITE_URL,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${siteUrl}/editor`,
+      url: `${SITE_URL}/editor`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.8,

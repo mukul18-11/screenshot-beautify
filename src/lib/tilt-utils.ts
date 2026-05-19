@@ -19,32 +19,6 @@ export function buildTiltTransform(settings: TiltTransformSettings) {
   ].join(" ");
 }
 
-export function createTiltTransformCss(settings: TiltTransformSettings) {
-  return buildTiltTransform(settings);
-}
-
-export function createFlatTiltTransformCss() {
-  return buildTiltTransform({
-    perspective: 1200,
-    rotateX: 0,
-    rotateY: 0,
-    rotateZ: 0,
-    translateY: 0,
-  });
-}
-
-export function createParallaxTransformCss(
-  offsetX: number,
-  offsetY: number,
-  strength: number,
-) {
-  const normalizedStrength = Math.max(0, strength);
-
-  return `translate3d(${formatNumber(
-    offsetX * normalizedStrength,
-  )}px, ${formatNumber(offsetY * normalizedStrength)}px, 0)`;
-}
-
 export function multiplyTiltShadow(
   shadowValue: number,
   tiltShadowMultiplier: number,

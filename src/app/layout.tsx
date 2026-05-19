@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+
+import {
+  SITE_DESCRIPTION,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site-metadata";
+
 import "./globals.css";
 
-const siteTitle =
-  "Screenshot Beautifier — Turn Screenshots into Launch-Ready Visuals";
-const siteDescription =
-  "Create beautiful product screenshots with quick styles, browser frames, text overlays, 3D tilt, and sharp PNG export. Everything runs in your browser.";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://screenshot-beautifier.app";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: siteTitle,
+    default: SITE_TITLE,
     template: "%s — Screenshot Beautifier",
   },
-  description: siteDescription,
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
   keywords: [
     "screenshot beautifier",
     "screenshot mockup",
@@ -26,8 +30,8 @@ export const metadata: Metadata = {
   ],
   applicationName: "Screenshot Beautifier",
   openGraph: {
-    title: siteTitle,
-    description: siteDescription,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     type: "website",
     url: "/",
     siteName: "Screenshot Beautifier",
@@ -42,8 +46,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: siteTitle,
-    description: siteDescription,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: ["/opengraph-image"],
   },
 };

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "sonner";
 
 type UploadClipboardFile = (
   file: File,
@@ -62,7 +61,6 @@ export function useClipboardImage({
       const file = getImageFileFromClipboard(event);
 
       if (!file) {
-        toast("No image found in clipboard.");
         return;
       }
 
