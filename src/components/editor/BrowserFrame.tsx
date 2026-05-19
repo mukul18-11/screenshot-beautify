@@ -27,8 +27,8 @@ const DOTS = [
 function getFrameClasses(theme: BrowserFrameTheme) {
   if (theme === "dark") {
     return {
-      body: "bg-slate-950",
-      surface: "bg-slate-900 text-slate-200",
+      body: "bg-transparent",
+      surface: "text-slate-200",
       topBar: "border-white/10 bg-slate-900/95",
       urlBar: "border-white/10 bg-white/[0.07] text-slate-300",
       minimalText: "text-slate-300",
@@ -36,8 +36,8 @@ function getFrameClasses(theme: BrowserFrameTheme) {
   }
 
   return {
-    body: "bg-white",
-    surface: "bg-white text-slate-700",
+    body: "bg-transparent",
+    surface: "text-slate-700",
     topBar: "border-slate-200/80 bg-slate-50/95",
     urlBar: "border-slate-200/90 bg-white/90 text-slate-500",
     minimalText: "text-slate-500",
@@ -56,7 +56,7 @@ function MacosTopBar({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center gap-3 border-b px-3",
+        "pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-center gap-3 border-b px-3",
         frameClasses.topBar,
       )}
       style={{ height: `${MACOS_TOP_BAR_HEIGHT}px` }}
@@ -102,7 +102,7 @@ function MinimalTopBar({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center border-b px-3",
+        "pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-center border-b px-3",
         frameClasses.topBar,
       )}
       style={{ height: `${MINIMAL_TOP_BAR_HEIGHT}px` }}
@@ -137,8 +137,7 @@ export default function BrowserFrame({
     borderRadius: `${radius}px`,
   } satisfies CSSProperties;
   const imageWrapStyle = {
-    borderBottomLeftRadius: `${innerRadius}px`,
-    borderBottomRightRadius: `${innerRadius}px`,
+    borderRadius: `${innerRadius}px`,
   } satisfies CSSProperties;
 
   const TopBar =
@@ -155,7 +154,7 @@ export default function BrowserFrame({
   return (
     <div
       className={cn(
-        "flex w-full max-w-full flex-col overflow-hidden",
+        "relative inline-block max-w-full overflow-hidden align-top",
         frameClasses.surface,
       )}
       style={frameStyle}
@@ -163,7 +162,7 @@ export default function BrowserFrame({
       {TopBar}
 
       <div
-        className={cn("min-h-0 flex-1 overflow-hidden", frameClasses.body)}
+        className={cn("overflow-hidden", frameClasses.body)}
         style={imageWrapStyle}
       >
         {children}
