@@ -15,9 +15,18 @@ import {
 
 import { RotateCw } from "lucide-react";
 
+import { createTextShadowCss } from "@/lib/text-effect-presets";
+import { getTextFontOption } from "@/lib/text-fonts";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
-import type { TextAlign, TextLayerId, TextPosition } from "@/types/editor";
+import type {
+  TextAlign,
+  TextFontId,
+  TextFontWeight,
+  TextLayerId,
+  TextPosition,
+  TextShadowMode,
+} from "@/types/editor";
 
 type TextOverlayProps = {
   badgeEnabled: boolean;
@@ -96,7 +105,22 @@ type TextOverlayProps = {
   subtitleText: string;
   textAlign: TextAlign;
   textColor: string;
+  textFontId: TextFontId;
+  textFontWeight: TextFontWeight;
+  textItalic: boolean;
+  textLetterSpacing: number;
+  textLineHeight: number;
+  textOpacity: number;
   textPosition: TextPosition;
+  textShadowBlur: number;
+  textShadowColor: string;
+  textShadowDepth: number;
+  textShadowEnabled: boolean;
+  textShadowMode: TextShadowMode;
+  textShadowOffsetX: number;
+  textShadowOffsetY: number;
+  textShadowOpacity: number;
+  textUnderline: boolean;
 };
 
 export type TextResizeHandleId = "nw" | "ne" | "sw" | "se";
@@ -107,6 +131,14 @@ const TEXT_RESIZE_HANDLES = [
   "se",
   "sw",
 ] as const satisfies readonly TextResizeHandleId[];
+
+const TEXT_FONT_WEIGHT_VALUES = {
+  regular: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+  black: 900,
+} as const satisfies Record<Exclude<TextFontWeight, "auto">, number>;
 
 function getTextAlignClass(textAlign: TextAlign) {
   if (textAlign === "center") {
@@ -141,6 +173,14 @@ function createLayerPlacementStyle(
     transform: `translate(calc(${offsetX} * 50cqw), calc(${offsetY} * 50cqh)) rotate(${rotation}deg)`,
     transformOrigin: "center",
   } satisfies CSSProperties;
+}
+
+function getTextFontWeightValue(textFontWeight: TextFontWeight) {
+  if (textFontWeight === "auto") {
+    return undefined;
+  }
+
+  return TEXT_FONT_WEIGHT_VALUES[textFontWeight];
 }
 
 function getTextResizeHandleClass(handleId: TextResizeHandleId) {
@@ -206,7 +246,7 @@ function TextLayerResizeControls({
     <div
       data-export-ignore="true"
       data-editor-live-overlay="text-resize"
-      className="pointer-events-none absolute -inset-1.5 z-20 rounded-md ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
+      className="pointer-events-none absolute -inset-1.5 z-20 rounded-md ring-2 ring-blue-400/80 ring-offset-1 ring-offset-white/25"
     >
       {TEXT_RESIZE_HANDLES.map((handleId) => (
         <button
@@ -214,7 +254,7 @@ function TextLayerResizeControls({
           type="button"
           aria-label={`Resize ${layerId} text ${handleId}`}
           className={cn(
-            "pointer-events-auto absolute h-3 w-3 rounded-full border border-cyan-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300",
+            "pointer-events-auto absolute h-3 w-3 rounded-full border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300",
             getTextResizeHandleClass(handleId),
           )}
           onPointerCancel={(event) => {
@@ -238,7 +278,7 @@ function TextLayerResizeControls({
       <button
         type="button"
         aria-label={`Rotate ${layerId} text`}
-        className="pointer-events-auto absolute -top-8 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-cyan-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300"
+        className="pointer-events-auto absolute -top-8 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
         onPointerCancel={(event) => {
           event.stopPropagation();
           onRotatePointerCancel?.(layerId, event);
@@ -428,7 +468,22 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   subtitleText,
   textAlign,
   textColor,
+  textFontId,
+  textFontWeight,
+  textItalic,
+  textLetterSpacing,
+  textLineHeight,
+  textOpacity,
   textPosition,
+  textShadowBlur,
+  textShadowColor,
+  textShadowDepth,
+  textShadowEnabled,
+  textShadowMode,
+  textShadowOffsetX,
+  textShadowOffsetY,
+  textShadowOpacity,
+  textUnderline,
 }, forwardedRef) {
   const setHeadlineText = useEditorStore((state) => state.setHeadlineText);
   const setSubtitleText = useEditorStore((state) => state.setSubtitleText);
@@ -446,19 +501,42 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     return null;
   }
 
+  const selectedTextFont = getTextFontOption(textFontId);
+  const selectedFontWeight = getTextFontWeightValue(textFontWeight);
   const textStyle = {
     color: textColor,
-    textShadow:
-      "0 1px 2px rgba(15, 23, 42, 0.2), 0 18px 48px rgba(15, 23, 42, 0.28)",
+    fontFamily: selectedTextFont.fontFamily,
+    fontStyle: textItalic ? "italic" : undefined,
+    opacity: textOpacity,
+    textDecorationLine: textUnderline ? "underline" : undefined,
+    textShadow: createTextShadowCss({
+      textShadowBlur,
+      textShadowColor,
+      textShadowDepth,
+      textShadowEnabled,
+      textShadowMode,
+      textShadowOffsetX,
+      textShadowOffsetY,
+      textShadowOpacity,
+    }),
+  } satisfies CSSProperties;
+  const sharedTextStyle = {
+    fontWeight: selectedFontWeight,
+    letterSpacing:
+      textLetterSpacing === 0 ? undefined : `${textLetterSpacing}px`,
+    lineHeight: textLineHeight > 0 ? textLineHeight : undefined,
   } satisfies CSSProperties;
   const headlineStyle = {
     fontSize: `${headlineSize}px`,
+    ...sharedTextStyle,
   } satisfies CSSProperties;
   const subtitleStyle = {
     fontSize: `${subtitleSize}px`,
+    ...sharedTextStyle,
   } satisfies CSSProperties;
   const badgeStyle = {
     fontSize: `${badgeSize}px`,
+    ...sharedTextStyle,
   } satisfies CSSProperties;
   const badgePlacementStyle = createLayerPlacementStyle(
     badgeOffsetX,
@@ -500,6 +578,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     <div
       className={cn(
         "relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
+        selectedTextFont.className,
         getTextAlignClass(textAlign),
         getTextWidthClass(textPosition),
         className,

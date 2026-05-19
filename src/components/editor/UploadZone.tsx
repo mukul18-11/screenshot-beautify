@@ -73,7 +73,7 @@ export default function UploadZone() {
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: "easeOut" }}
-      className="flex w-full"
+      className="relative z-10 flex h-full min-h-0 w-full"
     >
       <motion.div
         {...getRootProps({
@@ -90,16 +90,13 @@ export default function UploadZone() {
         animate={{ scale: isDragActive && !shouldReduceMotion ? 1.005 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex min-h-[480px] w-full cursor-default items-center justify-center overflow-hidden rounded-2xl border border-dashed p-4 outline-none transition-colors duration-200 sm:min-h-[540px] sm:p-6",
+          "relative flex h-full min-h-[calc(100svh-3.5rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200",
           !uploadedImage
-            ? "border-slate-200 bg-white/60 hover:border-slate-300 hover:bg-white/80"
+            ? "m-4 rounded-2xl border-[var(--editor-border)] bg-white/75 p-3 hover:border-slate-300 hover:bg-white/90 sm:p-4 lg:m-6 lg:p-6"
             : "border-transparent bg-transparent",
-          isDragActive &&
-            "border-cyan-400/60 bg-cyan-50/40",
-          isDragAccept &&
-            "border-emerald-400/60 bg-emerald-50/40",
-          isDragReject &&
-            "border-rose-400/60 bg-rose-50/40",
+          isDragActive && "border-blue-500/60 bg-blue-50/50",
+          isDragAccept && "border-emerald-500/60 bg-emerald-50/50",
+          isDragReject && "border-rose-500/60 bg-rose-50/50",
         )}
       >
         <input
@@ -108,7 +105,7 @@ export default function UploadZone() {
           })}
         />
 
-        <div className="flex w-full flex-col items-center gap-6">
+        <div className="flex min-h-0 w-full flex-col items-center">
           <p id="upload-helper-text" className="sr-only">
             Upload, drop, or paste a PNG, JPG, or WebP screenshot up to 10 MB.
           </p>

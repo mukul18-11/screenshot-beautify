@@ -401,7 +401,7 @@ function MockupTransformControls({
     <div
       data-export-ignore="true"
       data-editor-live-overlay="mockup-transform"
-      className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
+      className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-blue-400/80 ring-offset-1 ring-offset-white/25"
       style={{ borderRadius: `${imageRadius}px` }}
     >
       {RESIZE_HANDLES.map((handleId) => (
@@ -410,7 +410,7 @@ function MockupTransformControls({
           type="button"
           aria-label={`Resize screenshot ${handleId}`}
           className={cn(
-            "pointer-events-auto absolute rounded-full border border-cyan-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300",
+            "pointer-events-auto absolute rounded-full border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300",
             getResizeHandlePositionClass(handleId),
           )}
           onPointerCancel={onResizePointerCancel}
@@ -575,6 +575,31 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const textPosition = useEditorStore((state) => state.textPosition);
     const textAlign = useEditorStore((state) => state.textAlign);
     const textColor = useEditorStore((state) => state.textColor);
+    const textFontId = useEditorStore((state) => state.textFontId);
+    const textFontWeight = useEditorStore((state) => state.textFontWeight);
+    const textItalic = useEditorStore((state) => state.textItalic);
+    const textUnderline = useEditorStore((state) => state.textUnderline);
+    const textLetterSpacing = useEditorStore(
+      (state) => state.textLetterSpacing,
+    );
+    const textLineHeight = useEditorStore((state) => state.textLineHeight);
+    const textOpacity = useEditorStore((state) => state.textOpacity);
+    const textShadowEnabled = useEditorStore(
+      (state) => state.textShadowEnabled,
+    );
+    const textShadowMode = useEditorStore((state) => state.textShadowMode);
+    const textShadowColor = useEditorStore((state) => state.textShadowColor);
+    const textShadowBlur = useEditorStore((state) => state.textShadowBlur);
+    const textShadowOffsetX = useEditorStore(
+      (state) => state.textShadowOffsetX,
+    );
+    const textShadowOffsetY = useEditorStore(
+      (state) => state.textShadowOffsetY,
+    );
+    const textShadowOpacity = useEditorStore(
+      (state) => state.textShadowOpacity,
+    );
+    const textShadowDepth = useEditorStore((state) => state.textShadowDepth);
     const headlineSize = useEditorStore((state) => state.headlineSize);
     const subtitleSize = useEditorStore((state) => state.subtitleSize);
     const badgeSize = useEditorStore((state) => state.badgeSize);
@@ -1919,7 +1944,22 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         subtitleText={subtitleText}
         textAlign={textAlign}
         textColor={textColor}
+        textFontId={textFontId}
+        textFontWeight={textFontWeight}
+        textItalic={textItalic}
+        textLetterSpacing={textLetterSpacing}
+        textLineHeight={textLineHeight}
+        textOpacity={textOpacity}
         textPosition={textPosition}
+        textShadowBlur={textShadowBlur}
+        textShadowColor={textShadowColor}
+        textShadowDepth={textShadowDepth}
+        textShadowEnabled={textShadowEnabled}
+        textShadowMode={textShadowMode}
+        textShadowOffsetX={textShadowOffsetX}
+        textShadowOffsetY={textShadowOffsetY}
+        textShadowOpacity={textShadowOpacity}
+        textUnderline={textUnderline}
         className={cn(textPosition === "center" && "max-w-[72%]")}
       />
     ) : null;
@@ -2008,7 +2048,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         {!isExportMode && textDragGuide.vertical !== null && (
           <div
             data-export-ignore="true"
-            className="pointer-events-none absolute bottom-0 top-0 z-20 w-px bg-cyan-300/80 shadow-[0_0_12px_rgba(103,232,249,0.65)]"
+            className="pointer-events-none absolute bottom-0 top-0 z-20 w-px bg-blue-400/80 shadow-[0_0_12px_rgba(37,99,235,0.45)]"
             style={{ left: `${textDragGuide.vertical * 100}%` }}
             aria-hidden="true"
           />
@@ -2017,7 +2057,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         {!isExportMode && textDragGuide.horizontal !== null && (
           <div
             data-export-ignore="true"
-            className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-cyan-300/80 shadow-[0_0_12px_rgba(103,232,249,0.65)]"
+            className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-blue-400/80 shadow-[0_0_12px_rgba(37,99,235,0.45)]"
             style={{ top: `${textDragGuide.horizontal * 100}%` }}
             aria-hidden="true"
           />

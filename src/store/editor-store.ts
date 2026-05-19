@@ -14,6 +14,7 @@ import {
 } from "@/lib/editor-defaults";
 import { clampImageCrop, clampUnitOffset } from "@/lib/editor-geometry";
 import { sanitizeFileName } from "@/lib/export-utils";
+import { createTextShadowPresetSettings } from "@/lib/text-effect-presets";
 import { createTiltPresetSettings } from "@/lib/tilt-presets";
 import type {
   BackgroundType,
@@ -29,9 +30,13 @@ import type {
   Phase4Settings,
   Phase5Settings,
   TextAlign,
+  TextFontId,
+  TextFontWeight,
   TextLayerId,
   TextOverlaySettings,
   TextPosition,
+  TextShadowMode,
+  TextShadowPresetId,
   TiltSettings,
   UploadedImage,
 } from "@/types/editor";
@@ -84,6 +89,24 @@ type EditorStore = BeautifySettings &
     setTextPosition: (position: TextPosition) => void;
     setTextAlign: (align: TextAlign) => void;
     setTextColor: (color: string) => void;
+    setTextFont: (fontId: TextFontId) => void;
+    setTextFontWeight: (fontWeight: TextFontWeight) => void;
+    setTextItalic: (enabled: boolean) => void;
+    toggleTextItalic: () => void;
+    setTextUnderline: (enabled: boolean) => void;
+    toggleTextUnderline: () => void;
+    setTextLetterSpacing: (spacing: number) => void;
+    setTextLineHeight: (lineHeight: number) => void;
+    setTextOpacity: (opacity: number) => void;
+    setTextShadowEnabled: (enabled: boolean) => void;
+    toggleTextShadow: () => void;
+    setTextShadowMode: (mode: TextShadowMode) => void;
+    applyTextShadowPreset: (presetId: TextShadowPresetId) => void;
+    setTextShadowColor: (color: string) => void;
+    setTextShadowBlur: (blur: number) => void;
+    setTextShadowOffset: (offsetX: number, offsetY: number) => void;
+    setTextShadowOpacity: (opacity: number) => void;
+    setTextShadowDepth: (depth: number) => void;
     setHeadlineSize: (size: number) => void;
     setSubtitleSize: (size: number) => void;
     setBadgeSize: (size: number) => void;
@@ -430,6 +453,86 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   setTextColor: (color) => {
     set({ textColor: color });
+  },
+  setTextFont: (fontId) => {
+    set({ textFontId: fontId });
+  },
+  setTextFontWeight: (fontWeight) => {
+    set({ textFontWeight: fontWeight });
+  },
+  setTextItalic: (enabled) => {
+    set({ textItalic: enabled });
+  },
+  toggleTextItalic: () => {
+    set((state) => ({
+      textItalic: !state.textItalic,
+    }));
+  },
+  setTextUnderline: (enabled) => {
+    set({ textUnderline: enabled });
+  },
+  toggleTextUnderline: () => {
+    set((state) => ({
+      textUnderline: !state.textUnderline,
+    }));
+  },
+  setTextLetterSpacing: (spacing) => {
+    set({ textLetterSpacing: spacing });
+  },
+  setTextLineHeight: (lineHeight) => {
+    set({ textLineHeight: lineHeight });
+  },
+  setTextOpacity: (opacity) => {
+    set({ textOpacity: opacity });
+  },
+  setTextShadowEnabled: (enabled) => {
+    set({ textShadowEnabled: enabled });
+  },
+  toggleTextShadow: () => {
+    set((state) => ({
+      textShadowEnabled: !state.textShadowEnabled,
+    }));
+  },
+  setTextShadowMode: (mode) => {
+    set({
+      textShadowEnabled: true,
+      textShadowMode: mode,
+      textShadowPresetId: "custom",
+    });
+  },
+  applyTextShadowPreset: (presetId) => {
+    set(createTextShadowPresetSettings(presetId));
+  },
+  setTextShadowColor: (color) => {
+    set({
+      textShadowColor: color,
+      textShadowPresetId: "custom",
+    });
+  },
+  setTextShadowBlur: (blur) => {
+    set({
+      textShadowBlur: blur,
+      textShadowPresetId: "custom",
+    });
+  },
+  setTextShadowOffset: (offsetX, offsetY) => {
+    set({
+      textShadowOffsetX: offsetX,
+      textShadowOffsetY: offsetY,
+      textShadowPresetId: "custom",
+    });
+  },
+  setTextShadowOpacity: (opacity) => {
+    set({
+      textShadowOpacity: opacity,
+      textShadowPresetId: "custom",
+    });
+  },
+  setTextShadowDepth: (depth) => {
+    set({
+      textShadowDepth: depth,
+      textShadowPresetId: "custom",
+    });
   },
   setHeadlineSize: (size) => {
     set({ headlineSize: size });

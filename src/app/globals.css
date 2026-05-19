@@ -21,6 +21,18 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
   --radius: 1rem;
+  --editor-bg: #eef3f8;
+  --editor-bg-strong: #e6edf6;
+  --editor-panel: #ffffff;
+  --editor-panel-muted: #f8fafc;
+  --editor-border: #dbe4ee;
+  --editor-ink: #0f172a;
+  --editor-muted: #64748b;
+  --editor-soft: #94a3b8;
+  --editor-accent: #2563eb;
+  --editor-accent-soft: #dbeafe;
+  --editor-success: #10b981;
+  --editor-danger: #e11d48;
 }
 
 * {

@@ -24,7 +24,7 @@ export default function CanvasPreview({
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
   const aspectRatio = canvasWidth / canvasHeight;
-  const previewWidth = `min(100%, 1040px, calc(70vh * ${aspectRatio}))`;
+  const previewWidth = `min(100%, 1320px, calc((100svh - 8.5rem) * ${aspectRatio}))`;
   const previewScale = previewWidthPx > 0 ? previewWidthPx / canvasWidth : 0;
 
   useEffect(() => {
@@ -62,11 +62,11 @@ export default function CanvasPreview({
         scale: shouldReduceMotion ? 1 : 0.99,
       }}
       transition={{ duration: 0.28, ease: "easeOut" }}
-      className="flex w-full items-center justify-center px-1 py-2 sm:px-3 sm:py-4"
+      className="flex h-full min-h-0 w-full items-center justify-center px-2 py-2 sm:px-4 sm:py-3 lg:px-8 lg:py-5"
     >
       <div
         ref={previewFrameRef}
-        className="relative overflow-hidden rounded-lg shadow-2xl shadow-slate-950/15 ring-1 ring-black/[0.04]"
+        className="relative overflow-hidden rounded-xl shadow-2xl shadow-slate-950/20 ring-1 ring-slate-950/[0.06]"
         style={{
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
           width: previewWidth,

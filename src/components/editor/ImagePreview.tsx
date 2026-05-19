@@ -42,11 +42,11 @@ export default function ImagePreview({
         y: shouldReduceMotion ? 0 : -10,
       }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="w-full max-w-5xl"
+      className="flex h-full min-h-0 w-full flex-col"
     >
       {/* Minimal floating toolbar */}
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+      <div className="flex shrink-0 items-center justify-between gap-3 px-2 pb-2 sm:px-3 lg:px-5">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/70 bg-white/80 px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm backdrop-blur">
           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
           Ready
         </div>
@@ -65,7 +65,7 @@ export default function ImagePreview({
                 event.stopPropagation();
                 onReplace?.();
               }}
-              className="h-7 gap-1.5 px-2 text-xs text-slate-500 hover:text-slate-800"
+              className="h-8 gap-1.5 rounded-lg bg-white/70 px-2.5 text-xs text-[var(--editor-muted)] shadow-sm hover:bg-white hover:text-[var(--editor-ink)]"
             >
               <RefreshCw className="h-3 w-3" aria-hidden="true" />
               Replace
@@ -85,7 +85,7 @@ export default function ImagePreview({
                 onRemove?.();
               }}
               disabled={isUploading}
-              className="h-7 gap-1.5 px-2 text-xs text-slate-400 hover:text-rose-600"
+              className="h-8 gap-1.5 rounded-lg bg-white/70 px-2.5 text-xs text-[var(--editor-soft)] shadow-sm hover:bg-white hover:text-rose-600"
             >
               <Trash2 className="h-3 w-3" aria-hidden="true" />
               Remove
@@ -95,7 +95,7 @@ export default function ImagePreview({
       </div>
 
       {/* Canvas directly - no wrapper card */}
-      <div className="relative flex min-h-[380px] items-center justify-center overflow-hidden rounded-2xl sm:min-h-[460px]">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
         <CanvasPreview
           isLoading={isLoading}
           onImageLoad={handleImageLoad}
@@ -109,7 +109,7 @@ export default function ImagePreview({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl bg-slate-100/80 backdrop-blur-sm"
+              className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[rgba(238,243,248,0.82)] backdrop-blur-sm"
             >
               <div className="flex flex-col items-center gap-2">
                 <Loader2

@@ -10,6 +10,48 @@ export type TextAlign = "left" | "center" | "right";
 
 export type TextLayerId = "badge" | "headline" | "subtitle";
 
+export type TextFontId =
+  | "inter"
+  | "orbitron"
+  | "audiowide"
+  | "righteous"
+  | "russo-one"
+  | "syncopate"
+  | "rajdhani"
+  | "bungee"
+  | "pixelify-sans"
+  | "playfair-display"
+  | "bebas-neue"
+  | "anton"
+  | "oswald"
+  | "montserrat"
+  | "poppins"
+  | "abril-fatface"
+  | "system"
+  | "sans-serif"
+  | "serif"
+  | "monospace"
+  | "impact";
+
+export type TextFontWeight =
+  | "auto"
+  | "regular"
+  | "medium"
+  | "semibold"
+  | "bold"
+  | "black";
+
+export type TextShadowMode = "drop" | "depth" | "glow" | "fire";
+
+export type TextShadowPresetId =
+  | "soft-depth"
+  | "deep-3d"
+  | "long-shadow"
+  | "neon"
+  | "fire"
+  | "ice-glow"
+  | "custom";
+
 export type TiltPresetId =
   | "flat"
   | "left-angle"
@@ -98,6 +140,22 @@ export type TextOverlaySettings = {
   textPosition: TextPosition;
   textAlign: TextAlign;
   textColor: string;
+  textFontId: TextFontId;
+  textFontWeight: TextFontWeight;
+  textItalic: boolean;
+  textUnderline: boolean;
+  textLetterSpacing: number;
+  textLineHeight: number;
+  textOpacity: number;
+  textShadowEnabled: boolean;
+  textShadowMode: TextShadowMode;
+  textShadowPresetId: TextShadowPresetId;
+  textShadowColor: string;
+  textShadowBlur: number;
+  textShadowOffsetX: number;
+  textShadowOffsetY: number;
+  textShadowOpacity: number;
+  textShadowDepth: number;
   headlineSize: number;
   subtitleSize: number;
   badgeSize: number;

@@ -58,7 +58,7 @@ export default function CanvasPresetSelector() {
               className={cn(
                 "group relative overflow-hidden rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/30",
                 isSelected
-                  ? "border-indigo-500 bg-[linear-gradient(135deg,#14b8a6,#6366f1)] text-white shadow-lg shadow-indigo-500/20"
+                  ? "border-blue-500 bg-[linear-gradient(135deg,#2563eb,#14b8a6)] text-white shadow-lg shadow-blue-500/20"
                   : "border-slate-200 bg-white/70 text-slate-700 shadow-sm hover:border-slate-300 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:bg-white/10",
               )}
             >

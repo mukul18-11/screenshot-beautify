@@ -70,15 +70,15 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
         })}
       />
 
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+      <div className="flex items-center gap-3 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] p-2.5">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
           <FileImage className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[13px] font-semibold text-slate-800 dark:text-white">
+          <h3 className="truncate text-[13px] font-semibold text-[var(--editor-ink)] dark:text-white">
             {uploadedImage.name}
           </h3>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+          <p className="text-[11px] text-[var(--editor-muted)] dark:text-slate-500">
             {uploadedImage.width}×{uploadedImage.height} ·{" "}
             {formatFileSize(uploadedImage.size)} ·{" "}
             {getReadableFileType(uploadedImage.type)}
@@ -93,7 +93,7 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
           variant="ghost"
           disabled={isUploading}
           onClick={open}
-          className="h-7 gap-1.5 px-2 text-xs text-slate-500 hover:text-slate-800"
+          className="h-7 gap-1.5 px-2 text-xs text-[var(--editor-muted)] hover:text-[var(--editor-ink)]"
         >
           <RefreshCw className="h-3 w-3" aria-hidden="true" />
           Replace
@@ -104,7 +104,7 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
           variant="ghost"
           disabled={isUploading}
           onClick={handleRemoveImage}
-          className="h-7 gap-1.5 px-2 text-xs text-slate-400 hover:text-rose-600"
+          className="h-7 gap-1.5 px-2 text-xs text-[var(--editor-soft)] hover:text-rose-600"
         >
           <Trash2 className="h-3 w-3" aria-hidden="true" />
           Remove
@@ -138,13 +138,18 @@ export default function EditorSettingsPanel({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.32, delay: 0.08, ease: "easeOut" }}
       className={cn(
-        "overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-xl shadow-slate-950/[0.06]",
-        "lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:scroll-smooth",
+        "mx-4 mb-4 overflow-hidden rounded-2xl border border-[var(--editor-border)] bg-[var(--editor-panel)] shadow-xl shadow-slate-950/[0.06]",
+        "lg:m-0 lg:h-[calc(100svh-3.5rem)] lg:self-stretch lg:rounded-none lg:border-y-0 lg:border-r-0 lg:shadow-none",
       )}
     >
       {/* Minimal header */}
-      <div className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
-        <h2 className="text-[13px] font-semibold text-slate-800">Settings</h2>
+      <div className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-[var(--editor-border)] bg-white/95 px-5 backdrop-blur-sm">
+        <h2 className="text-[13px] font-semibold text-[var(--editor-ink)]">
+          Settings
+        </h2>
+        <span className="rounded-full bg-[var(--editor-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-normal text-[var(--editor-accent)]">
+          Design
+        </span>
       </div>
 
       <AnimatePresence mode="wait">
@@ -155,7 +160,7 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="px-5 py-4"
+            className="h-[calc(100%-3rem)] overflow-y-auto overscroll-contain px-5 py-4"
           >
             <ImageInfoSection uploadedImage={uploadedImage} />
             <BeautifyPresetBar />
