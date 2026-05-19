@@ -68,6 +68,10 @@ export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
   textColor: "#ffffff",
   headlineSize: 44,
   subtitleSize: 20,
+  badgeSize: 11,
+  badgeRotation: 0,
+  headlineRotation: 0,
+  subtitleRotation: 0,
   badgeEnabled: true,
   badgeOffsetX: 0,
   badgeOffsetY: 0,
@@ -143,6 +147,16 @@ export const BEAUTIFY_SETTING_LIMITS = {
   subtitleSize: {
     min: 14,
     max: 32,
+    step: 1,
+  },
+  badgeSize: {
+    min: 9,
+    max: 28,
+    step: 1,
+  },
+  textRotation: {
+    min: -180,
+    max: 180,
     step: 1,
   },
   perspective: {

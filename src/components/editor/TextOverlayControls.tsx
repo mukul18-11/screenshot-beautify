@@ -163,6 +163,10 @@ export default function TextOverlayControls() {
   const textColor = useEditorStore((state) => state.textColor);
   const headlineSize = useEditorStore((state) => state.headlineSize);
   const subtitleSize = useEditorStore((state) => state.subtitleSize);
+  const badgeSize = useEditorStore((state) => state.badgeSize);
+  const badgeRotation = useEditorStore((state) => state.badgeRotation);
+  const headlineRotation = useEditorStore((state) => state.headlineRotation);
+  const subtitleRotation = useEditorStore((state) => state.subtitleRotation);
   const toggleTextOverlay = useEditorStore((state) => state.toggleTextOverlay);
   const setBadgeText = useEditorStore((state) => state.setBadgeText);
   const toggleBadge = useEditorStore((state) => state.toggleBadge);
@@ -173,6 +177,14 @@ export default function TextOverlayControls() {
   const setTextColor = useEditorStore((state) => state.setTextColor);
   const setHeadlineSize = useEditorStore((state) => state.setHeadlineSize);
   const setSubtitleSize = useEditorStore((state) => state.setSubtitleSize);
+  const setBadgeSize = useEditorStore((state) => state.setBadgeSize);
+  const setBadgeRotation = useEditorStore((state) => state.setBadgeRotation);
+  const setHeadlineRotation = useEditorStore(
+    (state) => state.setHeadlineRotation,
+  );
+  const setSubtitleRotation = useEditorStore(
+    (state) => state.setSubtitleRotation,
+  );
 
   return (
     <motion.section
@@ -215,7 +227,7 @@ export default function TextOverlayControls() {
           >
             <div className="space-y-3 pt-1">
               <p className="text-[11px] text-slate-400">
-                Click text on the canvas to edit directly.
+                Click text to edit. Drag corners to resize, top handle left or right to tilt.
               </p>
 
               <div className="flex items-center gap-3">
@@ -303,7 +315,18 @@ export default function TextOverlayControls() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <EditorSliderRow
+                  label="Badge"
+                  min={BEAUTIFY_SETTING_LIMITS.badgeSize.min}
+                  max={BEAUTIFY_SETTING_LIMITS.badgeSize.max}
+                  step={BEAUTIFY_SETTING_LIMITS.badgeSize.step}
+                  value={badgeSize}
+                  suffix="px"
+                  disabled={!badgeEnabled}
+                  onChange={setBadgeSize}
+                />
+
                 <EditorSliderRow
                   label="Headline"
                   min={BEAUTIFY_SETTING_LIMITS.headlineSize.min}
@@ -324,6 +347,41 @@ export default function TextOverlayControls() {
                   suffix="px"
                   disabled={false}
                   onChange={setSubtitleSize}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <EditorSliderRow
+                  label="Badge tilt"
+                  min={BEAUTIFY_SETTING_LIMITS.textRotation.min}
+                  max={BEAUTIFY_SETTING_LIMITS.textRotation.max}
+                  step={BEAUTIFY_SETTING_LIMITS.textRotation.step}
+                  value={badgeRotation}
+                  suffix="deg"
+                  disabled={!badgeEnabled}
+                  onChange={setBadgeRotation}
+                />
+
+                <EditorSliderRow
+                  label="Headline tilt"
+                  min={BEAUTIFY_SETTING_LIMITS.textRotation.min}
+                  max={BEAUTIFY_SETTING_LIMITS.textRotation.max}
+                  step={BEAUTIFY_SETTING_LIMITS.textRotation.step}
+                  value={headlineRotation}
+                  suffix="deg"
+                  disabled={false}
+                  onChange={setHeadlineRotation}
+                />
+
+                <EditorSliderRow
+                  label="Subtitle tilt"
+                  min={BEAUTIFY_SETTING_LIMITS.textRotation.min}
+                  max={BEAUTIFY_SETTING_LIMITS.textRotation.max}
+                  step={BEAUTIFY_SETTING_LIMITS.textRotation.step}
+                  value={subtitleRotation}
+                  suffix="deg"
+                  disabled={false}
+                  onChange={setSubtitleRotation}
                 />
               </div>
             </div>

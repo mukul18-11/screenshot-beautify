@@ -18,7 +18,9 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import BrowserFrame from "@/components/editor/BrowserFrame";
-import TextOverlay from "@/components/editor/TextOverlay";
+import TextOverlay, {
+  type TextResizeHandleId,
+} from "@/components/editor/TextOverlay";
 import TiltedMockupWrapper from "@/components/editor/TiltedMockupWrapper";
 import {
   BEAUTIFY_SETTING_LIMITS,
@@ -53,6 +55,26 @@ type TextLayerDragState = {
   startOffsetX: number;
   startOffsetY: number;
   textRect: DOMRect;
+};
+
+type TextLayerResizeState = {
+  anchorX: number;
+  anchorY: number;
+  layerId: TextLayerId;
+  moved: boolean;
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startSize: number;
+};
+
+type TextLayerRotateState = {
+  layerId: TextLayerId;
+  moved: boolean;
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startRotation: number;
 };
 
 type MockupDragState = {
@@ -182,6 +204,7 @@ const MIN_VISIBLE_MOCKUP_PX = 48;
 const MIN_RESIZED_MOCKUP_HEIGHT_PX = 96;
 const MIN_RESIZED_MOCKUP_WIDTH_PX = 144;
 const SNAP_THRESHOLD_PX = 12;
+const TEXT_ROTATION_DEGREES_PER_PX = 0.45;
 const RESIZE_HANDLES = [
   "nw",
   "n",
@@ -274,6 +297,25 @@ function getResizeHandleAnchor(handleId: ResizeHandleId, rect: DOMRect) {
   return {
     x: directions.x > 0 ? rect.left : directions.x < 0 ? rect.right : centerX,
     y: directions.y > 0 ? rect.top : directions.y < 0 ? rect.bottom : centerY,
+  };
+}
+
+function getTextResizeHandleDirections(handleId: TextResizeHandleId) {
+  return {
+    x: handleId.includes("e") ? 1 : -1,
+    y: handleId.includes("s") ? 1 : -1,
+  };
+}
+
+function getTextResizeHandleAnchor(
+  handleId: TextResizeHandleId,
+  rect: DOMRect,
+) {
+  const directions = getTextResizeHandleDirections(handleId);
+
+  return {
+    x: directions.x > 0 ? rect.left : rect.right,
+    y: directions.y > 0 ? rect.top : rect.bottom,
   };
 }
 
@@ -417,6 +459,40 @@ function calculateResizeRatio(
   return 1;
 }
 
+function calculateTextResizeRatio(
+  dragState: TextLayerResizeState,
+  clientX: number,
+  clientY: number,
+) {
+  const startVectorX = dragState.startClientX - dragState.anchorX;
+  const startVectorY = dragState.startClientY - dragState.anchorY;
+  const currentVectorX = clientX - dragState.anchorX;
+  const currentVectorY = clientY - dragState.anchorY;
+  const startLengthSquared =
+    startVectorX * startVectorX + startVectorY * startVectorY;
+
+  if (startLengthSquared <= 0) {
+    return 1;
+  }
+
+  return (
+    (currentVectorX * startVectorX + currentVectorY * startVectorY) /
+    startLengthSquared
+  );
+}
+
+function getTextLayerSizeLimits(layerId: TextLayerId) {
+  if (layerId === "headline") {
+    return BEAUTIFY_SETTING_LIMITS.headlineSize;
+  }
+
+  if (layerId === "subtitle") {
+    return BEAUTIFY_SETTING_LIMITS.subtitleSize;
+  }
+
+  return BEAUTIFY_SETTING_LIMITS.badgeSize;
+}
+
 const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   function CanvasArtwork(
     {
@@ -434,6 +510,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const mockupFrameRef = useRef<HTMLDivElement | null>(null);
     const mockupVisualRef = useRef<HTMLDivElement | null>(null);
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
+    const textResizeStateRef = useRef<TextLayerResizeState | null>(null);
+    const textRotateStateRef = useRef<TextLayerRotateState | null>(null);
     const mockupDragStateRef = useRef<MockupDragState | null>(null);
     const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
     const fittedImageKeyRef = useRef<string | null>(null);
@@ -447,6 +525,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformUpdateRef = useRef<(() => void) | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
+    const [activeTextLayerId, setActiveTextLayerId] =
+      useState<TextLayerId | null>(null);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
       horizontal: null,
       vertical: null,
@@ -497,6 +577,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const textColor = useEditorStore((state) => state.textColor);
     const headlineSize = useEditorStore((state) => state.headlineSize);
     const subtitleSize = useEditorStore((state) => state.subtitleSize);
+    const badgeSize = useEditorStore((state) => state.badgeSize);
+    const badgeRotation = useEditorStore((state) => state.badgeRotation);
+    const headlineRotation = useEditorStore(
+      (state) => state.headlineRotation,
+    );
+    const subtitleRotation = useEditorStore(
+      (state) => state.subtitleRotation,
+    );
     const badgeEnabled = useEditorStore((state) => state.badgeEnabled);
     const badgeOffsetX = useEditorStore((state) => state.badgeOffsetX);
     const badgeOffsetY = useEditorStore((state) => state.badgeOffsetY);
@@ -512,6 +600,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     );
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
+    );
+    const setTextLayerSize = useEditorStore(
+      (state) => state.setTextLayerSize,
+    );
+    const setTextLayerRotation = useEditorStore(
+      (state) => state.setTextLayerRotation,
     );
     const setImageZoom = useEditorStore((state) => state.setImageZoom);
     const setImageZoomOffset = useEditorStore(
@@ -663,6 +757,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       return () => {
         textDragActiveRef.current = false;
         transformDragActiveRef.current = false;
+        textResizeStateRef.current = null;
+        textRotateStateRef.current = null;
 
         if (textDragFrameRef.current !== null) {
           cancelAnimationFrame(textDragFrameRef.current);
@@ -748,6 +844,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         !canParallaxBackground ||
         event.pointerType === "touch" ||
         textDragStateRef.current ||
+        textResizeStateRef.current ||
+        textRotateStateRef.current ||
         mockupDragStateRef.current ||
         mockupResizeStateRef.current
       ) {
@@ -787,6 +885,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         !mockupFrame.contains(eventTarget)
       ) {
         setIsMockupSelected(false);
+      }
+
+      if (
+        eventTarget instanceof HTMLElement &&
+        !eventTarget.closest("[data-text-layer-id]")
+      ) {
+        setActiveTextLayerId(null);
       }
     }
 
@@ -912,6 +1017,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       headline: { x: headlineOffsetX, y: headlineOffsetY },
       subtitle: { x: subtitleOffsetX, y: subtitleOffsetY },
     } satisfies Record<TextLayerId, { x: number; y: number }>;
+    const textLayerSizes = {
+      badge: badgeSize,
+      headline: headlineSize,
+      subtitle: subtitleSize,
+    } satisfies Record<TextLayerId, number>;
+    const textLayerRotations = {
+      badge: badgeRotation,
+      headline: headlineRotation,
+      subtitle: subtitleRotation,
+    } satisfies Record<TextLayerId, number>;
 
     function handleTextLayerPointerDown(
       layerId: TextLayerId,
@@ -926,6 +1041,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       if (!canvasShell) {
         return;
       }
+
+      setActiveTextLayerId(layerId);
+      setIsMockupSelected(false);
 
       const eventTarget = event.target;
 
@@ -1109,6 +1227,225 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.stopPropagation();
     }
 
+    function handleTextResizePointerDown(
+      layerId: TextLayerId,
+      handleId: TextResizeHandleId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      if (isExportMode || event.button !== 0) {
+        return;
+      }
+
+      const textLayerElement = event.currentTarget.closest(
+        "[data-text-layer-id]",
+      );
+
+      if (!(textLayerElement instanceof HTMLElement)) {
+        return;
+      }
+
+      const textRect = textLayerElement.getBoundingClientRect();
+      const anchor = getTextResizeHandleAnchor(handleId, textRect);
+
+      event.preventDefault();
+      event.stopPropagation();
+      setActiveTextLayerId(layerId);
+      setIsMockupSelected(false);
+      setIsDraggingCanvasItem(true);
+      textDragActiveRef.current = false;
+      cancelTextDragUpdate();
+      textDragActiveRef.current = true;
+      textResizeStateRef.current = {
+        anchorX: anchor.x,
+        anchorY: anchor.y,
+        layerId,
+        moved: false,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startSize: textLayerSizes[layerId],
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleTextResizePointerMove(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = textResizeStateRef.current;
+
+      if (
+        !dragState ||
+        dragState.pointerId !== event.pointerId ||
+        dragState.layerId !== layerId
+      ) {
+        return;
+      }
+
+      const deltaX = event.clientX - dragState.startClientX;
+      const deltaY = event.clientY - dragState.startClientY;
+      const dragDistance = Math.hypot(deltaX, deltaY);
+
+      if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      dragState.moved = true;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const rawRatio = calculateTextResizeRatio(
+        dragState,
+        event.clientX,
+        event.clientY,
+      );
+      const limits = getTextLayerSizeLimits(layerId);
+      const nextSize = clampValue(
+        Math.round(dragState.startSize * Math.max(0.2, rawRatio)),
+        limits.min,
+        limits.max,
+      );
+
+      scheduleTextDragUpdate(() => {
+        setTextLayerSize(layerId, nextSize);
+      });
+    }
+
+    function handleTextResizePointerEnd(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = textResizeStateRef.current;
+      textDragActiveRef.current = false;
+      cancelTextDragUpdate();
+
+      if (
+        !dragState ||
+        dragState.pointerId !== event.pointerId ||
+        dragState.layerId !== layerId
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      suppressNextTextClickRef.current = dragState.moved
+        ? dragState.layerId
+        : null;
+      textResizeStateRef.current = null;
+      setIsDraggingCanvasItem(false);
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }
+
+    function handleTextRotatePointerDown(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      if (isExportMode || event.button !== 0) {
+        return;
+      }
+
+      const textLayerElement = event.currentTarget.closest(
+        "[data-text-layer-id]",
+      );
+
+      if (!(textLayerElement instanceof HTMLElement)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      setActiveTextLayerId(layerId);
+      setIsMockupSelected(false);
+      setIsDraggingCanvasItem(true);
+      textDragActiveRef.current = false;
+      cancelTextDragUpdate();
+      textDragActiveRef.current = true;
+      textRotateStateRef.current = {
+        layerId,
+        moved: false,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startRotation: textLayerRotations[layerId],
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleTextRotatePointerMove(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = textRotateStateRef.current;
+
+      if (
+        !dragState ||
+        dragState.pointerId !== event.pointerId ||
+        dragState.layerId !== layerId
+      ) {
+        return;
+      }
+
+      const deltaX = event.clientX - dragState.startClientX;
+      const deltaY = event.clientY - dragState.startClientY;
+      const dragDistance = Math.hypot(deltaX, deltaY);
+
+      if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      dragState.moved = true;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const nextRotation = clampValue(
+        Math.round(
+          dragState.startRotation +
+            deltaX * TEXT_ROTATION_DEGREES_PER_PX,
+        ),
+        BEAUTIFY_SETTING_LIMITS.textRotation.min,
+        BEAUTIFY_SETTING_LIMITS.textRotation.max,
+      );
+
+      scheduleTextDragUpdate(() => {
+        setTextLayerRotation(layerId, nextRotation);
+      });
+    }
+
+    function handleTextRotatePointerEnd(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = textRotateStateRef.current;
+      textDragActiveRef.current = false;
+      cancelTextDragUpdate();
+
+      if (
+        !dragState ||
+        dragState.pointerId !== event.pointerId ||
+        dragState.layerId !== layerId
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      suppressNextTextClickRef.current = dragState.moved
+        ? dragState.layerId
+        : null;
+      textRotateStateRef.current = null;
+      setIsDraggingCanvasItem(false);
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }
+
     function handleMockupPointerDown(event: PointerEvent<HTMLDivElement>) {
       if (isExportMode || event.button !== 0) {
         return;
@@ -1123,6 +1460,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       event.preventDefault();
       setIsMockupSelected(true);
+      setActiveTextLayerId(null);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
       transformDragActiveRef.current = true;
@@ -1546,12 +1884,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     );
     const textOverlay = hasTextOverlay ? (
       <TextOverlay
+        activeLayerId={activeTextLayerId}
         badgeEnabled={badgeEnabled}
         badgeOffsetX={badgeOffsetX}
         badgeOffsetY={badgeOffsetY}
+        badgeRotation={badgeRotation}
+        badgeSize={badgeSize}
         badgeText={badgeText}
         headlineOffsetX={headlineOffsetX}
         headlineOffsetY={headlineOffsetY}
+        headlineRotation={headlineRotation}
         headlineSize={headlineSize}
         headlineText={headlineText}
         isEditable={!isExportMode}
@@ -1562,8 +1904,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onLayerPointerDown={handleTextLayerPointerDown}
         onLayerPointerMove={handleTextLayerPointerMove}
         onLayerPointerUp={handleTextLayerPointerEnd}
+        onLayerResizePointerCancel={handleTextResizePointerEnd}
+        onLayerResizePointerDown={handleTextResizePointerDown}
+        onLayerResizePointerMove={handleTextResizePointerMove}
+        onLayerResizePointerUp={handleTextResizePointerEnd}
+        onLayerRotatePointerCancel={handleTextRotatePointerEnd}
+        onLayerRotatePointerDown={handleTextRotatePointerDown}
+        onLayerRotatePointerMove={handleTextRotatePointerMove}
+        onLayerRotatePointerUp={handleTextRotatePointerEnd}
         subtitleOffsetX={subtitleOffsetX}
         subtitleOffsetY={subtitleOffsetY}
+        subtitleRotation={subtitleRotation}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
         textAlign={textAlign}

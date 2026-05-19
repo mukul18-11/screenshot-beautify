@@ -86,6 +86,15 @@ type EditorStore = BeautifySettings &
     setTextColor: (color: string) => void;
     setHeadlineSize: (size: number) => void;
     setSubtitleSize: (size: number) => void;
+    setBadgeSize: (size: number) => void;
+    setTextLayerSize: (layerId: TextLayerId, size: number) => void;
+    setBadgeRotation: (rotation: number) => void;
+    setHeadlineRotation: (rotation: number) => void;
+    setSubtitleRotation: (rotation: number) => void;
+    setTextLayerRotation: (
+      layerId: TextLayerId,
+      rotation: number,
+    ) => void;
     setTextLayerPosition: (
       layerId: TextLayerId,
       offsetX: number,
@@ -175,6 +184,10 @@ function getTextLayerOffsetKeys(layerId: TextLayerId) {
     x: `${layerId}OffsetX`,
     y: `${layerId}OffsetY`,
   } as const;
+}
+
+function getTextLayerRotationKey(layerId: TextLayerId) {
+  return `${layerId}Rotation` as const;
 }
 
 function getBackgroundState(presetId: string): {
@@ -423,6 +436,36 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   setSubtitleSize: (size) => {
     set({ subtitleSize: size });
+  },
+  setBadgeSize: (size) => {
+    set({ badgeSize: size });
+  },
+  setTextLayerSize: (layerId, size) => {
+    if (layerId === "headline") {
+      set({ headlineSize: size });
+      return;
+    }
+
+    if (layerId === "subtitle") {
+      set({ subtitleSize: size });
+      return;
+    }
+
+    set({ badgeSize: size });
+  },
+  setBadgeRotation: (rotation) => {
+    set({ badgeRotation: rotation });
+  },
+  setHeadlineRotation: (rotation) => {
+    set({ headlineRotation: rotation });
+  },
+  setSubtitleRotation: (rotation) => {
+    set({ subtitleRotation: rotation });
+  },
+  setTextLayerRotation: (layerId, rotation) => {
+    set({
+      [getTextLayerRotationKey(layerId)]: rotation,
+    });
   },
   setTextLayerPosition: (layerId, offsetX, offsetY) => {
     const offsetKeys = getTextLayerOffsetKeys(layerId);

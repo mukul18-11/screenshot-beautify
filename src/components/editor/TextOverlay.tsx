@@ -13,6 +13,8 @@ import {
   type Ref,
 } from "react";
 
+import { RotateCw } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 import type { TextAlign, TextLayerId, TextPosition } from "@/types/editor";
@@ -21,10 +23,14 @@ type TextOverlayProps = {
   badgeEnabled: boolean;
   badgeOffsetX: number;
   badgeOffsetY: number;
+  badgeRotation: number;
+  badgeSize: number;
   badgeText: string;
   className?: string;
+  activeLayerId?: TextLayerId | null;
   headlineOffsetX: number;
   headlineOffsetY: number;
+  headlineRotation: number;
   headlineSize: number;
   headlineText: string;
   isEditable?: boolean;
@@ -50,14 +56,57 @@ type TextOverlayProps = {
     layerId: TextLayerId,
     event: PointerEvent<HTMLDivElement>,
   ) => void;
+  onLayerResizePointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerResizePointerDown?: (
+    layerId: TextLayerId,
+    handleId: TextResizeHandleId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerResizePointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerResizePointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerRotatePointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerRotatePointerDown?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerRotatePointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerRotatePointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
   subtitleOffsetX: number;
   subtitleOffsetY: number;
+  subtitleRotation: number;
   subtitleSize: number;
   subtitleText: string;
   textAlign: TextAlign;
   textColor: string;
   textPosition: TextPosition;
 };
+
+export type TextResizeHandleId = "nw" | "ne" | "sw" | "se";
+
+const TEXT_RESIZE_HANDLES = [
+  "nw",
+  "ne",
+  "se",
+  "sw",
+] as const satisfies readonly TextResizeHandleId[];
 
 function getTextAlignClass(textAlign: TextAlign) {
   if (textAlign === "center") {
@@ -83,10 +132,134 @@ function getTextWidthClass(textPosition: TextPosition) {
   return "max-w-[82%]";
 }
 
-function createLayerPlacementStyle(offsetX: number, offsetY: number) {
+function createLayerPlacementStyle(
+  offsetX: number,
+  offsetY: number,
+  rotation: number,
+) {
   return {
-    transform: `translate(calc(${offsetX} * 50cqw), calc(${offsetY} * 50cqh))`,
+    transform: `translate(calc(${offsetX} * 50cqw), calc(${offsetY} * 50cqh)) rotate(${rotation}deg)`,
+    transformOrigin: "center",
   } satisfies CSSProperties;
+}
+
+function getTextResizeHandleClass(handleId: TextResizeHandleId) {
+  const positionClasses = {
+    ne: "right-0 top-0 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
+    nw: "left-0 top-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
+    se: "bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
+    sw: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
+  } satisfies Record<TextResizeHandleId, string>;
+
+  return positionClasses[handleId];
+}
+
+type TextLayerResizeControlsProps = {
+  layerId: TextLayerId;
+  onPointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onPointerDown?: (
+    layerId: TextLayerId,
+    handleId: TextResizeHandleId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onPointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onPointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onRotatePointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onRotatePointerDown?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onRotatePointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onRotatePointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+};
+
+function TextLayerResizeControls({
+  layerId,
+  onPointerCancel,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onRotatePointerCancel,
+  onRotatePointerDown,
+  onRotatePointerMove,
+  onRotatePointerUp,
+}: TextLayerResizeControlsProps) {
+  return (
+    <div
+      data-export-ignore="true"
+      data-editor-live-overlay="text-resize"
+      className="pointer-events-none absolute -inset-1.5 z-20 rounded-md ring-2 ring-cyan-300/80 ring-offset-1 ring-offset-white/20"
+    >
+      {TEXT_RESIZE_HANDLES.map((handleId) => (
+        <button
+          key={handleId}
+          type="button"
+          aria-label={`Resize ${layerId} text ${handleId}`}
+          className={cn(
+            "pointer-events-auto absolute h-3 w-3 rounded-full border border-cyan-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300",
+            getTextResizeHandleClass(handleId),
+          )}
+          onPointerCancel={(event) => {
+            event.stopPropagation();
+            onPointerCancel?.(layerId, event);
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            onPointerDown?.(layerId, handleId, event);
+          }}
+          onPointerMove={(event) => {
+            event.stopPropagation();
+            onPointerMove?.(layerId, event);
+          }}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            onPointerUp?.(layerId, event);
+          }}
+        />
+      ))}
+      <button
+        type="button"
+        aria-label={`Rotate ${layerId} text`}
+        className="pointer-events-auto absolute -top-8 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-cyan-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-cyan-300"
+        onPointerCancel={(event) => {
+          event.stopPropagation();
+          onRotatePointerCancel?.(layerId, event);
+        }}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          onRotatePointerDown?.(layerId, event);
+        }}
+        onPointerMove={(event) => {
+          event.stopPropagation();
+          onRotatePointerMove?.(layerId, event);
+        }}
+        onPointerUp={(event) => {
+          event.stopPropagation();
+          onRotatePointerUp?.(layerId, event);
+        }}
+      >
+        <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+    </div>
+  );
 }
 
 type EditableTextProps = {
@@ -219,13 +392,17 @@ function EditableText({
 
 const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   function TextOverlay({
+  activeLayerId = null,
   badgeEnabled,
   badgeOffsetX,
   badgeOffsetY,
+  badgeRotation,
+  badgeSize,
   badgeText,
   className,
   headlineOffsetX,
   headlineOffsetY,
+  headlineRotation,
   headlineSize,
   headlineText,
   isEditable = false,
@@ -236,8 +413,17 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   onLayerPointerDown,
   onLayerPointerMove,
   onLayerPointerUp,
+  onLayerResizePointerCancel,
+  onLayerResizePointerDown,
+  onLayerResizePointerMove,
+  onLayerResizePointerUp,
+  onLayerRotatePointerCancel,
+  onLayerRotatePointerDown,
+  onLayerRotatePointerMove,
+  onLayerRotatePointerUp,
   subtitleOffsetX,
   subtitleOffsetY,
+  subtitleRotation,
   subtitleSize,
   subtitleText,
   textAlign,
@@ -271,17 +457,23 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   const subtitleStyle = {
     fontSize: `${subtitleSize}px`,
   } satisfies CSSProperties;
+  const badgeStyle = {
+    fontSize: `${badgeSize}px`,
+  } satisfies CSSProperties;
   const badgePlacementStyle = createLayerPlacementStyle(
     badgeOffsetX,
     badgeOffsetY,
+    badgeRotation,
   );
   const headlinePlacementStyle = createLayerPlacementStyle(
     headlineOffsetX,
     headlineOffsetY,
+    headlineRotation,
   );
   const subtitlePlacementStyle = createLayerPlacementStyle(
     subtitleOffsetX,
     subtitleOffsetY,
+    subtitleRotation,
   );
 
   function createLayerInteractionProps(layerId: TextLayerId) {
@@ -318,6 +510,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
       {shouldShowBadge && (
         <div
           {...createLayerInteractionProps("badge")}
+          data-text-layer-id="badge"
           className={cn(
             "relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
@@ -326,9 +519,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
         >
           <div
             className={cn(
-              "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 text-[11px] font-bold uppercase leading-tight tracking-normal shadow-sm",
+              "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 font-bold uppercase leading-tight tracking-normal shadow-sm",
               !isExportMode && "backdrop-blur-md",
             )}
+            style={badgeStyle}
           >
             <EditableText
               tag="span"
@@ -339,12 +533,26 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               className="block max-w-full whitespace-normal break-words [overflow-wrap:anywhere]"
             />
           </div>
+          {!isExportMode && activeLayerId === "badge" && (
+            <TextLayerResizeControls
+              layerId="badge"
+              onPointerCancel={onLayerResizePointerCancel}
+              onPointerDown={onLayerResizePointerDown}
+              onPointerMove={onLayerResizePointerMove}
+              onPointerUp={onLayerResizePointerUp}
+              onRotatePointerCancel={onLayerRotatePointerCancel}
+              onRotatePointerDown={onLayerRotatePointerDown}
+              onRotatePointerMove={onLayerRotatePointerMove}
+              onRotatePointerUp={onLayerRotatePointerUp}
+            />
+          )}
         </div>
       )}
 
       {normalizedHeadlineText && (
         <div
           {...createLayerInteractionProps("headline")}
+          data-text-layer-id="headline"
           className={cn(
             "relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
@@ -360,12 +568,26 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             className="max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]"
             style={headlineStyle}
           />
+          {!isExportMode && activeLayerId === "headline" && (
+            <TextLayerResizeControls
+              layerId="headline"
+              onPointerCancel={onLayerResizePointerCancel}
+              onPointerDown={onLayerResizePointerDown}
+              onPointerMove={onLayerResizePointerMove}
+              onPointerUp={onLayerResizePointerUp}
+              onRotatePointerCancel={onLayerRotatePointerCancel}
+              onRotatePointerDown={onLayerRotatePointerDown}
+              onRotatePointerMove={onLayerRotatePointerMove}
+              onRotatePointerUp={onLayerRotatePointerUp}
+            />
+          )}
         </div>
       )}
 
       {normalizedSubtitleText && (
         <div
           {...createLayerInteractionProps("subtitle")}
+          data-text-layer-id="subtitle"
           className={cn(
             "relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
@@ -381,6 +603,19 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             className="max-w-full text-pretty break-words font-medium leading-snug opacity-90 [overflow-wrap:anywhere]"
             style={subtitleStyle}
           />
+          {!isExportMode && activeLayerId === "subtitle" && (
+            <TextLayerResizeControls
+              layerId="subtitle"
+              onPointerCancel={onLayerResizePointerCancel}
+              onPointerDown={onLayerResizePointerDown}
+              onPointerMove={onLayerResizePointerMove}
+              onPointerUp={onLayerResizePointerUp}
+              onRotatePointerCancel={onLayerRotatePointerCancel}
+              onRotatePointerDown={onLayerRotatePointerDown}
+              onRotatePointerMove={onLayerRotatePointerMove}
+              onRotatePointerUp={onLayerRotatePointerUp}
+            />
+          )}
         </div>
       )}
     </div>

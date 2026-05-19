@@ -100,6 +100,10 @@ export type TextOverlaySettings = {
   textColor: string;
   headlineSize: number;
   subtitleSize: number;
+  badgeSize: number;
+  badgeRotation: number;
+  headlineRotation: number;
+  subtitleRotation: number;
   badgeEnabled: boolean;
   badgeOffsetX: number;
   badgeOffsetY: number;
