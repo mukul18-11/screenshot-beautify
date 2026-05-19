@@ -909,7 +909,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         mockupFrame &&
         !mockupFrame.contains(eventTarget)
       ) {
-        setIsMockupSelected(false);
+        setIsMockupSelected((selected) => !selected);
       }
 
       if (
@@ -971,6 +971,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleZoomPanPointerDown(event: PointerEvent<HTMLDivElement>) {
       if (isExportMode || event.button !== 0) return;
+      if (isMockupSelected) return;
+
       const currentZoom = useEditorStore.getState().imageZoom;
       if (currentZoom <= 100) return; // No pan if not zoomed
 
