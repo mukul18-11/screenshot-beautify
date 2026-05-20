@@ -183,12 +183,12 @@ function getTextFontWeightValue(textFontWeight: TextFontWeight) {
   return TEXT_FONT_WEIGHT_VALUES[textFontWeight];
 }
 
-function getTextResizeHandleClass(handleId: TextResizeHandleId) {
+function getTextResizeHandleTargetClass(handleId: TextResizeHandleId) {
   const positionClasses = {
-    ne: "right-0 top-0 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
-    nw: "left-0 top-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
-    se: "bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
-    sw: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
+    ne: "right-0 top-0 h-9 w-9 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
+    nw: "left-0 top-0 h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
+    se: "bottom-0 right-0 h-9 w-9 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
+    sw: "bottom-0 left-0 h-9 w-9 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
   } satisfies Record<TextResizeHandleId, string>;
 
   return positionClasses[handleId];
@@ -254,8 +254,8 @@ function TextLayerResizeControls({
           type="button"
           aria-label={`Resize ${layerId} text ${handleId}`}
           className={cn(
-            "pointer-events-auto absolute h-3 w-3 rounded-full border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300",
-            getTextResizeHandleClass(handleId),
+            "group pointer-events-auto absolute flex touch-none items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-300",
+            getTextResizeHandleTargetClass(handleId),
           )}
           onPointerCancel={(event) => {
             event.stopPropagation();
@@ -273,7 +273,12 @@ function TextLayerResizeControls({
             event.stopPropagation();
             onPointerUp?.(layerId, event);
           }}
-        />
+        >
+          <span
+            aria-hidden="true"
+            className="block h-3 w-3 rounded-full border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 transition group-hover:scale-110"
+          />
+        </button>
       ))}
       <button
         type="button"

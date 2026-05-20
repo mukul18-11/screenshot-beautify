@@ -382,19 +382,31 @@ function constrainCropToRenderedSize(
   return nextCrop;
 }
 
-function getResizeHandlePositionClass(handleId: ResizeHandleId) {
+function getResizeHandleTargetClass(handleId: ResizeHandleId) {
   const positionClasses = {
-    e: "right-0 top-1/2 h-7 w-2 -translate-y-1/2 translate-x-1/2 cursor-ew-resize",
-    n: "left-1/2 top-0 h-2 w-7 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize",
-    ne: "right-0 top-0 h-3 w-3 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
-    nw: "left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
-    s: "bottom-0 left-1/2 h-2 w-7 -translate-x-1/2 translate-y-1/2 cursor-ns-resize",
-    se: "bottom-0 right-0 h-3 w-3 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
-    sw: "bottom-0 left-0 h-3 w-3 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
-    w: "left-0 top-1/2 h-7 w-2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize",
+    e: "right-0 top-1/2 h-16 w-10 -translate-y-1/2 translate-x-1/2 cursor-ew-resize",
+    n: "left-1/2 top-0 h-10 w-16 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize",
+    ne: "right-0 top-0 h-10 w-10 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
+    nw: "left-0 top-0 h-10 w-10 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
+    s: "bottom-0 left-1/2 h-10 w-16 -translate-x-1/2 translate-y-1/2 cursor-ns-resize",
+    se: "bottom-0 right-0 h-10 w-10 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
+    sw: "bottom-0 left-0 h-10 w-10 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
+    w: "left-0 top-1/2 h-16 w-10 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize",
   } satisfies Record<ResizeHandleId, string>;
 
   return positionClasses[handleId];
+}
+
+function getResizeHandleVisualClass(handleId: ResizeHandleId) {
+  if (handleId === "e" || handleId === "w") {
+    return "h-7 w-2 rounded-full";
+  }
+
+  if (handleId === "n" || handleId === "s") {
+    return "h-2 w-7 rounded-full";
+  }
+
+  return "h-3 w-3 rounded-full";
 }
 
 function MockupTransformControls({
@@ -417,14 +429,22 @@ function MockupTransformControls({
           type="button"
           aria-label={`Resize screenshot ${handleId}`}
           className={cn(
-            "pointer-events-auto absolute rounded-full border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300",
-            getResizeHandlePositionClass(handleId),
+            "group pointer-events-auto absolute flex touch-none items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-300",
+            getResizeHandleTargetClass(handleId),
           )}
           onPointerCancel={onResizePointerCancel}
           onPointerDown={(event) => onResizePointerDown(handleId, event)}
           onPointerMove={onResizePointerMove}
           onPointerUp={onResizePointerUp}
-        />
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "block border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 transition group-hover:scale-110",
+              getResizeHandleVisualClass(handleId),
+            )}
+          />
+        </button>
       ))}
     </div>
   );
