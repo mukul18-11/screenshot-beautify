@@ -90,9 +90,9 @@ export default function UploadZone() {
         animate={{ scale: isDragActive && !shouldReduceMotion ? 1.005 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex h-full min-h-[calc(100svh-3.5rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200",
+          "relative flex h-full min-h-[calc(100svh-3.5rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-slate-950/10",
           !uploadedImage
-            ? "m-4 rounded-2xl border-[var(--editor-border)] bg-white/75 p-3 hover:border-slate-300 hover:bg-white/90 sm:p-4 lg:m-6 lg:p-6"
+            ? "border-transparent bg-transparent p-4 sm:p-6 lg:p-8"
             : "border-transparent bg-transparent",
           isDragActive && "border-blue-500/60 bg-blue-50/50",
           isDragAccept && "border-emerald-500/60 bg-emerald-50/50",
@@ -105,7 +105,7 @@ export default function UploadZone() {
           })}
         />
 
-        <div className="flex min-h-0 w-full flex-col items-center">
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center">
           <p id="upload-helper-text" className="sr-only">
             Upload, drop, or paste a PNG, JPG, or WebP screenshot up to 10 MB.
           </p>
@@ -145,6 +145,7 @@ export default function UploadZone() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
+                className="flex min-h-0 w-full flex-1"
               >
                 <EmptyUploadState
                   dragState={dragState}

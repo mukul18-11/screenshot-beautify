@@ -3,6 +3,7 @@
 import {
   FileImage,
   RefreshCw,
+  ShieldCheck,
   Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -129,6 +130,50 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
   );
 }
 
+function EmptySettingsContent() {
+  return (
+    <motion.div
+      key="empty-settings"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.24, ease: "easeOut" }}
+      className="flex min-h-[260px] items-center justify-center px-5 py-4 lg:h-[calc(100%-3rem)] lg:min-h-0"
+    >
+      <div className="w-full rounded-2xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[var(--editor-ink)] shadow-sm">
+            <FileImage className="h-4 w-4" aria-hidden="true" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-[var(--editor-ink)]">
+              No screenshot yet
+            </h3>
+            <p className="mt-1 text-xs leading-5 text-[var(--editor-muted)]">
+              Drop one on the canvas, click the upload target, or paste from
+              clipboard.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-2 text-xs font-medium text-[var(--editor-muted)]">
+          <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2">
+            <FileImage className="h-3.5 w-3.5" aria-hidden="true" />
+            PNG, JPG, or WebP up to 10 MB
+          </div>
+          <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2">
+            <ShieldCheck
+              className="h-3.5 w-3.5 text-emerald-600"
+              aria-hidden="true"
+            />
+            Files stay in your browser
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function EditorSettingsPanel({
   uploadedImage,
 }: EditorSettingsPanelProps) {
@@ -174,23 +219,7 @@ export default function EditorSettingsPanel({
             <ResetControls />
           </motion.div>
         ) : (
-          <motion.div
-            key="empty-settings"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
-            className="flex min-h-[360px] items-center justify-center px-5 text-center"
-          >
-            <div className="max-w-[220px]">
-              <p className="text-sm text-slate-400">
-                Upload a screenshot to start customizing.
-              </p>
-              <div className="mt-5 text-left">
-                <ExportControls uploadedImage={uploadedImage} />
-              </div>
-            </div>
-          </motion.div>
+          <EmptySettingsContent />
         )}
       </AnimatePresence>
     </motion.aside>
