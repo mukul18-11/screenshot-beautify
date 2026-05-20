@@ -6,6 +6,7 @@ import { ArrowRight, Check, ShieldCheck, WandSparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import LandingHoverTilt from "@/components/landing/LandingHoverTilt";
 
 function HeroMockup() {
   const shouldReduceMotion = useReducedMotion();
@@ -74,51 +75,61 @@ function HeroMockup() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="origin-center rounded-2xl border border-white/20 bg-white shadow-2xl shadow-slate-950/35 ring-1 ring-white/30 lg:[transform:perspective(1100px)_rotateX(8deg)_rotateY(-10deg)_rotateZ(-1deg)]"
             >
-              <div className="flex h-10 items-center gap-2 rounded-t-2xl border-b border-slate-200 bg-slate-50 px-4">
-                <span className="h-3 w-3 rounded-full bg-rose-400" />
-                <span className="h-3 w-3 rounded-full bg-amber-400" />
-                <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                <span className="ml-3 hidden w-52 rounded-full bg-white py-1.5 text-center text-xs text-slate-400 shadow-sm sm:block">
-                  yourproduct.com
-                </span>
-              </div>
-              <div className="bg-[radial-gradient(circle_at_18%_18%,rgba(45,212,191,0.28),transparent_28%),linear-gradient(135deg,#ecfeff_0%,#fff7ed_56%,#fdf2f8_100%)] p-5 sm:p-7">
-                <div className="mb-5 text-center">
-                  <div className="mx-auto mb-2 inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
-                    <WandSparkles className="h-3.5 w-3.5" />
-                    Launch visual
-                  </div>
-                  <p className="text-2xl font-semibold text-slate-950 sm:text-3xl">
-                    New dashboard is live
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Built for posts, decks, and hero images.
-                  </p>
+              <LandingHoverTilt
+                className="overflow-hidden rounded-2xl border border-white/20 bg-white shadow-2xl shadow-slate-950/35 ring-1 ring-white/30"
+                settings={{
+                  perspective: 1100,
+                  rotateX: 8,
+                  rotateY: -10,
+                  rotateZ: -1,
+                  sensitivity: 9,
+                }}
+              >
+                <div className="flex h-10 items-center gap-2 rounded-t-2xl border-b border-slate-200 bg-slate-50 px-4">
+                  <span className="h-3 w-3 rounded-full bg-rose-400" />
+                  <span className="h-3 w-3 rounded-full bg-amber-400" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                  <span className="ml-3 hidden w-52 rounded-full bg-white py-1.5 text-center text-xs text-slate-400 shadow-sm sm:block">
+                    yourproduct.com
+                  </span>
                 </div>
+                <div className="bg-[radial-gradient(circle_at_18%_18%,rgba(45,212,191,0.28),transparent_28%),linear-gradient(135deg,#ecfeff_0%,#fff7ed_56%,#fdf2f8_100%)] p-5 sm:p-7">
+                  <div className="mb-5 text-center">
+                    <div className="mx-auto mb-2 inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+                      <WandSparkles className="h-3.5 w-3.5" />
+                      Launch visual
+                    </div>
+                    <p className="text-2xl font-semibold text-slate-950 sm:text-3xl">
+                      New dashboard is live
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Built for posts, decks, and hero images.
+                    </p>
+                  </div>
 
-                <div className="grid gap-4 sm:grid-cols-[1.25fr_0.75fr]">
-                  <div className="rounded-2xl bg-slate-950 p-5 text-white">
-                    <div className="mb-8 flex items-center justify-between">
-                      <div className="h-3 w-28 rounded-full bg-white/30" />
-                      <div className="h-8 w-8 rounded-xl bg-cyan-300" />
+                  <div className="grid gap-4 sm:grid-cols-[1.25fr_0.75fr]">
+                    <div className="rounded-2xl bg-slate-950 p-5 text-white">
+                      <div className="mb-8 flex items-center justify-between">
+                        <div className="h-3 w-28 rounded-full bg-white/30" />
+                        <div className="h-8 w-8 rounded-xl bg-cyan-300" />
+                      </div>
+                      <div className="h-4 w-44 rounded-full bg-white/80" />
+                      <div className="mt-3 h-3 w-64 max-w-full rounded-full bg-white/25" />
+                      <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
+                        <div className="h-20 rounded-xl bg-white/10" />
+                        <div className="h-20 rounded-xl bg-cyan-300/80" />
+                        <div className="h-20 rounded-xl bg-white/10" />
+                      </div>
                     </div>
-                    <div className="h-4 w-44 rounded-full bg-white/80" />
-                    <div className="mt-3 h-3 w-64 max-w-full rounded-full bg-white/25" />
-                    <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
-                      <div className="h-20 rounded-xl bg-white/10" />
-                      <div className="h-20 rounded-xl bg-cyan-300/80" />
-                      <div className="h-20 rounded-xl bg-white/10" />
+                    <div className="space-y-3">
+                      <div className="h-24 rounded-2xl bg-white/70 shadow-sm" />
+                      <div className="h-24 rounded-2xl bg-white/70 shadow-sm" />
+                      <div className="h-24 rounded-2xl bg-slate-900 shadow-sm" />
                     </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="h-24 rounded-2xl bg-white/70 shadow-sm" />
-                    <div className="h-24 rounded-2xl bg-white/70 shadow-sm" />
-                    <div className="h-24 rounded-2xl bg-slate-900 shadow-sm" />
                   </div>
                 </div>
-              </div>
+              </LandingHoverTilt>
             </motion.div>
           </div>
         </div>

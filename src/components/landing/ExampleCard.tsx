@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import LandingHoverTilt from "@/components/landing/LandingHoverTilt";
 import { cn } from "@/lib/utils";
 import type { ExampleShowcaseItem } from "@/lib/example-showcase";
 
@@ -10,16 +11,34 @@ type ExampleCardProps = {
   index: number;
 };
 
-function getTiltClass(tilt: ExampleShowcaseItem["tilt"]) {
+function getTiltSettings(tilt: ExampleShowcaseItem["tilt"]) {
   if (tilt === "left") {
-    return "[transform:perspective(900px)_rotateX(8deg)_rotateY(-11deg)_rotateZ(-1deg)]";
+    return {
+      perspective: 900,
+      rotateX: 8,
+      rotateY: -11,
+      rotateZ: -1,
+      sensitivity: 7,
+    };
   }
 
   if (tilt === "right") {
-    return "[transform:perspective(900px)_rotateX(8deg)_rotateY(11deg)_rotateZ(1deg)]";
+    return {
+      perspective: 900,
+      rotateX: 8,
+      rotateY: 11,
+      rotateZ: 1,
+      sensitivity: 7,
+    };
   }
 
-  return "";
+  return {
+    perspective: 950,
+    rotateX: 0,
+    rotateY: 0,
+    rotateZ: 0,
+    sensitivity: 6,
+  };
 }
 
 function BrowserBar({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
@@ -310,20 +329,20 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
           </p>
         </div>
 
-        <div
+        <LandingHoverTilt
           className={cn(
             "relative mt-6 overflow-hidden rounded-2xl border shadow-2xl shadow-slate-950/25 transition-transform duration-300",
-            getTiltClass(example.tilt),
             isDarkFrame
               ? "border-white/10 bg-slate-950"
               : "border-white/25 bg-white",
           )}
+          settings={getTiltSettings(example.tilt)}
         >
           {example.layout !== "mobile" && (
             <BrowserBar theme={example.frameTheme} />
           )}
           <MockContent example={example} />
-        </div>
+        </LandingHoverTilt>
       </div>
     </motion.article>
   );
