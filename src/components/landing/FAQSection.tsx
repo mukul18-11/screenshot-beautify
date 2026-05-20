@@ -34,20 +34,20 @@ export default function FAQSection() {
   return (
     <section
       id="faq"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
-      <div className="mx-auto max-w-2xl text-center">
+      <div className="mx-auto max-w-xl text-center">
         <p className="text-sm font-semibold text-cyan-700">FAQ</p>
-        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
           Practical answers before you start
         </h2>
       </div>
 
-      <div className="mx-auto mt-9 grid max-w-4xl gap-3 sm:grid-cols-2">
+      <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
         {FAQS.map((faq) => (
           <div
             key={faq.question}
-            className="rounded-2xl border border-slate-200 bg-white/75 p-5 shadow-sm backdrop-blur-xl"
+            className="rounded-2xl border border-slate-200 bg-white/75 p-4 shadow-sm backdrop-blur-xl"
           >
             <h3 className="text-base font-semibold text-slate-950">
               {faq.question}

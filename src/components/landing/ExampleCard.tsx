@@ -292,10 +292,10 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
         delay: shouldReduceMotion ? 0 : index * 0.04,
         ease: "easeOut",
       }}
-      className="overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-3 shadow-soft backdrop-blur-xl"
+      className="overflow-hidden rounded-2xl border border-white/70 bg-white/70 p-2.5 shadow-soft backdrop-blur-xl"
     >
       <div
-        className="relative flex min-h-[330px] flex-col justify-between overflow-hidden rounded-2xl p-5"
+        className="relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-2xl p-4"
         style={{ background: example.background }}
       >
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:22px_22px] opacity-30" />
@@ -303,7 +303,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
         <div className="relative">
           <div
             className={cn(
-              "mb-3 w-fit rounded-full border px-3 py-1 text-xs font-semibold",
+              "mb-2.5 w-fit rounded-full border px-2.5 py-1 text-xs font-semibold",
               isLightText
                 ? "border-white/20 bg-white/15 text-white"
                 : "border-white/70 bg-white/45 text-slate-800",
@@ -313,7 +313,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
           </div>
           <h3
             className={cn(
-              "text-2xl font-semibold leading-tight",
+              "text-xl font-semibold leading-tight",
               isLightText ? "text-white" : "text-slate-950",
             )}
           >
@@ -331,7 +331,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
 
         <LandingHoverTilt
           className={cn(
-            "relative mt-6 overflow-hidden rounded-2xl border shadow-2xl shadow-slate-950/25 transition-transform duration-300",
+            "relative mt-5 overflow-hidden rounded-2xl border shadow-2xl shadow-slate-950/25 transition-transform duration-300",
             isDarkFrame
               ? "border-white/10 bg-slate-950"
               : "border-white/25 bg-white",

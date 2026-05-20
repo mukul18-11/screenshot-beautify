@@ -10,26 +10,26 @@ export default function ExampleShowcase() {
   return (
     <section
       id="examples"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
-      <div className="mx-auto max-w-2xl text-center">
+      <div className="mx-auto max-w-xl text-center">
         <p className="text-sm font-semibold text-cyan-700">Examples</p>
-        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
           Polished examples built from simple CSS mockups
         </h2>
-        <p className="mt-4 text-base leading-7 text-slate-600">
+        <p className="mt-3 text-base leading-7 text-slate-600">
           These are illustrative layouts showing the kinds of visuals you can
           create with quick styles, frames, text overlays, and depth.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {EXAMPLE_SHOWCASE_ITEMS.map((example, index) => (
           <ExampleCard key={example.id} example={example} index={index} />
         ))}
       </div>
 
-      <div className="mt-10 flex justify-center">
+      <div className="mt-8 flex justify-center">
         <Button
           asChild
           size="lg"

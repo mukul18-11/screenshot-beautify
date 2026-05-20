@@ -141,7 +141,7 @@ export default function LandingHoverTilt({
         transformStyle: "preserve-3d",
         transition: shouldReduceMotion
           ? undefined
-          : "transform 250ms ease-out, box-shadow 250ms ease-out",
+          : "transform 100ms ease-out, box-shadow 100ms ease-out",
         willChange: shouldReduceMotion ? undefined : "transform",
       }}
     >

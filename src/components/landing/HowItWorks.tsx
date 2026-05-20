@@ -27,17 +27,17 @@ export default function HowItWorks() {
   return (
     <section
       id="workflow"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
-      <div className="rounded-[2rem] border border-slate-200 bg-white/70 p-6 shadow-soft backdrop-blur-2xl sm:p-8 lg:p-10">
-        <div className="max-w-2xl">
+      <div className="rounded-[1.5rem] border border-slate-200 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:p-8">
+        <div className="max-w-xl">
           <p className="text-sm font-semibold text-cyan-700">How it works</p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
             Four steps from raw screenshot to launch visual
           </h2>
         </div>
 
-        <div className="mt-9 grid gap-4 md:grid-cols-4">
+        <div className="mt-8 grid gap-3 md:grid-cols-4">
           {STEPS.map((step, index) => (
             <motion.div
               key={step.title}
@@ -49,9 +49,9 @@ export default function HowItWorks() {
                 delay: shouldReduceMotion ? 0 : index * 0.04,
                 ease: "easeOut",
               }}
-              className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             >
-              <div className="mb-5 flex h-9 w-9 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
+              <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
                 {index + 1}
               </div>
               <h3 className="text-base font-semibold text-slate-950">

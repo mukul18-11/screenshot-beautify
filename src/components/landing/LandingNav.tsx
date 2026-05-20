@@ -42,7 +42,7 @@ export default function LandingNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-950/5 bg-white/72 backdrop-blur-2xl">
       <nav
-        className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6"
+        className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6"
         aria-label="Primary navigation"
       >
         <Link
@@ -50,8 +50,8 @@ export default function LandingNav() {
           className="flex min-w-0 items-center gap-3 text-slate-950"
           aria-label="Screenshot Beautifier home"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
-            <Sparkles className="h-5 w-5" aria-hidden="true" />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="truncate text-sm font-semibold">
             Screenshot Beautifier
@@ -59,7 +59,7 @@ export default function LandingNav() {
         </Link>
 
         <div
-          className="hidden items-center gap-2 md:flex"
+          className="hidden items-center gap-1.5 md:flex"
           onMouseLeave={() => setActiveItem(null)}
         >
           {NAV_ITEMS.map((item) => (
@@ -70,7 +70,7 @@ export default function LandingNav() {
               onBlur={() => setActiveItem(null)}
               onFocus={() => setActiveItem(item.href)}
               onMouseEnter={() => setActiveItem(item.href)}
-              className="group relative isolate rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20"
+              className="group relative isolate rounded-full px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20"
             >
               {activeItem === item.href ? (
                 <motion.span

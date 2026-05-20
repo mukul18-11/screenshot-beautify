@@ -28,15 +28,15 @@ function UseCasesSection() {
   return (
     <section
       id="use-cases"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
-      <div className="grid gap-8 border-y border-slate-950/10 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="max-w-2xl">
+      <div className="grid gap-7 border-y border-slate-950/10 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div className="max-w-xl">
           <p className="text-sm font-semibold text-cyan-700">Use cases</p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
             Made for the moments builders actually share
           </h2>
-          <p className="mt-4 text-base leading-7 text-slate-600">
+          <p className="mt-3 text-base leading-7 text-slate-600">
             Screenshot Beautifier is for founders, makers, marketers, and
             product teams who need polished product screenshots quickly without
             opening a full design tool.
@@ -48,7 +48,7 @@ function UseCasesSection() {
             <Link
               key={useCase}
               href="/editor"
-              className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white/65 px-4 py-4 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-md"
+              className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white/65 px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-md"
             >
               <span>{useCase}</span>
               <ArrowRight
@@ -65,18 +65,18 @@ function UseCasesSection() {
 
 function SearchIntentSection() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
-      <div className="grid gap-8 rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-soft backdrop-blur-2xl sm:p-8 lg:grid-cols-[0.8fr_1.2fr] lg:p-10">
+    <section className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
+      <div className="grid gap-7 rounded-[1.5rem] border border-white/70 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:grid-cols-[0.8fr_1.2fr] lg:p-8">
         <div>
           <p className="text-sm font-semibold text-cyan-700">
             Screenshot tool for launches
           </p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
             A browser-based screenshot beautifier, not a full design suite
           </h2>
         </div>
 
-        <div className="space-y-5 text-base leading-7 text-slate-600">
+        <div className="space-y-4 text-base leading-7 text-slate-600">
           <p>
             Use it when you need a fast screenshot mockup generator for SaaS
             dashboards, product updates, changelogs, social posts, pitch decks,
@@ -87,7 +87,7 @@ function SearchIntentSection() {
             JPG, and WebP screenshots, and exports high-resolution PNG artwork
             with quick styles, browser frames, text overlays, and CSS 3D tilt.
           </p>
-          <div className="grid gap-3 pt-2 sm:grid-cols-3">
+          <div className="grid gap-3 pt-1 sm:grid-cols-3">
             {["Client-side", "No signup", "Fast PNG export"].map((item) => (
               <div
                 key={item}

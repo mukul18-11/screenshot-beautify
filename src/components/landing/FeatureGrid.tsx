@@ -61,16 +61,16 @@ export default function FeatureGrid() {
   return (
     <section
       id="features"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
-      <div className="max-w-2xl">
+      <div className="max-w-xl">
         <p className="text-sm font-semibold text-cyan-700">Features</p>
-        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">
+        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
           Everything you need to make screenshots feel shipped
         </h2>
       </div>
 
-      <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((feature, index) => {
           const Icon = feature.icon;
 
@@ -85,10 +85,10 @@ export default function FeatureGrid() {
                 delay: shouldReduceMotion ? 0 : index * 0.025,
                 ease: "easeOut",
               }}
-              className="rounded-2xl border border-slate-200 bg-white/75 p-5 shadow-sm backdrop-blur-xl"
+              className="rounded-2xl border border-slate-200 bg-white/75 p-4 shadow-sm backdrop-blur-xl"
             >
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
-                <Icon className="h-5 w-5" aria-hidden="true" />
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+                <Icon className="h-4 w-4" aria-hidden="true" />
               </div>
               <h3 className="text-base font-semibold text-slate-950">
                 {feature.title}
