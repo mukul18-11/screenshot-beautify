@@ -10,7 +10,7 @@ export default function ExampleShowcase() {
   return (
     <section
       id="examples"
-      className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20"
+      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
     >
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-sm font-semibold text-cyan-700">Examples</p>

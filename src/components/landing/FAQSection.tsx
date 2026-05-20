@@ -1,4 +1,9 @@
-const FAQS = [
+export const FAQS = [
+  {
+    question: "What is Screenshot Beautifier?",
+    answer:
+      "Screenshot Beautifier is a browser-based tool for turning product screenshots into polished launch graphics with quick styles, browser frames, text overlays, depth, and PNG export.",
+  },
   {
     question: "Do screenshots upload to a server?",
     answer:
@@ -14,6 +19,11 @@ const FAQS = [
       "Yes. Use built-in canvas sizes and export sharp PNGs for X, LinkedIn, Product Hunt, decks, and hero images.",
   },
   {
+    question: "Who is it for?",
+    answer:
+      "It is built for founders, makers, marketers, and product teams who need polished screenshots for launches, changelogs, demos, and social posts.",
+  },
+  {
     question: "Do I need an account?",
     answer:
       "No. The editor runs locally in your browser and does not require login.",
@@ -22,7 +32,10 @@ const FAQS = [
 
 export default function FAQSection() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
+    <section
+      id="faq"
+      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+    >
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-sm font-semibold text-cyan-700">FAQ</p>
         <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">

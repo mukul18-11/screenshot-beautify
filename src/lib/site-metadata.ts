@@ -1,8 +1,8 @@
 export const SITE_TITLE =
-  "Screenshot Beautifier — Turn Screenshots into Launch-Ready Visuals";
+  "Screenshot Beautifier — Create Launch-Ready Product Screenshots";
 
 export const SITE_DESCRIPTION =
-  "Create beautiful product screenshots with quick styles, browser frames, text overlays, 3D tilt, and sharp PNG export. Everything runs in your browser.";
+  "Beautify product screenshots for X, LinkedIn, Product Hunt, landing pages, and decks with quick styles, browser frames, text overlays, CSS 3D tilt, and sharp PNG export. Images stay in your browser.";
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://screenshot-beautifier.app";

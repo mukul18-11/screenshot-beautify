@@ -25,7 +25,10 @@ export default function HowItWorks() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
+    <section
+      id="workflow"
+      className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-16 sm:py-20"
+    >
       <div className="rounded-[2rem] border border-slate-200 bg-white/70 p-6 shadow-soft backdrop-blur-2xl sm:p-8 lg:p-10">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold text-cyan-700">How it works</p>
