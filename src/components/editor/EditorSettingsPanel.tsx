@@ -4,6 +4,7 @@ import {
   FileImage,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -138,32 +139,40 @@ function EmptySettingsContent() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="flex min-h-[260px] items-center justify-center px-5 py-4 lg:h-[calc(100%-3rem)] lg:min-h-0"
+      className="flex min-h-[260px] items-start px-5 py-5 lg:h-[calc(100%-3rem)] lg:min-h-0"
     >
-      <div className="w-full rounded-2xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[var(--editor-ink)] shadow-sm">
-            <FileImage className="h-4 w-4" aria-hidden="true" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--editor-ink)]">
-              No screenshot yet
-            </h3>
-            <p className="mt-1 text-xs leading-5 text-[var(--editor-muted)]">
-              Drop one on the canvas, click the upload target, or paste from
-              clipboard.
-            </p>
+      <div className="w-full overflow-hidden rounded-2xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] shadow-sm">
+        <div
+          className="border-b border-white/80 px-4 py-4"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.94), rgba(228,235,255,0.72) 55%, rgba(230,248,245,0.78))",
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <div>
+              <h3 className="text-[15px] font-extrabold leading-5 text-[var(--editor-ink)]">
+                Start with a screenshot
+              </h3>
+              <p className="mt-1 text-xs font-medium leading-5 text-[var(--editor-muted)]">
+                Your design controls appear here as soon as an image lands on
+                the canvas.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 text-xs font-medium text-[var(--editor-muted)]">
-          <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2">
-            <FileImage className="h-3.5 w-3.5" aria-hidden="true" />
+        <div className="grid gap-2.5 p-3 text-xs font-semibold text-[var(--editor-muted)]">
+          <div className="flex items-center gap-2 rounded-xl border border-white/70 bg-white/75 px-3 py-2.5">
+            <FileImage className="h-4 w-4" aria-hidden="true" />
             PNG, JPG, or WebP up to 10 MB
           </div>
-          <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2">
+          <div className="flex items-center gap-2 rounded-xl border border-white/70 bg-white/75 px-3 py-2.5">
             <ShieldCheck
-              className="h-3.5 w-3.5 text-emerald-600"
+              className="h-4 w-4 text-[var(--editor-teal)]"
               aria-hidden="true"
             />
             Files stay in your browser
@@ -184,7 +193,7 @@ export default function EditorSettingsPanel({
       transition={{ duration: 0.32, delay: 0.08, ease: "easeOut" }}
       className={cn(
         "mx-4 mb-4 overflow-hidden rounded-2xl border border-[var(--editor-border)] bg-[var(--editor-panel)] shadow-xl shadow-slate-950/[0.06]",
-        "lg:m-0 lg:h-[calc(100svh-3.5rem)] lg:self-stretch lg:rounded-none lg:border-y-0 lg:border-r-0 lg:shadow-none",
+        "lg:m-0 lg:h-[calc(100svh-4rem)] lg:self-stretch lg:rounded-none lg:border-y-0 lg:border-r-0 lg:shadow-none",
       )}
     >
       {/* Minimal header */}

@@ -90,7 +90,7 @@ export default function UploadZone() {
         animate={{ scale: isDragActive && !shouldReduceMotion ? 1.005 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex h-full min-h-[calc(100svh-3.5rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-slate-950/10",
+          "relative flex h-full min-h-[calc(100svh-4rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-slate-950/10",
           !uploadedImage
             ? "border-transparent bg-transparent p-4 sm:p-6 lg:p-8"
             : "border-transparent bg-transparent",

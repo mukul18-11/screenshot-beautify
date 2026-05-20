@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 
 import {
@@ -8,6 +9,13 @@ import {
 } from "@/lib/site-metadata";
 
 import "./globals.css";
+
+const appSans = Plus_Jakarta_Sans({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-app-sans",
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -82,7 +90,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className={appSans.variable}>
         {children}
         <Toaster richColors closeButton position="top-center" />
       </body>
