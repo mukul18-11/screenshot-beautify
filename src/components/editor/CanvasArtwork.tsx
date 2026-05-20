@@ -189,6 +189,22 @@ function getScreenshotShellClasses(
   return "max-w-[92%]";
 }
 
+function getScreenshotMaxWidthRatio(
+  textOverlayEnabled: boolean,
+  textPosition: TextPosition,
+) {
+  if (
+    textOverlayEnabled &&
+    textPosition !== "left" &&
+    textPosition !== "right" &&
+    textPosition !== "center"
+  ) {
+    return 0.92;
+  }
+
+  return 1;
+}
+
 function mergeRefs<T>(
   ...refs: Array<ForwardedRef<T> | MutableRefObject<T | null>>
 ) {
@@ -536,6 +552,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
     const mockupFrameRef = useRef<HTMLDivElement | null>(null);
     const mockupVisualRef = useRef<HTMLDivElement | null>(null);
+    const screenshotSlotRef = useRef<HTMLDivElement | null>(null);
     const screenshotZoomTargetRef = useRef<HTMLDivElement | null>(null);
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
     const textResizeStateRef = useRef<TextLayerResizeState | null>(null);
@@ -553,6 +570,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformUpdateRef = useRef<(() => void) | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
+    const [screenshotSlotWidth, setScreenshotSlotWidth] = useState<
+      number | null
+    >(null);
     const [activeTextLayerId, setActiveTextLayerId] =
       useState<TextLayerId | null>(null);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
@@ -859,6 +879,42 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         }
       };
     }, [applyBackgroundParallax, canParallaxBackground]);
+
+    useEffect(() => {
+      if (isExportMode) {
+        return;
+      }
+
+      const screenshotSlot = screenshotSlotRef.current;
+
+      if (!screenshotSlot) {
+        return;
+      }
+
+      const updateScreenshotSlotWidth = () => {
+        setScreenshotSlotWidth((currentWidth) => {
+          const nextWidth = screenshotSlot.getBoundingClientRect().width;
+
+          if (
+            currentWidth !== null &&
+            Math.abs(currentWidth - nextWidth) < 0.5
+          ) {
+            return currentWidth;
+          }
+
+          return nextWidth;
+        });
+      };
+
+      updateScreenshotSlotWidth();
+
+      const resizeObserver = new ResizeObserver(updateScreenshotSlotWidth);
+      resizeObserver.observe(screenshotSlot);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }, [isExportMode]);
 
     useEffect(() => {
       return () => {
@@ -1889,12 +1945,29 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       },
       transition: { duration: isExportMode ? 0 : 0.26, ease: "easeOut" },
     } as const;
+    const hasTextOverlay =
+      textOverlayEnabled &&
+      ((badgeEnabled && badgeText.trim().length > 0) ||
+        headlineText.trim().length > 0 ||
+        subtitleText.trim().length > 0);
     const cropRatios = getCropRatios(imageCrop);
     const croppedImageWidth = uploadedImage.width * cropRatios.width;
     const croppedImageHeight = uploadedImage.height * cropRatios.height;
+    const maxScreenshotWidth =
+      !isExportMode && screenshotSlotWidth !== null
+        ? screenshotSlotWidth *
+          getScreenshotMaxWidthRatio(hasTextOverlay, textPosition)
+        : null;
+    const screenshotCropWidth =
+      maxScreenshotWidth !== null
+        ? Math.max(
+            1,
+            Math.min(croppedImageWidth, maxScreenshotWidth * cropRatios.width),
+          )
+        : croppedImageWidth;
     const screenshotCropStyle = {
       aspectRatio: `${croppedImageWidth} / ${croppedImageHeight}`,
-      width: `${croppedImageWidth}px`,
+      width: `${screenshotCropWidth}px`,
     } satisfies CSSProperties;
     /** Border, shadow, and radius apply to the BrowserFrame wrapper when it's
      *  enabled, or directly to the crop container when it isn't. */
@@ -1922,11 +1995,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       transformOrigin: "center",
       willChange: isZoomed ? "transform" : undefined,
     } satisfies CSSProperties;
-    const hasTextOverlay =
-      textOverlayEnabled &&
-      ((badgeEnabled && badgeText.trim().length > 0) ||
-        headlineText.trim().length > 0 ||
-        subtitleText.trim().length > 0);
     const screenshotSlotClasses = getScreenshotSlotClasses(
       hasTextOverlay,
       textPosition,
@@ -2141,7 +2209,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           {hasTextOverlay && textPosition === "top" && textOverlay}
           {hasTextOverlay && textPosition === "left" && textOverlay}
 
-          <div className={cn("relative z-[1] flex", screenshotSlotClasses)}>
+          <div
+            ref={screenshotSlotRef}
+            className={cn("relative z-[1] flex", screenshotSlotClasses)}
+          >
             <div
               ref={mockupFrameRef}
               className={cn(
