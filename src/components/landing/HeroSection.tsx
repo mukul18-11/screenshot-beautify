@@ -24,23 +24,28 @@ function HeroMockup() {
         <div className="absolute -right-16 top-12 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl" />
 
         <div className="relative">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-white">
+          <div className="mb-5 flex flex-col gap-4 text-white sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="mb-2 inline-flex rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-xl">
+              <div className="mb-3 inline-flex rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-xl">
                 QUICK STYLE PREVIEW
               </div>
-              <p className="text-xl font-semibold sm:text-[2rem]">
-                Before post. After launch visual.
+              <p className="max-w-[34rem] text-2xl font-semibold leading-[1.04] sm:text-[2.45rem] lg:text-[2.65rem]">
+                Before post.
+                <span className="block text-cyan-100">
+                  After launch visual.
+                </span>
               </p>
             </div>
-            <div className="hidden items-center gap-2 rounded-full border border-white/15 bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white/80 backdrop-blur-xl sm:flex">
-              <ShieldCheck className="h-4 w-4 text-emerald-300" />
-              Local-only export
+            <div className="flex shrink-0 items-end justify-start lg:justify-end">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white/80 backdrop-blur-xl">
+                <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                Local-only export
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            <div className="rounded-[1.25rem] border border-white/15 bg-white/10 p-3 text-white/75 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:mb-8">
+          <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
+            <div className="rounded-[1.25rem] border border-white/15 bg-white/10 p-3 text-white/75 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:mb-3">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
                   Raw screenshot
@@ -80,9 +85,9 @@ function HeroMockup() {
                 className="overflow-hidden rounded-2xl border border-white/20 bg-white shadow-2xl shadow-slate-950/35 ring-1 ring-white/30"
                 settings={{
                   perspective: 1100,
-                  rotateX: 8,
-                  rotateY: -10,
-                  rotateZ: -1,
+                  rotateX: 0,
+                  rotateY: 0,
+                  rotateZ: 0,
                   sensitivity: 9,
                 }}
               >
@@ -125,7 +130,6 @@ function HeroMockup() {
                     <div className="space-y-3">
                       <div className="h-20 rounded-2xl bg-white/70 shadow-sm" />
                       <div className="h-20 rounded-2xl bg-white/70 shadow-sm" />
-                      <div className="h-20 rounded-2xl bg-slate-900 shadow-sm" />
                     </div>
                   </div>
                 </div>
