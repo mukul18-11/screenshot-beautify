@@ -12,7 +12,6 @@ import {
   type MutableRefObject,
   type PointerEvent,
   type SyntheticEvent,
-  type WheelEvent,
 } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -134,6 +133,14 @@ type CanvasArtworkProps = {
   onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
   style?: CSSProperties;
   uploadedImage: UploadedImage;
+};
+
+type ScreenshotWheelEvent = {
+  clientX: number;
+  clientY: number;
+  deltaY: number;
+  preventDefault: () => void;
+  stopPropagation: () => void;
 };
 
 function getContentLayoutClasses(textPosition: TextPosition) {
@@ -509,6 +516,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const canvasShellRef = useRef<HTMLDivElement | null>(null);
     const mockupFrameRef = useRef<HTMLDivElement | null>(null);
     const mockupVisualRef = useRef<HTMLDivElement | null>(null);
+    const screenshotZoomTargetRef = useRef<HTMLDivElement | null>(null);
     const textDragStateRef = useRef<TextLayerDragState | null>(null);
     const textResizeStateRef = useRef<TextLayerResizeState | null>(null);
     const textRotateStateRef = useRef<TextLayerRotateState | null>(null);
@@ -766,6 +774,60 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       transformUpdateRef.current = null;
     }, []);
 
+    const applyScreenshotWheelZoom = useCallback(
+      (event: ScreenshotWheelEvent, targetElement: HTMLElement) => {
+        if (isExportMode) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const delta = -event.deltaY;
+        const step = delta > 0 ? 10 : -10;
+        const currentZoom = useEditorStore.getState().imageZoom;
+        const nextZoom = Math.max(100, Math.min(400, currentZoom + step));
+
+        if (nextZoom === currentZoom) {
+          return;
+        }
+
+        const rect = targetElement.getBoundingClientRect();
+        const cursorFracX = (event.clientX - rect.left) / rect.width;
+        const cursorFracY = (event.clientY - rect.top) / rect.height;
+        const cursorNormX = (cursorFracX - 0.5) * 2;
+        const cursorNormY = (cursorFracY - 0.5) * 2;
+
+        const oldZoom = currentZoom / 100;
+        const newZoom = nextZoom / 100;
+        const state = useEditorStore.getState();
+
+        let nextOffsetX = state.imageZoomOffsetX;
+        let nextOffsetY = state.imageZoomOffsetY;
+
+        if (newZoom > 1) {
+          const zoomRatio = oldZoom / newZoom;
+          const maxOffset = 1 - 1 / newZoom;
+
+          nextOffsetX =
+            state.imageZoomOffsetX * zoomRatio +
+            cursorNormX * (1 - zoomRatio) * maxOffset;
+          nextOffsetY =
+            state.imageZoomOffsetY * zoomRatio +
+            cursorNormY * (1 - zoomRatio) * maxOffset;
+          nextOffsetX = Math.max(-maxOffset, Math.min(maxOffset, nextOffsetX));
+          nextOffsetY = Math.max(-maxOffset, Math.min(maxOffset, nextOffsetY));
+        } else {
+          nextOffsetX = 0;
+          nextOffsetY = 0;
+        }
+
+        setImageZoom(nextZoom);
+        setImageZoomOffset(nextOffsetX, nextOffsetY);
+      },
+      [isExportMode, setImageZoom, setImageZoomOffset],
+    );
+
     useEffect(() => {
       if (!canParallaxBackground) {
         applyBackgroundParallax();
@@ -817,6 +879,35 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       canvasHeight,
       canvasWidth,
       fitUploadedImage,
+      isExportMode,
+      uploadedImage.id,
+    ]);
+
+    useEffect(() => {
+      if (isExportMode) {
+        return;
+      }
+
+      const screenshotZoomTarget = screenshotZoomTargetRef.current;
+
+      if (!screenshotZoomTarget) {
+        return;
+      }
+
+      const handleNativeWheel = (event: globalThis.WheelEvent) => {
+        applyScreenshotWheelZoom(event, screenshotZoomTarget);
+      };
+
+      screenshotZoomTarget.addEventListener("wheel", handleNativeWheel, {
+        passive: false,
+      });
+
+      return () => {
+        screenshotZoomTarget.removeEventListener("wheel", handleNativeWheel);
+      };
+    }, [
+      applyScreenshotWheelZoom,
+      browserFrameEnabled,
       isExportMode,
       uploadedImage.id,
     ]);
@@ -922,51 +1013,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleImageLoad(event: SyntheticEvent<HTMLImageElement>) {
       onImageLoad?.(event);
-    }
-
-    function handleScreenshotWheel(event: WheelEvent<HTMLDivElement>) {
-      if (isExportMode) return;
-      event.preventDefault();
-      event.stopPropagation();
-
-      const delta = -event.deltaY;
-      const step = delta > 0 ? 10 : -10;
-      const currentZoom = useEditorStore.getState().imageZoom;
-      const nextZoom = Math.max(100, Math.min(400, currentZoom + step));
-
-      if (nextZoom === currentZoom) return;
-
-      // When zooming toward a point, adjust the pan offsets so the area
-      // under the cursor stays visually stable.
-      const imgEl = event.currentTarget;
-      const rect = imgEl.getBoundingClientRect();
-      const cursorFracX = (event.clientX - rect.left) / rect.width;
-      const cursorFracY = (event.clientY - rect.top) / rect.height;
-      const cursorNormX = (cursorFracX - 0.5) * 2; // -1..1
-      const cursorNormY = (cursorFracY - 0.5) * 2;
-
-      const oldZoom = currentZoom / 100;
-      const newZoom = nextZoom / 100;
-      const state = useEditorStore.getState();
-
-      // Calculate new offset to keep the cursor-point anchored
-      let newOffX = state.imageZoomOffsetX;
-      let newOffY = state.imageZoomOffsetY;
-
-      if (newZoom > 1) {
-        const zoomRatio = oldZoom / newZoom;
-        newOffX = state.imageZoomOffsetX * zoomRatio + cursorNormX * (1 - zoomRatio) * (1 - 1 / newZoom);
-        newOffY = state.imageZoomOffsetY * zoomRatio + cursorNormY * (1 - zoomRatio) * (1 - 1 / newZoom);
-        const maxOff = 1 - 1 / newZoom;
-        newOffX = Math.max(-maxOff, Math.min(maxOff, newOffX));
-        newOffY = Math.max(-maxOff, Math.min(maxOff, newOffY));
-      } else {
-        newOffX = 0;
-        newOffY = 0;
-      }
-
-      setImageZoom(nextZoom);
-      setImageZoomOffset(newOffX, newOffY);
     }
 
     function handleZoomPanPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -2115,6 +2161,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                         variant={browserFrameStyle}
                       >
                         <motion.div
+                          ref={screenshotZoomTargetRef}
                           className={cn(
                             "relative overflow-hidden",
                             screenshotShellClasses,
@@ -2127,7 +2174,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                             ...screenshotCropStyle,
                             touchAction: isZoomed ? "none" : "pan-y",
                           }}
-                          onWheel={handleScreenshotWheel}
                           onPointerDown={handleZoomPanPointerDown}
                           onPointerMove={handleZoomPanPointerMove}
                           onPointerUp={handleZoomPanPointerEnd}
@@ -2143,6 +2189,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     </div>
                   ) : (
                     <motion.div
+                      ref={screenshotZoomTargetRef}
                       className={cn(
                         "relative overflow-hidden",
                         screenshotShellClasses,
@@ -2156,7 +2203,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                         ...mockupDecorationStyle,
                         touchAction: isZoomed ? "none" : "pan-y",
                       }}
-                      onWheel={handleScreenshotWheel}
                       onPointerDown={handleZoomPanPointerDown}
                       onPointerMove={handleZoomPanPointerMove}
                       onPointerUp={handleZoomPanPointerEnd}
