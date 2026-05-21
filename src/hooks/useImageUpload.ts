@@ -8,14 +8,22 @@ import {
 } from "react-dropzone";
 import { toast } from "sonner";
 
-import { formatFileSize } from "@/lib/format-file-size";
 import { createUploadedImage } from "@/lib/image-utils";
 import {
-  ACCEPTED_IMAGE_DROPZONE,
-  MAX_IMAGE_SIZE_BYTES,
+  ACCEPTED_IMAGE_TYPES,
   validateImageFile,
 } from "@/lib/image-validation";
-import { useEditorStore } from "@/store/editor-store";
+import {
+  MAX_SCREENSHOT_UPLOADS,
+  useEditorStore,
+  type UploadedImage,
+} from "@/store/editor-store";
+
+type UploadMode = "add" | "replace";
+
+type UseImageUploadOptions = {
+  mode?: UploadMode;
+};
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
@@ -34,29 +42,81 @@ function getRejectionMessage(rejection: FileRejection) {
   }
 
   if (errorCode === "file-too-large") {
-    return `${fileName} is ${formatFileSize(rejection.file.size)}. Choose an image under 10 MB.`;
+    return `${fileName} is too large. Choose an image under 10 MB.`;
   }
 
   if (errorCode === "too-many-files") {
-    return "Upload one screenshot at a time.";
+    return `You can keep up to ${MAX_SCREENSHOT_UPLOADS} screenshots.`;
   }
 
   return "That file could not be uploaded. Choose a PNG, JPEG, or WebP screenshot under 10 MB.";
 }
 
-export function useImageUpload() {
+function pluralizeScreenshot(count: number) {
+  return count === 1 ? "screenshot" : "screenshots";
+}
+
+function pluralizeFile(count: number) {
+  return count === 1 ? "file" : "files";
+}
+
+function createSkippedMessage({
+  addedCount,
+  failedCount,
+  limitSkippedCount,
+  mode,
+  replaced,
+}: {
+  addedCount: number;
+  failedCount: number;
+  limitSkippedCount: number;
+  mode: UploadMode;
+  replaced: boolean;
+}) {
+  const parts: string[] = [];
+
+  if (replaced) {
+    parts.push("Replaced the active screenshot.");
+  } else if (addedCount > 0) {
+    parts.push(`Added ${addedCount} ${pluralizeScreenshot(addedCount)}.`);
+  }
+
+  if (failedCount > 0) {
+    parts.push(
+      `Skipped ${failedCount} ${pluralizeFile(
+        failedCount,
+      )}: upload PNG, JPEG, or WebP images under 10 MB.`,
+    );
+  }
+
+  if (limitSkippedCount > 0) {
+    parts.push(
+      `Skipped ${limitSkippedCount} ${pluralizeFile(
+        limitSkippedCount,
+      )} because this session can keep up to ${MAX_SCREENSHOT_UPLOADS} screenshots.`,
+    );
+  }
+
+  if (mode === "replace" && addedCount === 0 && failedCount === 0) {
+    parts.push("Choose one PNG, JPEG, or WebP image to replace the active screenshot.");
+  }
+
+  return parts.join(" ");
+}
+
+export function useImageUpload({ mode = "add" }: UseImageUploadOptions = {}) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const isMountedRef = useRef(false);
   const uploadRequestIdRef = useRef(0);
+  const screenshots = useEditorStore((state) => state.screenshots);
+  const activeScreenshotId = useEditorStore((state) => state.activeScreenshotId);
   const uploadedImage = useEditorStore((state) => state.uploadedImage);
+  const addUploadedImages = useEditorStore((state) => state.addUploadedImages);
   const replaceUploadedImage = useEditorStore(
     (state) => state.replaceUploadedImage,
   );
   const clearUploadedImage = useEditorStore((state) => state.clearUploadedImage);
-  const resetEditorForNewUpload = useEditorStore(
-    (state) => state.resetEditorForNewUpload,
-  );
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -83,18 +143,66 @@ export function useImageUpload() {
     setErrorMessage(null);
   }, []);
 
-  const uploadFile = useCallback(
-    async (file: File) => {
+  const uploadFiles = useCallback(
+    async (files: File[] | FileList) => {
       if (!isMountedRef.current) {
         return;
       }
 
       clearError();
 
-      const validation = validateImageFile(file);
+      const fileList = Array.from(files);
 
-      if (!validation.valid) {
-        showError(validation.message);
+      if (!fileList.length) {
+        return;
+      }
+
+      const state = useEditorStore.getState();
+      const availableSlots =
+        mode === "add"
+          ? Math.max(0, MAX_SCREENSHOT_UPLOADS - state.screenshots.length)
+          : 1;
+
+      if (availableSlots <= 0) {
+        showError(
+          `You can keep up to ${MAX_SCREENSHOT_UPLOADS} screenshots. Remove one before adding another.`,
+        );
+        return;
+      }
+
+      const validFiles: File[] = [];
+      let failedCount = 0;
+
+      fileList.forEach((file) => {
+        const validation = validateImageFile(file);
+
+        if (validation.valid) {
+          validFiles.push(file);
+        } else {
+          failedCount += 1;
+        }
+      });
+
+      const filesToRead =
+        mode === "replace"
+          ? validFiles.slice(0, 1)
+          : validFiles.slice(0, availableSlots);
+      const limitSkippedCount =
+        mode === "add" ? Math.max(0, validFiles.length - filesToRead.length) : 0;
+
+      if (!filesToRead.length) {
+        const message = createSkippedMessage({
+          addedCount: 0,
+          failedCount,
+          limitSkippedCount,
+          mode,
+          replaced: false,
+        });
+
+        showError(
+          message ||
+            "Choose a PNG, JPEG, or WebP screenshot under 10 MB.",
+        );
         return;
       }
 
@@ -102,30 +210,60 @@ export function useImageUpload() {
       uploadRequestIdRef.current = requestId;
       setIsUploading(true);
 
-      try {
-        const image = await createUploadedImage(file);
+      const uploadedImages: UploadedImage[] = [];
+      let unreadableCount = 0;
 
-        if (
-          !isMountedRef.current ||
-          requestId !== uploadRequestIdRef.current
-        ) {
-          URL.revokeObjectURL(image.objectUrl);
+      try {
+        for (const file of filesToRead) {
+          try {
+            const image = await createUploadedImage(file);
+
+            if (
+              !isMountedRef.current ||
+              requestId !== uploadRequestIdRef.current
+            ) {
+              URL.revokeObjectURL(image.objectUrl);
+              return;
+            }
+
+            uploadedImages.push(image);
+          } catch (error) {
+            unreadableCount += 1;
+
+            if (mode === "replace") {
+              showError(getErrorMessage(error));
+              return;
+            }
+          }
+        }
+
+        if (!isMountedRef.current || requestId !== uploadRequestIdRef.current) {
+          uploadedImages.forEach((image) => {
+            URL.revokeObjectURL(image.objectUrl);
+          });
           return;
         }
 
-        // Read current image from the store imperatively to avoid adding
-        // uploadedImage to the dependency array (which would recreate this
-        // callback on every upload and cascade re-renders).
-        const currentImage = useEditorStore.getState().uploadedImage;
+        if (mode === "replace") {
+          const [image] = uploadedImages;
 
-        if (!currentImage) {
-          resetEditorForNewUpload();
+          if (image) {
+            replaceUploadedImage(image);
+          }
+        } else {
+          addUploadedImages(uploadedImages);
         }
 
-        replaceUploadedImage(image);
-      } catch (error) {
-        if (requestId === uploadRequestIdRef.current) {
-          showError(getErrorMessage(error));
+        const skippedMessage = createSkippedMessage({
+          addedCount: mode === "add" ? uploadedImages.length : 0,
+          failedCount: failedCount + unreadableCount,
+          limitSkippedCount,
+          mode,
+          replaced: mode === "replace" && uploadedImages.length > 0,
+        });
+
+        if (skippedMessage && (failedCount > 0 || unreadableCount > 0 || limitSkippedCount > 0)) {
+          showError(skippedMessage);
         }
       } finally {
         if (
@@ -136,33 +274,55 @@ export function useImageUpload() {
         }
       }
     },
-    [clearError, replaceUploadedImage, resetEditorForNewUpload, showError],
+    [
+      addUploadedImages,
+      clearError,
+      mode,
+      replaceUploadedImage,
+      showError,
+    ],
+  );
+
+  const uploadFile = useCallback(
+    async (file: File) => {
+      await uploadFiles([file]);
+    },
+    [uploadFiles],
   );
 
   const onDrop = useCallback<NonNullable<DropzoneOptions["onDrop"]>>(
     (acceptedFiles) => {
-      const [file] = acceptedFiles;
-
-      if (file) {
-        void uploadFile(file);
-      }
+      void uploadFiles(acceptedFiles);
     },
-    [uploadFile],
+    [uploadFiles],
   );
 
-  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
-    const [rejection] = fileRejections;
+  const onDropRejected = useCallback(
+    (fileRejections: FileRejection[]) => {
+      if (!fileRejections.length) {
+        return;
+      }
 
-    if (rejection) {
-      showError(getRejectionMessage(rejection));
-    }
-  }, [showError]);
+      if (fileRejections.length === 1) {
+        const [rejection] = fileRejections;
+
+        if (rejection) {
+          showError(getRejectionMessage(rejection));
+        }
+        return;
+      }
+
+      showError(
+        `Skipped ${fileRejections.length} ${pluralizeFile(
+          fileRejections.length,
+        )}. Upload PNG, JPEG, or WebP screenshots under 10 MB.`,
+      );
+    },
+    [showError],
+  );
 
   const dropzone = useDropzone({
-    accept: ACCEPTED_IMAGE_DROPZONE,
-    maxFiles: 1,
-    maxSize: MAX_IMAGE_SIZE_BYTES,
-    multiple: false,
+    multiple: mode === "add",
     noClick: true,
     onDrop,
     onDropRejected,
@@ -171,20 +331,27 @@ export function useImageUpload() {
   return useMemo(
     () => ({
       ...dropzone,
+      accept: ACCEPTED_IMAGE_TYPES.join(","),
+      activeScreenshotId,
       clearError,
       clearUploadedImage,
       errorMessage,
       isUploading,
+      screenshots,
       uploadFile,
+      uploadFiles,
       uploadedImage,
     }),
     [
+      activeScreenshotId,
       clearUploadedImage,
       clearError,
       dropzone,
       errorMessage,
       isUploading,
+      screenshots,
       uploadFile,
+      uploadFiles,
       uploadedImage,
     ],
   );

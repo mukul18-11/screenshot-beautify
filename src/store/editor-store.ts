@@ -26,13 +26,12 @@ import type {
   BrowserFrameSettings,
   BrowserFrameStyle,
   BrowserFrameTheme,
+  EditorDesignSettings,
   ExportScale,
   ExportSettings,
   ImageCrop,
   ImageShadow,
-  Phase3Settings,
-  Phase4Settings,
-  Phase5Settings,
+  ScreenshotDesign,
   TextAlign,
   TextFontId,
   TextFontWeight,
@@ -45,16 +44,20 @@ import type {
   UploadedImage,
 } from "@/types/editor";
 
-export type { UploadedImage } from "@/types/editor";
+export type { ScreenshotDesign, UploadedImage } from "@/types/editor";
 
-type EditorStore = BeautifySettings &
-  Phase3Settings &
-  Phase4Settings &
-  Phase5Settings & {
+export const MAX_SCREENSHOT_UPLOADS = 12;
+
+type EditorStore = EditorDesignSettings & {
+    screenshots: ScreenshotDesign[];
+    activeScreenshotId: string | null;
     uploadedImage: UploadedImage | null;
-    lastBeautifyPresetId: string | null;
+    selectScreenshot: (screenshotId: string) => void;
+    addUploadedImages: (uploadedImages: UploadedImage[]) => void;
+    removeUploadedImage: (screenshotId: string) => void;
     setUploadedImage: (uploadedImage: UploadedImage | null) => void;
     clearUploadedImage: () => void;
+    clearAllUploadedImages: () => void;
     replaceUploadedImage: (uploadedImage: UploadedImage) => void;
     applyBeautifyPreset: (presetId: string) => void;
     setCanvasPreset: (presetId: string) => void;
@@ -198,6 +201,197 @@ function createDefaultExportSettings(): ExportSettings {
   };
 }
 
+function createDefaultEditorDesignSettings(): EditorDesignSettings {
+  return {
+    ...createDefaultBeautifySettings(),
+    ...createDefaultBrowserFrameSettings(),
+    ...createDefaultTextOverlaySettings(),
+    ...createDefaultTiltSettings(),
+    ...createDefaultExportSettings(),
+    lastBeautifyPresetId: null,
+  };
+}
+
+function cloneEditorDesignSettings(
+  settings: EditorDesignSettings,
+): EditorDesignSettings {
+  return {
+    ...settings,
+    imageCrop: {
+      ...settings.imageCrop,
+    },
+    imageShadow: {
+      ...settings.imageShadow,
+    },
+  };
+}
+
+function getEditorDesignSettingsFromState(
+  state: EditorStore,
+): EditorDesignSettings {
+  return cloneEditorDesignSettings({
+    canvasPreset: state.canvasPreset,
+    canvasWidth: state.canvasWidth,
+    canvasHeight: state.canvasHeight,
+    backgroundType: state.backgroundType,
+    backgroundValue: state.backgroundValue,
+    backgroundPresetId: state.backgroundPresetId,
+    imagePadding: state.imagePadding,
+    imageRadius: state.imageRadius,
+    imageScale: state.imageScale,
+    imageOffsetX: state.imageOffsetX,
+    imageOffsetY: state.imageOffsetY,
+    imageCrop: state.imageCrop,
+    imageShadow: state.imageShadow,
+    imageBorderEnabled: state.imageBorderEnabled,
+    imageZoom: state.imageZoom,
+    imageZoomOffsetX: state.imageZoomOffsetX,
+    imageZoomOffsetY: state.imageZoomOffsetY,
+    browserFrameEnabled: state.browserFrameEnabled,
+    browserFrameTheme: state.browserFrameTheme,
+    browserFrameStyle: state.browserFrameStyle,
+    browserFrameUrl: state.browserFrameUrl,
+    browserFrameShowUrl: state.browserFrameShowUrl,
+    textOverlayEnabled: state.textOverlayEnabled,
+    headlineText: state.headlineText,
+    subtitleText: state.subtitleText,
+    badgeText: state.badgeText,
+    textPosition: state.textPosition,
+    textAlign: state.textAlign,
+    textColor: state.textColor,
+    textFontId: state.textFontId,
+    textFontWeight: state.textFontWeight,
+    textItalic: state.textItalic,
+    textUnderline: state.textUnderline,
+    textLetterSpacing: state.textLetterSpacing,
+    textLineHeight: state.textLineHeight,
+    textOpacity: state.textOpacity,
+    textShadowEnabled: state.textShadowEnabled,
+    textShadowMode: state.textShadowMode,
+    textShadowPresetId: state.textShadowPresetId,
+    textShadowColor: state.textShadowColor,
+    textShadowBlur: state.textShadowBlur,
+    textShadowOffsetX: state.textShadowOffsetX,
+    textShadowOffsetY: state.textShadowOffsetY,
+    textShadowOpacity: state.textShadowOpacity,
+    textShadowDepth: state.textShadowDepth,
+    headlineSize: state.headlineSize,
+    subtitleSize: state.subtitleSize,
+    badgeSize: state.badgeSize,
+    badgeRotation: state.badgeRotation,
+    headlineRotation: state.headlineRotation,
+    subtitleRotation: state.subtitleRotation,
+    badgeEnabled: state.badgeEnabled,
+    badgeOffsetX: state.badgeOffsetX,
+    badgeOffsetY: state.badgeOffsetY,
+    headlineOffsetX: state.headlineOffsetX,
+    headlineOffsetY: state.headlineOffsetY,
+    subtitleOffsetX: state.subtitleOffsetX,
+    subtitleOffsetY: state.subtitleOffsetY,
+    tiltEnabled: state.tiltEnabled,
+    tiltPresetId: state.tiltPresetId,
+    perspective: state.perspective,
+    rotateX: state.rotateX,
+    rotateY: state.rotateY,
+    rotateZ: state.rotateZ,
+    translateY: state.translateY,
+    tiltShadowMultiplier: state.tiltShadowMultiplier,
+    hoverTiltEnabled: state.hoverTiltEnabled,
+    hoverTiltSensitivity: state.hoverTiltSensitivity,
+    backgroundParallaxEnabled: state.backgroundParallaxEnabled,
+    backgroundParallaxStrength: state.backgroundParallaxStrength,
+    exportScale: state.exportScale,
+    exportFileName: state.exportFileName,
+    isExporting: state.isExporting,
+    lastExportedAt: state.lastExportedAt,
+    lastBeautifyPresetId: state.lastBeautifyPresetId,
+  });
+}
+
+function createExportFileNameFromImage(uploadedImage: UploadedImage) {
+  return sanitizeFileName(
+    uploadedImage.name.replace(/\.(png|jpe?g|webp)$/i, ""),
+  );
+}
+
+function createSettingsForUploadedImage(
+  uploadedImage: UploadedImage,
+  sourceSettings: EditorDesignSettings,
+): EditorDesignSettings {
+  return {
+    ...cloneEditorDesignSettings(sourceSettings),
+    exportFileName: createExportFileNameFromImage(uploadedImage),
+    isExporting: false,
+    lastExportedAt: null,
+  };
+}
+
+function createScreenshotDesign(
+  uploadedImage: UploadedImage,
+  settings: EditorDesignSettings,
+): ScreenshotDesign {
+  return {
+    id: `design-${uploadedImage.id}`,
+    uploadedImage,
+    settings: cloneEditorDesignSettings(settings),
+  };
+}
+
+function createLayerLayout(index: number, total: number) {
+  if (total <= 1) {
+    return { imageOffsetX: 0, imageOffsetY: 0, imageScale: 92 };
+  }
+
+  const columns = Math.ceil(Math.sqrt(total));
+  const rows = Math.ceil(total / columns);
+  const column = index % columns;
+  const row = Math.floor(index / columns);
+  const xSpread = total <= 2 ? 0.72 : total <= 4 ? 0.9 : 1.04;
+  const ySpread = total <= 2 ? 0.28 : total <= 4 ? 0.72 : 0.86;
+  const imageScale =
+    total <= 2 ? 58 : total <= 4 ? 45 : total <= 6 ? 36 : total <= 9 ? 30 : 25;
+
+  return {
+    imageOffsetX:
+      columns <= 1 ? 0 : (column / (columns - 1) - 0.5) * xSpread,
+    imageOffsetY: rows <= 1 ? 0 : (row / (rows - 1) - 0.5) * ySpread,
+    imageScale,
+  };
+}
+
+function arrangeScreenshotLayers(screenshots: ScreenshotDesign[]) {
+  if (!screenshots.length) {
+    return screenshots;
+  }
+
+  return screenshots.map((screenshot, index) => {
+    const layout = createLayerLayout(index, screenshots.length);
+
+    return {
+      ...screenshot,
+      settings: {
+        ...cloneEditorDesignSettings(screenshot.settings),
+        ...layout,
+      },
+    };
+  });
+}
+
+function getActiveScreenshot(state: EditorStore) {
+  return (
+    state.screenshots.find(
+      (screenshot) => screenshot.id === state.activeScreenshotId,
+    ) ?? null
+  );
+}
+
+function getNextActiveScreenshot(
+  screenshots: ScreenshotDesign[],
+  removedIndex: number,
+) {
+  return screenshots[removedIndex + 1] ?? screenshots[removedIndex - 1] ?? null;
+}
+
 function clampFitScale(scale: number) {
   if (!Number.isFinite(scale)) {
     return 100;
@@ -231,32 +425,291 @@ function getBackgroundState(presetId: string): {
   };
 }
 
+function getLayerSettingsPatch(settings: EditorDesignSettings) {
+  return {
+    imageRadius: settings.imageRadius,
+    imageScale: settings.imageScale,
+    imageOffsetX: settings.imageOffsetX,
+    imageOffsetY: settings.imageOffsetY,
+    imageCrop: {
+      ...settings.imageCrop,
+    },
+    imageShadow: {
+      ...settings.imageShadow,
+    },
+    imageBorderEnabled: settings.imageBorderEnabled,
+    imageZoom: settings.imageZoom,
+    imageZoomOffsetX: settings.imageZoomOffsetX,
+    imageZoomOffsetY: settings.imageZoomOffsetY,
+    browserFrameEnabled: settings.browserFrameEnabled,
+    browserFrameTheme: settings.browserFrameTheme,
+    browserFrameStyle: settings.browserFrameStyle,
+    browserFrameUrl: settings.browserFrameUrl,
+    browserFrameShowUrl: settings.browserFrameShowUrl,
+    tiltEnabled: settings.tiltEnabled,
+    tiltPresetId: settings.tiltPresetId,
+    perspective: settings.perspective,
+    rotateX: settings.rotateX,
+    rotateY: settings.rotateY,
+    rotateZ: settings.rotateZ,
+    translateY: settings.translateY,
+    tiltShadowMultiplier: settings.tiltShadowMultiplier,
+    hoverTiltEnabled: settings.hoverTiltEnabled,
+    hoverTiltSensitivity: settings.hoverTiltSensitivity,
+    lastBeautifyPresetId: settings.lastBeautifyPresetId,
+  } satisfies Partial<EditorDesignSettings>;
+}
+
+function getLayerSettingsPatchFromState(state: EditorStore) {
+  return getLayerSettingsPatch(getEditorDesignSettingsFromState(state));
+}
+
+const LAYER_SCALAR_SETTING_KEYS = [
+  "imageRadius",
+  "imageScale",
+  "imageOffsetX",
+  "imageOffsetY",
+  "imageBorderEnabled",
+  "imageZoom",
+  "imageZoomOffsetX",
+  "imageZoomOffsetY",
+  "browserFrameEnabled",
+  "browserFrameTheme",
+  "browserFrameStyle",
+  "browserFrameUrl",
+  "browserFrameShowUrl",
+  "textOverlayEnabled",
+  "headlineText",
+  "subtitleText",
+  "badgeText",
+  "textPosition",
+  "textAlign",
+  "textColor",
+  "textFontId",
+  "textFontWeight",
+  "textItalic",
+  "textUnderline",
+  "textLetterSpacing",
+  "textLineHeight",
+  "textOpacity",
+  "textShadowEnabled",
+  "textShadowMode",
+  "textShadowPresetId",
+  "textShadowColor",
+  "textShadowBlur",
+  "textShadowOffsetX",
+  "textShadowOffsetY",
+  "textShadowOpacity",
+  "textShadowDepth",
+  "headlineSize",
+  "subtitleSize",
+  "badgeSize",
+  "badgeRotation",
+  "headlineRotation",
+  "subtitleRotation",
+  "badgeEnabled",
+  "badgeOffsetX",
+  "badgeOffsetY",
+  "headlineOffsetX",
+  "headlineOffsetY",
+  "subtitleOffsetX",
+  "subtitleOffsetY",
+  "tiltEnabled",
+  "tiltPresetId",
+  "perspective",
+  "rotateX",
+  "rotateY",
+  "rotateZ",
+  "translateY",
+  "tiltShadowMultiplier",
+  "hoverTiltEnabled",
+  "hoverTiltSensitivity",
+  "lastBeautifyPresetId",
+] as const satisfies readonly (keyof EditorDesignSettings)[];
+
+function didLayerSettingsChange(
+  previousState: EditorStore,
+  nextState: EditorStore,
+) {
+  if (
+    previousState.imageCrop.top !== nextState.imageCrop.top ||
+    previousState.imageCrop.right !== nextState.imageCrop.right ||
+    previousState.imageCrop.bottom !== nextState.imageCrop.bottom ||
+    previousState.imageCrop.left !== nextState.imageCrop.left ||
+    previousState.imageShadow.enabled !== nextState.imageShadow.enabled ||
+    previousState.imageShadow.blur !== nextState.imageShadow.blur ||
+    previousState.imageShadow.opacity !== nextState.imageShadow.opacity ||
+    previousState.imageShadow.offsetY !== nextState.imageShadow.offsetY
+  ) {
+    return true;
+  }
+
+  return LAYER_SCALAR_SETTING_KEYS.some(
+    (key) => previousState[key] !== nextState[key],
+  );
+}
+
 export const useEditorStore = create<EditorStore>((set, get) => ({
+  screenshots: [],
+  activeScreenshotId: null,
   uploadedImage: null,
-  lastBeautifyPresetId: null,
-  ...createDefaultBeautifySettings(),
-  ...createDefaultBrowserFrameSettings(),
-  ...createDefaultTextOverlaySettings(),
-  ...createDefaultTiltSettings(),
-  ...createDefaultExportSettings(),
-  setUploadedImage: (uploadedImage) => {
-    const previousImage = get().uploadedImage;
+  ...createDefaultEditorDesignSettings(),
+  selectScreenshot: (screenshotId) => {
+    const screenshot = get().screenshots.find(
+      (item) => item.id === screenshotId,
+    );
 
-    if (previousImage?.objectUrl !== uploadedImage?.objectUrl) {
-      revokeObjectUrl(previousImage);
-    }
-
-    set({ uploadedImage });
-  },
-  clearUploadedImage: () => {
-    if (!get().uploadedImage) {
+    if (!screenshot || get().activeScreenshotId === screenshot.id) {
       return;
     }
 
-    get().setUploadedImage(null);
+    set({
+      activeScreenshotId: screenshot.id,
+      uploadedImage: screenshot.uploadedImage,
+      ...getLayerSettingsPatch(screenshot.settings),
+    });
+  },
+  addUploadedImages: (uploadedImages) => {
+    if (!uploadedImages.length) {
+      return;
+    }
+
+    const state = get();
+    const availableSlots = Math.max(
+      0,
+      MAX_SCREENSHOT_UPLOADS - state.screenshots.length,
+    );
+    const imagesToAdd = uploadedImages.slice(0, availableSlots);
+    const imagesToDiscard = uploadedImages.slice(availableSlots);
+
+    imagesToDiscard.forEach(revokeObjectUrl);
+
+    if (!imagesToAdd.length) {
+      return;
+    }
+
+    const sourceSettings = getEditorDesignSettingsFromState(state);
+    const nextScreenshots = imagesToAdd.map((uploadedImage) =>
+      createScreenshotDesign(
+        uploadedImage,
+        createSettingsForUploadedImage(uploadedImage, sourceSettings),
+      ),
+    );
+    const arrangedScreenshots = arrangeScreenshotLayers([
+      ...state.screenshots,
+      ...nextScreenshots,
+    ]);
+    const activeScreenshot = arrangedScreenshots[arrangedScreenshots.length - 1]!;
+
+    set({
+      screenshots: arrangedScreenshots,
+      activeScreenshotId: activeScreenshot.id,
+      uploadedImage: activeScreenshot.uploadedImage,
+      ...getLayerSettingsPatch(activeScreenshot.settings),
+    });
+  },
+  removeUploadedImage: (screenshotId) => {
+    const state = get();
+    const removedIndex = state.screenshots.findIndex(
+      (screenshot) => screenshot.id === screenshotId,
+    );
+
+    if (removedIndex === -1) {
+      return;
+    }
+
+    const removedScreenshot = state.screenshots[removedIndex]!;
+    const remainingScreenshots = state.screenshots.filter(
+      (screenshot) => screenshot.id !== screenshotId,
+    );
+    const activeScreenshot =
+      state.activeScreenshotId === screenshotId
+        ? getNextActiveScreenshot(state.screenshots, removedIndex)
+        : getActiveScreenshot(state);
+
+    revokeObjectUrl(removedScreenshot.uploadedImage);
+
+    if (!activeScreenshot) {
+      set({
+        screenshots: remainingScreenshots,
+        activeScreenshotId: null,
+        uploadedImage: null,
+        ...createDefaultEditorDesignSettings(),
+      });
+      return;
+    }
+
+    set({
+      screenshots: remainingScreenshots,
+      activeScreenshotId: activeScreenshot.id,
+      uploadedImage: activeScreenshot.uploadedImage,
+      ...getLayerSettingsPatch(activeScreenshot.settings),
+    });
+  },
+  setUploadedImage: (uploadedImage) => {
+    if (!uploadedImage) {
+      get().clearAllUploadedImages();
+      return;
+    }
+
+    if (get().activeScreenshotId) {
+      get().replaceUploadedImage(uploadedImage);
+      return;
+    }
+
+    get().addUploadedImages([uploadedImage]);
+  },
+  clearUploadedImage: () => {
+    const activeScreenshotId = get().activeScreenshotId;
+
+    if (!activeScreenshotId) {
+      return;
+    }
+
+    get().removeUploadedImage(activeScreenshotId);
+  },
+  clearAllUploadedImages: () => {
+    const screenshots = get().screenshots;
+
+    if (!screenshots.length) {
+      return;
+    }
+
+    screenshots.forEach((screenshot) => {
+      revokeObjectUrl(screenshot.uploadedImage);
+    });
+
+    set({
+      screenshots: [],
+      activeScreenshotId: null,
+      uploadedImage: null,
+      ...createDefaultEditorDesignSettings(),
+    });
   },
   replaceUploadedImage: (uploadedImage) => {
-    get().setUploadedImage(uploadedImage);
+    const state = get();
+    const activeScreenshot = getActiveScreenshot(state);
+
+    if (!activeScreenshot) {
+      get().addUploadedImages([uploadedImage]);
+      return;
+    }
+
+    if (activeScreenshot.uploadedImage.objectUrl !== uploadedImage.objectUrl) {
+      revokeObjectUrl(activeScreenshot.uploadedImage);
+    }
+
+    set({
+      screenshots: state.screenshots.map((screenshot) =>
+        screenshot.id === activeScreenshot.id
+          ? {
+              ...screenshot,
+              uploadedImage,
+            }
+          : screenshot,
+      ),
+      uploadedImage,
+    });
   },
   applyBeautifyPreset: (presetId) => {
     set({
@@ -704,3 +1157,41 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
 }));
+
+let isSyncingActiveScreenshotSettings = false;
+
+useEditorStore.subscribe((state, previousState) => {
+  if (
+    isSyncingActiveScreenshotSettings ||
+    !state.activeScreenshotId ||
+    state.activeScreenshotId !== previousState.activeScreenshotId ||
+    !didLayerSettingsChange(previousState, state)
+  ) {
+    return;
+  }
+
+  const activeScreenshotId = state.activeScreenshotId;
+  const settings = getLayerSettingsPatchFromState(state);
+
+  isSyncingActiveScreenshotSettings = true;
+  useEditorStore.setState({
+    screenshots: state.screenshots.map((screenshot) =>
+      screenshot.id === activeScreenshotId
+        ? {
+            ...screenshot,
+            settings: {
+              ...screenshot.settings,
+              ...settings,
+              imageCrop: settings.imageCrop
+                ? { ...settings.imageCrop }
+                : screenshot.settings.imageCrop,
+              imageShadow: settings.imageShadow
+                ? { ...settings.imageShadow }
+                : screenshot.settings.imageShadow,
+            },
+          }
+        : screenshot,
+    ),
+  });
+  isSyncingActiveScreenshotSettings = false;
+});

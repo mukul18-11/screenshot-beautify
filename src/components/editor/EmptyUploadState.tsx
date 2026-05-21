@@ -31,7 +31,7 @@ export default function EmptyUploadState({
     },
     idle: {
       title: "Make your screenshot launch-ready",
-      description: "Drop one here, browse files, or paste from clipboard.",
+      description: "Drop screenshots here, browse files, or paste from clipboard.",
     },
     reject: {
       title: "Only PNG, JPG, or WebP supported",

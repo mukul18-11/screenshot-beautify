@@ -7,34 +7,59 @@ import { toast } from "sonner";
 
 import EmptyUploadState from "@/components/editor/EmptyUploadState";
 import ImagePreview from "@/components/editor/ImagePreview";
+import ScreenshotTray from "@/components/editor/ScreenshotTray";
 import { cn } from "@/lib/utils";
 import { useClipboardImage } from "@/hooks/useClipboardImage";
 import { useImageUpload } from "@/hooks/useImageUpload";
 
 export default function UploadZone() {
   const shouldReduceMotion = useReducedMotion();
+  const addUpload = useImageUpload({ mode: "add" });
+  const replaceUpload = useImageUpload({ mode: "replace" });
   const {
+    accept,
     clearUploadedImage,
-    clearError,
-    errorMessage,
+    clearError: clearAddError,
+    errorMessage: addErrorMessage,
     getInputProps,
     getRootProps,
     isDragAccept,
     isDragActive,
     isDragReject,
-    isUploading,
+    isUploading: isAdding,
     open,
     uploadFile,
     uploadedImage,
-  } = useImageUpload();
+  } = addUpload;
+  const {
+    accept: replaceAccept,
+    clearError: clearReplaceError,
+    errorMessage: replaceErrorMessage,
+    getInputProps: getReplaceInputProps,
+    isUploading: isReplacing,
+    open: openReplace,
+  } = replaceUpload;
+  const isUploading = isAdding || isReplacing;
+  const errorMessage = addErrorMessage ?? replaceErrorMessage;
 
   useClipboardImage({ uploadFile });
 
+  const handleBrowseAdd = useCallback(() => {
+    clearReplaceError();
+    open();
+  }, [clearReplaceError, open]);
+
+  const handleBrowseReplace = useCallback(() => {
+    clearAddError();
+    openReplace();
+  }, [clearAddError, openReplace]);
+
   const handleRemoveImage = useCallback(() => {
-    clearError();
+    clearAddError();
+    clearReplaceError();
     clearUploadedImage();
     toast.success("Screenshot removed");
-  }, [clearError, clearUploadedImage]);
+  }, [clearAddError, clearReplaceError, clearUploadedImage]);
 
   const handleRootKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -51,9 +76,9 @@ export default function UploadZone() {
       }
 
       event.preventDefault();
-      open();
+      handleBrowseAdd();
     },
-    [isUploading, open],
+    [handleBrowseAdd, isUploading],
   );
 
   const dragState = isDragReject ? "reject" : isDragAccept ? "accept" : "idle";
@@ -95,13 +120,20 @@ export default function UploadZone() {
       >
         <input
           {...getInputProps({
+            accept,
             "aria-label": "Browse for a screenshot image",
+          })}
+        />
+        <input
+          {...getReplaceInputProps({
+            accept: replaceAccept,
+            "aria-label": "Replace active screenshot image",
           })}
         />
 
         <div className="flex min-h-0 w-full flex-1 flex-col items-center">
           <p id="upload-helper-text" className="sr-only">
-            Upload, drop, or paste a PNG, JPG, or WebP screenshot up to 10 MB.
+            Upload, drop, or paste PNG, JPG, or WebP screenshots up to 10 MB each.
           </p>
 
           <AnimatePresence>
@@ -128,8 +160,16 @@ export default function UploadZone() {
               <ImagePreview
                 key="uploaded"
                 isUploading={isUploading}
+                toolbar={
+                  <ScreenshotTray
+                    isUploading={isUploading}
+                    onAdd={handleBrowseAdd}
+                    onRemove={handleRemoveImage}
+                    onReplace={handleBrowseReplace}
+                  />
+                }
                 onRemove={handleRemoveImage}
-                onReplace={open}
+                onReplace={handleBrowseReplace}
                 uploadedImage={uploadedImage}
               />
             ) : (
@@ -144,7 +184,7 @@ export default function UploadZone() {
                 <EmptyUploadState
                   dragState={dragState}
                   isUploading={isUploading}
-                  onBrowse={open}
+                  onBrowse={handleBrowseAdd}
                 />
               </motion.div>
             )}

@@ -35,8 +35,17 @@ import {
 } from "@/lib/editor-geometry";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { cn } from "@/lib/utils";
-import { useEditorStore, type UploadedImage } from "@/store/editor-store";
-import type { ImageCrop, TextLayerId, TextPosition } from "@/types/editor";
+import {
+  useEditorStore,
+  type ScreenshotDesign,
+  type UploadedImage,
+} from "@/store/editor-store";
+import type {
+  EditorDesignSettings,
+  ImageCrop,
+  TextLayerId,
+  TextPosition,
+} from "@/types/editor";
 
 type CanvasArtworkMode = "preview" | "export";
 
@@ -530,7 +539,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const textRotateStateRef = useRef<TextLayerRotateState | null>(null);
     const mockupDragStateRef = useRef<MockupDragState | null>(null);
     const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
-    const fittedImageKeyRef = useRef<string | null>(null);
     const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
     const textDragFrameRef = useRef<number | null>(null);
@@ -553,6 +561,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const zoomPanDragStateRef = useRef<ZoomPanDragState | null>(null);
     const canvasWidth = useEditorStore((state) => state.canvasWidth);
     const canvasHeight = useEditorStore((state) => state.canvasHeight);
+    const screenshots = useEditorStore((state) => state.screenshots);
+    const activeScreenshotId = useEditorStore(
+      (state) => state.activeScreenshotId,
+    );
     const backgroundType = useEditorStore((state) => state.backgroundType);
     const backgroundValue = useEditorStore((state) => state.backgroundValue);
     const imagePadding = useEditorStore((state) => state.imagePadding);
@@ -639,9 +651,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const setImageTransform = useEditorStore(
       (state) => state.setImageTransform,
     );
-    const fitUploadedImage = useEditorStore(
-      (state) => state.fitUploadedImage,
-    );
+    const selectScreenshot = useEditorStore((state) => state.selectScreenshot);
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
     );
@@ -656,6 +666,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       (state) => state.setImageZoomOffset,
     );
     const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
+    const tiltPresetId = useEditorStore((state) => state.tiltPresetId);
     const perspective = useEditorStore((state) => state.perspective);
     const rotateX = useEditorStore((state) => state.rotateX);
     const rotateY = useEditorStore((state) => state.rotateY);
@@ -679,15 +690,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const isExportMode = mode === "export";
     const canvasPadding = `${(imagePadding / canvasWidth) * 100}cqw`;
     const screenshotScale = imageScale / 100;
-    const screenshotShadow = createImageShadowCss({
-      ...imageShadow,
-      blur: tiltEnabled
-        ? multiplyTiltShadow(imageShadow.blur, tiltShadowMultiplier)
-        : imageShadow.blur,
-      offsetY: tiltEnabled
-        ? multiplyTiltShadow(imageShadow.offsetY, tiltShadowMultiplier)
-        : imageShadow.offsetY,
-    });
     const backgroundKey = `${backgroundType}-${backgroundValue}-${
       backgroundType === "image-blur" ? uploadedImage.id : "static"
     }`;
@@ -910,27 +912,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      const fitKey = [uploadedImage.id, canvasWidth, canvasHeight].join(":");
-
-      if (fittedImageKeyRef.current === fitKey) {
-        return;
-      }
-
-      fittedImageKeyRef.current = fitKey;
-      fitUploadedImage(100);
-    }, [
-      canvasHeight,
-      canvasWidth,
-      fitUploadedImage,
-      isExportMode,
-      uploadedImage.id,
-    ]);
-
-    useEffect(() => {
-      if (isExportMode) {
-        return;
-      }
-
       const screenshotZoomTarget = screenshotZoomTargetRef.current;
 
       if (!screenshotZoomTarget) {
@@ -1036,14 +1017,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
 
       const eventTarget = event.target;
-      const mockupFrame = mockupFrameRef.current;
 
       if (
-        eventTarget instanceof Node &&
-        mockupFrame &&
-        !mockupFrame.contains(eventTarget)
+        eventTarget instanceof HTMLElement &&
+        !eventTarget.closest("[data-screenshot-layer-id]")
       ) {
-        setIsMockupSelected((selected) => !selected);
+        setIsMockupSelected(false);
       }
 
       if (
@@ -1547,8 +1526,21 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
     }
 
-    function handleMockupPointerDown(event: PointerEvent<HTMLDivElement>) {
+    function handleMockupPointerDown(
+      screenshotId: string,
+      event: PointerEvent<HTMLDivElement>,
+    ) {
       if (isExportMode || event.button !== 0) {
+        return;
+      }
+
+      event.stopPropagation();
+
+      if (screenshotId !== activeScreenshotId) {
+        event.preventDefault();
+        selectScreenshot(screenshotId);
+        setIsMockupSelected(true);
+        setActiveTextLayerId(null);
         return;
       }
 
@@ -1902,51 +1894,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       ((badgeEnabled && badgeText.trim().length > 0) ||
         headlineText.trim().length > 0 ||
         subtitleText.trim().length > 0);
-    const cropRatios = getCropRatios(imageCrop);
-    const croppedImageWidth = uploadedImage.width * cropRatios.width;
-    const croppedImageHeight = uploadedImage.height * cropRatios.height;
-    const maxScreenshotWidth =
-      screenshotSlotWidth !== null
-        ? screenshotSlotWidth *
-          getScreenshotMaxWidthRatio(hasTextOverlay, textPosition)
-        : null;
-    const screenshotCropWidth =
-      maxScreenshotWidth !== null
-        ? Math.max(
-            1,
-            Math.min(croppedImageWidth, maxScreenshotWidth * cropRatios.width),
-          )
-        : croppedImageWidth;
-    const screenshotCropStyle = {
-      aspectRatio: `${croppedImageWidth} / ${croppedImageHeight}`,
-      width: `${screenshotCropWidth}px`,
-    } satisfies CSSProperties;
-    /** Border, shadow, and radius apply to the BrowserFrame wrapper when it's
-     *  enabled, or directly to the crop container when it isn't. */
-    const mockupDecorationStyle = {
-      border: imageBorderEnabled
-        ? "1px solid rgba(255, 255, 255, 0.72)"
-        : "none",
-      borderRadius: `${imageRadius}px`,
-      boxShadow: screenshotShadow,
-    } satisfies CSSProperties;
-    const cropContentStyle = {
-      height: `${100 / cropRatios.height}%`,
-      left: `${(-imageCrop.left / cropRatios.width) * 100}%`,
-      position: "absolute",
-      top: `${(-imageCrop.top / cropRatios.height) * 100}%`,
-      width: `${100 / cropRatios.width}%`,
-      willChange: "transform",
-    } satisfies CSSProperties;
-    const zoomScale = imageZoom / 100;
-    const isZoomed = imageZoom > 100;
-    const zoomTransformStyle = {
-      transform: isZoomed
-        ? `scale(${zoomScale}) translate(${-imageZoomOffsetX * 100}%, ${-imageZoomOffsetY * 100}%)`
-        : undefined,
-      transformOrigin: "center",
-      willChange: isZoomed ? "transform" : undefined,
-    } satisfies CSSProperties;
     const screenshotSlotClasses = getScreenshotSlotClasses(
       hasTextOverlay,
       textPosition,
@@ -1955,46 +1902,303 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       hasTextOverlay,
       textPosition,
     );
-    const tiltSettings = {
-      tiltEnabled,
-      perspective,
-      rotateX,
-      rotateY,
-      rotateZ,
-      translateY,
-      hoverTiltEnabled:
-        isExportMode || isDraggingCanvasItem ? false : hoverTiltEnabled,
-      hoverTiltSensitivity,
-    };
-    const imagePlacementStyle = {
-      transform: `translate(calc(${imageOffsetX} * 50cqw), calc(${imageOffsetY} * 50cqh))`,
-      willChange: "transform",
-    } satisfies CSSProperties;
-    const mockupScaleStyle = {
-      transform: `scale(${screenshotScale})`,
-      transformOrigin: "center",
-      transition:
-        isExportMode || shouldReduceMotion || isDraggingCanvasItem
-          ? undefined
-          : "transform 180ms ease-out",
-      willChange: "transform",
-    } satisfies CSSProperties;
-    const screenshotPreview = (
-      <motion.img
-        key={`${uploadedImage.id}-screenshot`}
-        src={uploadedImage.objectUrl}
-        alt={uploadedImage.name}
-        onLoad={handleImageLoad}
-        draggable={false}
-        onDragStart={(event) => event.preventDefault()}
-        {...screenshotMotionProps}
-        className={cn(
-          "block h-full w-full select-none object-cover [-webkit-user-drag:none]",
-          isZoomed ? "will-change-transform" : "will-change-auto",
-        )}
-        style={zoomTransformStyle}
-      />
+    const activeScreenshot = screenshots.find(
+      (screenshot) => screenshot.id === activeScreenshotId,
     );
+    const activeLayerSettings = activeScreenshot
+      ? ({
+          ...activeScreenshot.settings,
+          imageRadius,
+          imageScale,
+          imageOffsetX,
+          imageOffsetY,
+          imageCrop,
+          imageShadow,
+          imageBorderEnabled,
+          imageZoom,
+          imageZoomOffsetX,
+          imageZoomOffsetY,
+          browserFrameEnabled,
+          browserFrameTheme,
+          browserFrameStyle,
+          browserFrameUrl,
+          browserFrameShowUrl,
+          tiltEnabled,
+          tiltPresetId,
+          perspective,
+          rotateX,
+          rotateY,
+          rotateZ,
+          translateY,
+          tiltShadowMultiplier,
+          hoverTiltEnabled,
+          hoverTiltSensitivity,
+        } satisfies EditorDesignSettings)
+      : null;
+    const screenshotLayers = screenshots.map((screenshot) =>
+      screenshot.id === activeScreenshotId && activeLayerSettings
+        ? {
+            ...screenshot,
+            settings: activeLayerSettings,
+          }
+        : screenshot,
+    );
+    const sortedScreenshotLayers = [...screenshotLayers].sort((a, b) => {
+      if (a.id === activeScreenshotId) {
+        return 1;
+      }
+
+      if (b.id === activeScreenshotId) {
+        return -1;
+      }
+
+      return 0;
+    });
+
+    function renderScreenshotLayer(
+      screenshot: ScreenshotDesign,
+      layerIndex: number,
+    ) {
+      const layerSettings = screenshot.settings;
+      const isActiveLayer = screenshot.id === activeScreenshotId;
+      const layerCropRatios = getCropRatios(layerSettings.imageCrop);
+      const croppedImageWidth =
+        screenshot.uploadedImage.width * layerCropRatios.width;
+      const croppedImageHeight =
+        screenshot.uploadedImage.height * layerCropRatios.height;
+      const maxScreenshotWidth =
+        screenshotSlotWidth !== null
+          ? screenshotSlotWidth *
+            getScreenshotMaxWidthRatio(hasTextOverlay, textPosition)
+          : null;
+      const screenshotCropWidth =
+        maxScreenshotWidth !== null
+          ? Math.max(
+              1,
+              Math.min(
+                croppedImageWidth,
+                maxScreenshotWidth * layerCropRatios.width,
+              ),
+            )
+          : croppedImageWidth;
+      const layerTiltEnabled = layerSettings.tiltEnabled;
+      const layerScreenshotShadow = createImageShadowCss({
+        ...layerSettings.imageShadow,
+        blur: layerTiltEnabled
+          ? multiplyTiltShadow(
+              layerSettings.imageShadow.blur,
+              layerSettings.tiltShadowMultiplier,
+            )
+          : layerSettings.imageShadow.blur,
+        offsetY: layerTiltEnabled
+          ? multiplyTiltShadow(
+              layerSettings.imageShadow.offsetY,
+              layerSettings.tiltShadowMultiplier,
+            )
+          : layerSettings.imageShadow.offsetY,
+      });
+      const screenshotCropStyle = {
+        aspectRatio: `${croppedImageWidth} / ${croppedImageHeight}`,
+        width: `${screenshotCropWidth}px`,
+      } satisfies CSSProperties;
+      const mockupDecorationStyle = {
+        border: layerSettings.imageBorderEnabled
+          ? "1px solid rgba(255, 255, 255, 0.72)"
+          : "none",
+        borderRadius: `${layerSettings.imageRadius}px`,
+        boxShadow: layerScreenshotShadow,
+      } satisfies CSSProperties;
+      const cropContentStyle = {
+        height: `${100 / layerCropRatios.height}%`,
+        left: `${(-layerSettings.imageCrop.left / layerCropRatios.width) * 100}%`,
+        position: "absolute",
+        top: `${(-layerSettings.imageCrop.top / layerCropRatios.height) * 100}%`,
+        width: `${100 / layerCropRatios.width}%`,
+        willChange: "transform",
+      } satisfies CSSProperties;
+      const layerZoomScale = layerSettings.imageZoom / 100;
+      const isLayerZoomed = layerSettings.imageZoom > 100;
+      const zoomTransformStyle = {
+        transform: isLayerZoomed
+          ? `scale(${layerZoomScale}) translate(${-layerSettings.imageZoomOffsetX * 100}%, ${-layerSettings.imageZoomOffsetY * 100}%)`
+          : undefined,
+        transformOrigin: "center",
+        willChange: isLayerZoomed ? "transform" : undefined,
+      } satisfies CSSProperties;
+      const tiltSettings = {
+        tiltEnabled: layerSettings.tiltEnabled,
+        perspective: layerSettings.perspective,
+        rotateX: layerSettings.rotateX,
+        rotateY: layerSettings.rotateY,
+        rotateZ: layerSettings.rotateZ,
+        translateY: layerSettings.translateY,
+        hoverTiltEnabled:
+          isExportMode || isDraggingCanvasItem
+            ? false
+            : layerSettings.hoverTiltEnabled,
+        hoverTiltSensitivity: layerSettings.hoverTiltSensitivity,
+      };
+      const imagePlacementStyle = {
+        left: "50%",
+        top: "50%",
+        transform: `translate(-50%, -50%) translate(calc(${layerSettings.imageOffsetX} * 50cqw), calc(${layerSettings.imageOffsetY} * 50cqh))`,
+        willChange: "transform",
+        zIndex: layerIndex + 1,
+      } satisfies CSSProperties;
+      const mockupScaleStyle = {
+        transform: `scale(${layerSettings.imageScale / 100})`,
+        transformOrigin: "center",
+        transition:
+          isExportMode || shouldReduceMotion || isDraggingCanvasItem
+            ? undefined
+            : "transform 180ms ease-out",
+        willChange: "transform",
+      } satisfies CSSProperties;
+      const screenshotPreview = (
+        <motion.img
+          key={`${screenshot.uploadedImage.id}-screenshot`}
+          src={screenshot.uploadedImage.objectUrl}
+          alt={screenshot.uploadedImage.name}
+          onLoad={isActiveLayer ? handleImageLoad : undefined}
+          draggable={false}
+          onDragStart={(event) => event.preventDefault()}
+          {...screenshotMotionProps}
+          className={cn(
+            "block h-full w-full select-none object-cover [-webkit-user-drag:none]",
+            isLayerZoomed ? "will-change-transform" : "will-change-auto",
+          )}
+          style={zoomTransformStyle}
+        />
+      );
+      const showMockupControls =
+        !isExportMode && isActiveLayer && isMockupSelected;
+
+      return (
+        <div
+          key={screenshot.id}
+          ref={isActiveLayer ? mockupFrameRef : undefined}
+          data-screenshot-layer-id={screenshot.id}
+          className={cn(
+            "absolute flex touch-none select-none",
+            screenshotShellClasses,
+            !isExportMode && "cursor-grab active:cursor-grabbing",
+          )}
+          aria-selected={!isExportMode ? isActiveLayer : undefined}
+          onPointerCancel={isActiveLayer ? handleMockupPointerEnd : undefined}
+          onPointerDown={(event) => handleMockupPointerDown(screenshot.id, event)}
+          onPointerMove={isActiveLayer ? handleMockupPointerMove : undefined}
+          onPointerUp={isActiveLayer ? handleMockupPointerEnd : undefined}
+          style={imagePlacementStyle}
+        >
+          <div
+            ref={isActiveLayer ? mockupVisualRef : undefined}
+            className={cn("relative flex", screenshotShellClasses)}
+            style={mockupScaleStyle}
+          >
+            <TiltedMockupWrapper
+              className={cn("flex", screenshotShellClasses)}
+              settings={tiltSettings}
+            >
+              {layerSettings.browserFrameEnabled ? (
+                <div
+                  className={cn("overflow-hidden", screenshotShellClasses)}
+                  style={mockupDecorationStyle}
+                >
+                  <BrowserFrame
+                    radius={0}
+                    showUrl={layerSettings.browserFrameShowUrl}
+                    theme={layerSettings.browserFrameTheme}
+                    url={layerSettings.browserFrameUrl}
+                    variant={layerSettings.browserFrameStyle}
+                  >
+                    <motion.div
+                      ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
+                      className={cn(
+                        "relative overflow-hidden",
+                        screenshotShellClasses,
+                        !isExportMode &&
+                          isActiveLayer &&
+                          (isLayerZoomed
+                            ? "cursor-grab active:cursor-grabbing"
+                            : "cursor-zoom-in"),
+                      )}
+                      style={{
+                        ...screenshotCropStyle,
+                        touchAction: isLayerZoomed ? "none" : "pan-y",
+                      }}
+                      onPointerDown={
+                        isActiveLayer ? handleZoomPanPointerDown : undefined
+                      }
+                      onPointerMove={
+                        isActiveLayer ? handleZoomPanPointerMove : undefined
+                      }
+                      onPointerUp={
+                        isActiveLayer ? handleZoomPanPointerEnd : undefined
+                      }
+                      onPointerCancel={
+                        isActiveLayer ? handleZoomPanPointerEnd : undefined
+                      }
+                    >
+                      <div style={cropContentStyle}>
+                        <AnimatePresence mode="wait">
+                          {screenshotPreview}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  </BrowserFrame>
+                </div>
+              ) : (
+                <motion.div
+                  ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
+                  className={cn(
+                    "relative overflow-hidden",
+                    screenshotShellClasses,
+                    !isExportMode &&
+                      isActiveLayer &&
+                      (isLayerZoomed
+                        ? "cursor-grab active:cursor-grabbing"
+                        : "cursor-zoom-in"),
+                  )}
+                  style={{
+                    ...screenshotCropStyle,
+                    ...mockupDecorationStyle,
+                    touchAction: isLayerZoomed ? "none" : "pan-y",
+                  }}
+                  onPointerDown={
+                    isActiveLayer ? handleZoomPanPointerDown : undefined
+                  }
+                  onPointerMove={
+                    isActiveLayer ? handleZoomPanPointerMove : undefined
+                  }
+                  onPointerUp={
+                    isActiveLayer ? handleZoomPanPointerEnd : undefined
+                  }
+                  onPointerCancel={
+                    isActiveLayer ? handleZoomPanPointerEnd : undefined
+                  }
+                >
+                  <div style={cropContentStyle}>
+                    <AnimatePresence mode="wait">
+                      {screenshotPreview}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              )}
+            </TiltedMockupWrapper>
+
+            {showMockupControls && (
+              <MockupTransformControls
+                imageRadius={layerSettings.imageRadius}
+                onResizePointerCancel={handleResizePointerEnd}
+                onResizePointerDown={handleResizePointerDown}
+                onResizePointerMove={handleResizePointerMove}
+                onResizePointerUp={handleResizePointerEnd}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
     const textOverlay = hasTextOverlay ? (
       <TextOverlay
         activeLayerId={activeTextLayerId}
@@ -2051,8 +2255,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         className={cn(textPosition === "center" && "max-w-[72%]")}
       />
     ) : null;
-    const showMockupControls = !isExportMode && isMockupSelected;
-
     return (
       <div
         ref={mergeRefs(canvasShellRef, forwardedRef)}
@@ -2165,112 +2367,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             ref={screenshotSlotRef}
             className={cn("relative z-[1] flex", screenshotSlotClasses)}
           >
-            <div
-              ref={mockupFrameRef}
-              className={cn(
-                "flex touch-none select-none",
-                screenshotShellClasses,
-                !isExportMode && "cursor-grab active:cursor-grabbing",
-              )}
-              aria-selected={!isExportMode ? isMockupSelected : undefined}
-              onPointerCancel={handleMockupPointerEnd}
-              onPointerDown={handleMockupPointerDown}
-              onPointerMove={handleMockupPointerMove}
-              onPointerUp={handleMockupPointerEnd}
-              style={imagePlacementStyle}
-            >
-              <div
-                ref={mockupVisualRef}
-                className={cn("relative flex", screenshotShellClasses)}
-                style={mockupScaleStyle}
-              >
-                <TiltedMockupWrapper
-                  className={cn("flex", screenshotShellClasses)}
-                  settings={tiltSettings}
-                >
-                  {browserFrameEnabled ? (
-                    <div
-                      className={cn(
-                        "overflow-hidden",
-                        screenshotShellClasses,
-                      )}
-                      style={mockupDecorationStyle}
-                    >
-                      <BrowserFrame
-                        radius={0}
-                        showUrl={browserFrameShowUrl}
-                        theme={browserFrameTheme}
-                        url={browserFrameUrl}
-                        variant={browserFrameStyle}
-                      >
-                        <motion.div
-                          ref={screenshotZoomTargetRef}
-                          className={cn(
-                            "relative overflow-hidden",
-                            screenshotShellClasses,
-                            !isExportMode &&
-                              (isZoomed
-                                ? "cursor-grab active:cursor-grabbing"
-                                : "cursor-zoom-in"),
-                          )}
-                          style={{
-                            ...screenshotCropStyle,
-                            touchAction: isZoomed ? "none" : "pan-y",
-                          }}
-                          onPointerDown={handleZoomPanPointerDown}
-                          onPointerMove={handleZoomPanPointerMove}
-                          onPointerUp={handleZoomPanPointerEnd}
-                          onPointerCancel={handleZoomPanPointerEnd}
-                        >
-                          <div style={cropContentStyle}>
-                            <AnimatePresence mode="wait">
-                              {screenshotPreview}
-                            </AnimatePresence>
-                          </div>
-                        </motion.div>
-                      </BrowserFrame>
-                    </div>
-                  ) : (
-                    <motion.div
-                      ref={screenshotZoomTargetRef}
-                      className={cn(
-                        "relative overflow-hidden",
-                        screenshotShellClasses,
-                        !isExportMode &&
-                          (isZoomed
-                            ? "cursor-grab active:cursor-grabbing"
-                            : "cursor-zoom-in"),
-                      )}
-                      style={{
-                        ...screenshotCropStyle,
-                        ...mockupDecorationStyle,
-                        touchAction: isZoomed ? "none" : "pan-y",
-                      }}
-                      onPointerDown={handleZoomPanPointerDown}
-                      onPointerMove={handleZoomPanPointerMove}
-                      onPointerUp={handleZoomPanPointerEnd}
-                      onPointerCancel={handleZoomPanPointerEnd}
-                    >
-                      <div style={cropContentStyle}>
-                        <AnimatePresence mode="wait">
-                          {screenshotPreview}
-                        </AnimatePresence>
-                      </div>
-                    </motion.div>
-                  )}
-                </TiltedMockupWrapper>
-
-                {showMockupControls && (
-                  <MockupTransformControls
-                    imageRadius={imageRadius}
-                    onResizePointerCancel={handleResizePointerEnd}
-                    onResizePointerDown={handleResizePointerDown}
-                    onResizePointerMove={handleResizePointerMove}
-                    onResizePointerUp={handleResizePointerEnd}
-                  />
-                )}
-              </div>
-            </div>
+            {sortedScreenshotLayers.map(renderScreenshotLayer)}
           </div>
 
           {hasTextOverlay && textPosition === "center" && (

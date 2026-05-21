@@ -210,3 +210,16 @@ export type Phase3Settings = BrowserFrameSettings & TextOverlaySettings;
 export type Phase4Settings = TiltSettings;
 
 export type Phase5Settings = ExportSettings;
+
+export type EditorDesignSettings = BeautifySettings &
+  Phase3Settings &
+  Phase4Settings &
+  Phase5Settings & {
+    lastBeautifyPresetId: string | null;
+  };
+
+export type ScreenshotDesign = {
+  id: string;
+  uploadedImage: UploadedImage;
+  settings: EditorDesignSettings;
+};

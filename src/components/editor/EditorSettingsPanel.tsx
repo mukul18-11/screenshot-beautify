@@ -44,13 +44,14 @@ function getReadableFileType(type: string) {
 function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
   const shouldReduceMotion = useReducedMotion();
   const {
+    accept,
     clearError,
     clearUploadedImage,
     errorMessage,
     getInputProps,
     isUploading,
     open,
-  } = useImageUpload();
+  } = useImageUpload({ mode: "replace" });
 
   function handleRemoveImage() {
     clearError();
@@ -68,6 +69,7 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
     >
       <input
         {...getInputProps({
+          accept,
           "aria-label": "Replace screenshot image from settings panel",
         })}
       />
