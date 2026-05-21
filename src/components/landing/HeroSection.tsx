@@ -134,14 +134,14 @@ function HeroMockup() {
                 duration: 0.3,
                 ease: "easeOut",
               }}
-              className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white/70 p-5 text-slate-800 shadow-md backdrop-blur-xl flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-350"
+              className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 text-slate-950 shadow-md flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-300"
             >
               <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-slate-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Raw Screenshot</span>
+                  <span className="h-2 w-2 rounded-full bg-slate-900" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-950">Raw Screenshot</span>
                 </div>
-                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-900">
                   Before
                 </span>
               </div>
@@ -168,7 +168,7 @@ function HeroMockup() {
               className="h-full"
             >
               <LandingHoverTilt
-                className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white p-5 shadow-xl flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-teal-300"
+                className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 text-slate-950 shadow-md flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-300"
                 settings={{
                   perspective: 1200,
                   rotateX: 0,
@@ -177,25 +177,22 @@ function HeroMockup() {
                   sensitivity: 10,
                 }}
               >
-                {/* Canvas Background with Premium Oceanic Shifting Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-teal-600 via-cyan-500 to-emerald-500 opacity-95 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                
-                {/* Grid Overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:16px_16px] opacity-25 pointer-events-none" />
-
-                <div className="relative z-10 w-full flex items-center justify-between mb-4 border-b border-white/20 pb-3">
+                <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-white">Polished Output</span>
+                    <span className="h-2 w-2 rounded-full bg-teal-600 animate-pulse" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-950">Polished Output</span>
                   </div>
-                  <span className="rounded-full bg-white/25 border border-white/30 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                  <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[10px] font-bold text-teal-700">
                     After
                   </span>
                 </div>
 
-                <div className="relative z-10 flex-1 w-full rounded-xl border border-white/20 bg-white/10 p-3 sm:p-4 flex flex-col justify-between overflow-hidden backdrop-blur-sm min-h-[280px]">
+                <div className="relative flex-1 w-full rounded-xl border border-teal-500/20 bg-gradient-to-tr from-teal-600 via-cyan-500 to-emerald-500 p-3 sm:p-4 flex flex-col justify-between overflow-hidden shadow-inner min-h-[280px]">
+                  {/* Grid Overlay inside the exported area */}
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:16px_16px] opacity-25 pointer-events-none" />
+
                   {/* Floating Text Caption Overlay */}
-                  <div className="text-left w-full">
+                  <div className="relative z-10 text-left w-full">
                     <div className="inline-flex items-center gap-1 rounded-full bg-white/90 border border-white/50 px-2.5 py-0.5 text-[9px] font-bold text-teal-800 shadow-sm backdrop-blur-md">
                       <Sparkles className="h-2.5 w-2.5 text-teal-600 animate-pulse" />
                       1-CLICK BEAUTIFIED
@@ -206,7 +203,7 @@ function HeroMockup() {
                   </div>
 
                   {/* Elegant macOS Browser Mockup - Larger, filling container */}
-                  <div className="w-full rounded-lg border border-white/10 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.22)] overflow-hidden flex flex-col transform translate-y-2 group-hover:translate-y-0.5 transition-transform duration-500 [transform-style:preserve-3d] mt-3">
+                  <div className="relative z-10 w-full rounded-lg border border-white/10 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.22)] overflow-hidden flex flex-col transform translate-y-2 group-hover:translate-y-0.5 transition-transform duration-500 [transform-style:preserve-3d] mt-3">
                     {/* Browser Bar */}
                     <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-2.5 py-2">
                       <div className="flex gap-1.5">
