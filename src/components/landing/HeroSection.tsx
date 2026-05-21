@@ -87,7 +87,7 @@ function HeroMockup() {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute -left-12 bottom-12 h-56 w-56 rounded-full bg-pink-400/10 blur-3xl pointer-events-none"
+          className="absolute -left-12 bottom-12 h-56 w-56 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none"
         />
 
         <div className="relative">

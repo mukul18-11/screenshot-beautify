@@ -51,9 +51,9 @@ function BrowserBar({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
           : "border-slate-200 bg-slate-50",
       )}
     >
-      <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-      <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+      <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
+      <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+      <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
       <span
         className={cn(
           "ml-2 hidden h-3 w-24 rounded-full sm:block",

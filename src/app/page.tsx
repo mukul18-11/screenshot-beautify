@@ -44,7 +44,7 @@ function UseCasesSection() {
         >
           <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">Use cases</p>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
-            Made for the moments builders <span className="bg-gradient-to-r from-pink-500 via-rose-500 to-red-650 bg-clip-text text-transparent font-extrabold tracking-tighter">actually share</span>
+            Made for the moments builders <span className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent font-extrabold tracking-tighter">actually share</span>
           </h2>
           <p className="mt-3 text-base leading-7 text-slate-600">
             Screenshot Beautifier is for founders, makers, marketers, and
@@ -210,7 +210,7 @@ export default function Home() {
   return (
     <>
       <StructuredData />
-      <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(45,212,191,0.22),transparent_28%),radial-gradient(circle_at_88%_4%,rgba(251,146,60,0.16),transparent_30%),radial-gradient(circle_at_74%_92%,rgba(236,72,153,0.14),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#eff6ff_48%,#fff7ed_100%)] text-slate-950">
+      <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_88%_4%,rgba(99,102,241,0.14),transparent_30%),radial-gradient(circle_at_74%_92%,rgba(20,184,166,0.14),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#eff6ff_50%,#f0fdfa_100%)] text-slate-950">
         <LandingNav />
         <HeroSection />
         <ExampleShowcase />

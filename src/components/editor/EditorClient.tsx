@@ -33,7 +33,7 @@ export default function EditorClient() {
                     Screenshot Beautifier
                   </span>
                   <span className="hidden text-[11px] font-semibold text-[var(--editor-muted)] sm:block">
-                    Launch visuals, <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-pink-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-bold animate-gradient-flow">made locally</span>
+                    Launch visuals, <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-sky-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent font-bold animate-gradient-flow">made locally</span>
                   </span>
                 </div>
               </div>

@@ -16,7 +16,7 @@ export default function CTASection() {
         initial={{ opacity: 1, scale: 1, y: 0 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 70, damping: 15 }}
-        className="relative overflow-hidden rounded-[1.5rem] border border-white/70 bg-[radial-gradient(circle_at_18%_18%,rgba(45,212,191,0.28),transparent_32%),radial-gradient(circle_at_84%_18%,rgba(244,114,182,0.24),transparent_30%),linear-gradient(135deg,#0f172a_0%,#312e81_58%,#111827_100%)] px-5 py-10 text-center text-white shadow-2xl shadow-slate-950/20 sm:px-8 sm:py-14"
+        className="relative overflow-hidden rounded-[1.5rem] border border-white/70 bg-[radial-gradient(circle_at_18%_18%,rgba(45,212,191,0.28),transparent_32%),radial-gradient(circle_at_84%_18%,rgba(6,182,212,0.24),transparent_30%),linear-gradient(135deg,#0f172a_0%,#312e81_58%,#111827_100%)] px-5 py-10 text-center text-white shadow-2xl shadow-slate-950/20 sm:px-8 sm:py-14"
       >
         {/* Pulsing floating background color orbs */}
         <motion.div
@@ -46,7 +46,7 @@ export default function CTASection() {
             ease: "easeInOut",
             delay: 1.5,
           }}
-          className="absolute -right-20 -bottom-20 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl pointer-events-none"
+          className="absolute -right-20 -bottom-20 h-72 w-72 rounded-full bg-teal-400/20 blur-3xl pointer-events-none"
         />
 
         <div className="relative mx-auto max-w-2xl">

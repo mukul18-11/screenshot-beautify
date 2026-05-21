@@ -103,7 +103,7 @@ export default function EmptyUploadState({
           ) : dragState === "idle" ? (
             <>
               Make your screenshot{" "}
-              <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-pink-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-black tracking-tight animate-gradient-flow">
+              <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-sky-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent font-black tracking-tight animate-gradient-flow">
                 launch-ready
               </span>
             </>

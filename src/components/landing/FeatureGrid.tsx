@@ -23,7 +23,7 @@ export default function FeatureGrid() {
   const presets = [
     { name: "Sunset Mesh", bg: "linear-gradient(135deg, #ff6154 0%, #ff8a3d 52%, #fff1d6 100%)" },
     { name: "Oceanic", bg: "linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #0f172a 100%)" },
-    { name: "Neon Dark", bg: "radial-gradient(circle at 10% 10%, #6366f1 0%, transparent 40%), radial-gradient(circle at 90% 90%, #ec4899 0%, transparent 40%), #0f172a" },
+    { name: "Neon Dark", bg: "radial-gradient(circle at 10% 10%, #6366f1 0%, transparent 40%), radial-gradient(circle at 90% 90%, #06b6d4 0%, transparent 40%), #0f172a" },
   ];
 
   return (
@@ -40,7 +40,7 @@ export default function FeatureGrid() {
       >
         <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">Features</p>
         <h2 className="mt-3 font-display text-3xl font-extrabold text-slate-950 sm:text-[2.5rem] tracking-tight leading-tight">
-          Everything you need to make screenshots feel <span className="bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(236,72,153,0.1)]">shipped</span>
+          Everything you need to make screenshots feel <span className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(6,182,212,0.15)]">shipped</span>
         </h2>
         <p className="mt-3 text-base text-slate-600">
           Screenshot Beautifier bundles layout controls, backgrounds, text overlays, 
@@ -86,9 +86,9 @@ export default function FeatureGrid() {
                 className="w-[75%] h-[60%] rounded border border-white/20 bg-slate-950/90 shadow-lg p-1.5 flex flex-col gap-1 z-10"
               >
                 <div className="flex gap-1">
-                  <span className="h-1 w-1 rounded-full bg-rose-400" />
-                  <span className="h-1 w-1 rounded-full bg-amber-400" />
-                  <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                  <span className="h-1 w-1 rounded-full bg-[#ff5f56]" />
+                  <span className="h-1 w-1 rounded-full bg-[#ffbd2e]" />
+                  <span className="h-1 w-1 rounded-full bg-[#27c93f]" />
                 </div>
                 <div className="h-1 w-[40%] rounded-full bg-white/20" />
                 <div className="grid grid-cols-2 gap-1 mt-1">
@@ -158,9 +158,9 @@ export default function FeatureGrid() {
             >
               {/* Simulated 3D Depth Layers */}
               <div className="flex gap-1">
-                <span className="h-1 w-1 rounded-full bg-rose-400" />
-                <span className="h-1 w-1 rounded-full bg-amber-400" />
-                <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                <span className="h-1 w-1 rounded-full bg-[#ff5f56]" />
+                <span className="h-1 w-1 rounded-full bg-[#ffbd2e]" />
+                <span className="h-1 w-1 rounded-full bg-[#27c93f]" />
               </div>
               <div className="h-1 w-[40%] rounded-full bg-white/20" />
               <div 
@@ -209,9 +209,9 @@ export default function FeatureGrid() {
             <div className="w-[90%] h-24 rounded-t-xl border-t border-x border-slate-200 bg-white shadow-md flex flex-col">
               <div className="h-6 rounded-t-xl bg-slate-100/80 border-b border-slate-200 px-2.5 flex items-center justify-between">
                 <div className="flex gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f56]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#ffbd2e]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#27c93f]" />
                 </div>
                 <div className="h-3 w-32 rounded bg-white border border-slate-200/50 flex items-center justify-center text-[7px] text-slate-400">
                   yourproduct.com
@@ -319,7 +319,7 @@ export default function FeatureGrid() {
           transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-4 flex flex-col justify-between min-h-[300px]"
         >
-          <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-pink-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-pink-400/15" />
+          <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-teal-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-teal-400/15" />
           
           <div>
             <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">

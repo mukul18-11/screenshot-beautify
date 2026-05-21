@@ -15,7 +15,7 @@ export default function ExampleShowcase() {
       <div className="mx-auto max-w-xl text-center">
         <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">Examples</p>
         <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
-          Polished examples built from <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent font-extrabold tracking-tighter">simple CSS mockups</span>
+          Polished examples built from <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-extrabold tracking-tighter">simple CSS mockups</span>
         </h2>
         <p className="mt-3 text-base leading-7 text-slate-600">
           These are illustrative layouts showing the kinds of visuals you can
