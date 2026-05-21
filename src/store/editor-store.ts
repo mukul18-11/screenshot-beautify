@@ -12,7 +12,11 @@ import {
   DEFAULT_TEXT_OVERLAY_SETTINGS,
   DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
-import { clampImageCrop, clampUnitOffset } from "@/lib/editor-geometry";
+import {
+  clampImageCrop,
+  clampTextLayerOffset,
+  clampUnitOffset,
+} from "@/lib/editor-geometry";
 import { sanitizeFileName } from "@/lib/export-utils";
 import { createTextShadowPresetSettings } from "@/lib/text-effect-presets";
 import { createTiltPresetSettings } from "@/lib/tilt-presets";
@@ -574,8 +578,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     const offsetKeys = getTextLayerOffsetKeys(layerId);
 
     set({
-      [offsetKeys.x]: clampUnitOffset(offsetX),
-      [offsetKeys.y]: clampUnitOffset(offsetY),
+      [offsetKeys.x]: clampTextLayerOffset(offsetX),
+      [offsetKeys.y]: clampTextLayerOffset(offsetY),
     });
   },
   resetTextLayerPosition: (layerId) => {

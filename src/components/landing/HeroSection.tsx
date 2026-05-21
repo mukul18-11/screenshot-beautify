@@ -271,25 +271,41 @@ export default function HeroSection() {
             <motion.div
               whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
               whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
+              className="inline-block"
             >
-              <Button
-                asChild
-                size="lg"
-                className="bg-slate-950 text-white shadow-2xl shadow-slate-950/20 hover:bg-slate-800 flex items-center gap-2 group"
+              <motion.div
+                animate={shouldReduceMotion ? undefined : {
+                  scale: [1, 1.03, 1],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative group p-[1.5px] rounded-[13px] overflow-hidden bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 animate-gradient-flow inline-flex items-center justify-center shadow-xl shadow-slate-950/10"
               >
-                <Link href="/editor">
-                  Start beautifying
-                  <motion.span
-                    variants={{
-                      hidden: { x: 0 },
-                      hover: { x: 4 }
-                    }}
-                    transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                  >
-                    <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
-                  </motion.span>
-                </Link>
-              </Button>
+                {/* Ambient Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 rounded-[13px] blur-md opacity-35 group-hover:opacity-75 transition-opacity duration-350 animate-gradient-flow pointer-events-none" />
+
+                <Button
+                  asChild
+                  size="lg"
+                  className="relative z-10 bg-slate-950 text-white hover:bg-slate-900 border-none flex items-center gap-2 group rounded-xl shadow-none"
+                >
+                  <Link href="/editor">
+                    Start beautifying
+                    <motion.span
+                      variants={{
+                        hidden: { x: 0 },
+                        hover: { x: 4 }
+                      }}
+                      transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                    >
+                      <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+                    </motion.span>
+                  </Link>
+                </Button>
+              </motion.div>
             </motion.div>
             
             <motion.div

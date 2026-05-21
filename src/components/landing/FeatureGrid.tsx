@@ -31,7 +31,13 @@ export default function FeatureGrid() {
       id="features"
       className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-18"
     >
-      <div className="mx-auto max-w-xl text-center mb-12">
+      <motion.div
+        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+        whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="mx-auto max-w-xl text-center mb-12"
+      >
         <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">Features</p>
         <h2 className="mt-3 font-display text-3xl font-extrabold text-slate-950 sm:text-[2.5rem] tracking-tight leading-tight">
           Everything you need to make screenshots feel <span className="bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(236,72,153,0.1)]">shipped</span>
@@ -40,16 +46,17 @@ export default function FeatureGrid() {
           Screenshot Beautifier bundles layout controls, backgrounds, text overlays, 
           and depth into one fast browser-based tool.
         </p>
-      </div>
+      </motion.div>
 
       {/* Advanced Bento Grid */}
       <div className="grid gap-6 md:grid-cols-6 lg:grid-cols-6">
         
         {/* Card 1: Upload & Styles (col-span-4) */}
         <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-4 flex flex-col justify-between min-h-[300px]"
         >
           {/* Subtle Ambient Glow */}
@@ -113,9 +120,10 @@ export default function FeatureGrid() {
 
         {/* Card 2: Interactive 3D Depth (col-span-2) */}
         <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.05 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-2 flex flex-col justify-between min-h-[300px]"
         >
           <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-cyan-400/15" />
@@ -175,9 +183,10 @@ export default function FeatureGrid() {
 
         {/* Card 3: Browser Frames (col-span-3) */}
         <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-3 flex flex-col justify-between min-h-[300px]"
         >
           <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-indigo-400/15" />
@@ -224,9 +233,10 @@ export default function FeatureGrid() {
 
         {/* Card 4: Text Overlays (col-span-3) */}
         <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.15 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-3 flex flex-col justify-between min-h-[300px]"
         >
           <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-emerald-400/15" />
@@ -262,9 +272,10 @@ export default function FeatureGrid() {
 
         {/* Card 5: Local Privacy (col-span-2) */}
         <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.2 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-2 flex flex-col justify-between min-h-[300px]"
         >
           <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-teal-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-teal-400/15" />
@@ -302,9 +313,10 @@ export default function FeatureGrid() {
 
         {/* Card 6: Custom Canvas & Export (col-span-4) */}
         <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.25 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-4 flex flex-col justify-between min-h-[300px]"
         >
           <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-pink-400/10 blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-pink-400/15" />

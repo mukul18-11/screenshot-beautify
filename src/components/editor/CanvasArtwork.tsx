@@ -27,6 +27,7 @@ import {
 } from "@/lib/editor-defaults";
 import {
   clampCropInset,
+  clampTextLayerOffset,
   clampUnitOffset,
   clampValue,
   getCropRatios,
@@ -244,36 +245,6 @@ function isCornerResizeHandle(handleId: ResizeHandleId) {
   const directions = getResizeHandleDirections(handleId);
 
   return directions.x !== 0 && directions.y !== 0;
-}
-
-function clampDeltaToBounds(
-  delta: number,
-  elementStart: number,
-  elementEnd: number,
-  boundsStart: number,
-  boundsEnd: number,
-) {
-  const elementSize = elementEnd - elementStart;
-  const boundsSize = boundsEnd - boundsStart;
-
-  if (elementSize >= boundsSize) {
-    const elementCenter = elementStart + elementSize / 2 + delta;
-    const boundsCenter = boundsStart + boundsSize / 2;
-
-    return delta + boundsCenter - elementCenter;
-  }
-
-  let clampedDelta = delta;
-
-  if (elementStart + clampedDelta < boundsStart) {
-    clampedDelta += boundsStart - (elementStart + clampedDelta);
-  }
-
-  if (elementEnd + clampedDelta > boundsEnd) {
-    clampedDelta += boundsEnd - (elementEnd + clampedDelta);
-  }
-
-  return clampedDelta;
 }
 
 function clampDeltaToVisibleBounds(
@@ -1307,25 +1278,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         guide.horizontal = snapY.guide;
       }
 
-      deltaX = clampDeltaToBounds(
-        deltaX,
-        dragState.textRect.left,
-        dragState.textRect.right,
-        dragState.canvasRect.left,
-        dragState.canvasRect.right,
-      );
-      deltaY = clampDeltaToBounds(
-        deltaY,
-        dragState.textRect.top,
-        dragState.textRect.bottom,
-        dragState.canvasRect.top,
-        dragState.canvasRect.bottom,
-      );
-
-      const nextOffsetX = clampUnitOffset(
+      const nextOffsetX = clampTextLayerOffset(
         dragState.startOffsetX + (deltaX / dragState.canvasRect.width) * 2,
       );
-      const nextOffsetY = clampUnitOffset(
+      const nextOffsetY = clampTextLayerOffset(
         dragState.startOffsetY + (deltaY / dragState.canvasRect.height) * 2,
       );
 

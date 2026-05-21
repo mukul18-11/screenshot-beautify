@@ -10,6 +10,10 @@ export function clampUnitOffset(value: number) {
   return clampValue(value, -1, 1);
 }
 
+export function clampTextLayerOffset(value: number) {
+  return clampValue(value, -2, 2);
+}
+
 export function clampCropInset(value: number) {
   return clampValue(value, 0, 1 - MIN_CROP_RATIO);
 }

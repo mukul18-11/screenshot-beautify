@@ -67,16 +67,31 @@ export default function CTASection() {
               whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
               whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
             >
-              <Button
-                asChild
-                size="lg"
-                className="bg-white text-slate-950 shadow-2xl shadow-slate-950/25 hover:bg-slate-100 flex items-center gap-2 group"
+              <motion.div
+                animate={shouldReduceMotion ? undefined : {
+                  scale: [1, 1.03, 1],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative group p-[1.5px] rounded-[13px] overflow-hidden bg-gradient-to-r from-teal-400 via-cyan-300 to-indigo-400 animate-gradient-flow inline-flex items-center justify-center shadow-xl shadow-slate-950/15"
               >
-                <Link href="/editor">
-                  Start beautifying
-                  <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
-                </Link>
-              </Button>
+                {/* Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-400 via-cyan-300 to-indigo-400 rounded-[13px] blur-md opacity-35 group-hover:opacity-75 transition-opacity duration-350 animate-gradient-flow pointer-events-none" />
+
+                <Button
+                  asChild
+                  size="lg"
+                  className="relative z-10 bg-white text-slate-950 hover:bg-slate-50 border-none flex items-center gap-2 rounded-xl shadow-none"
+                >
+                  <Link href="/editor">
+                    Start beautifying
+                    <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </motion.div>
             </motion.div>
           </div>
         </div>
