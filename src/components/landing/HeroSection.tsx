@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { ArrowRight, Check, ShieldCheck, WandSparkles } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -125,97 +125,108 @@ function HeroMockup() {
             </motion.div>
           </motion.div>
 
-          <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
+          <div className="relative grid gap-6 md:grid-cols-2 items-stretch mt-4">
+            {/* Left Card: Before (Raw, Boring Screenshot) */}
             <motion.div
-              initial={{ opacity: 1, x: 0, rotate: shouldReduceMotion ? 0 : -1 }}
-              animate={{ opacity: 1, x: 0, rotate: shouldReduceMotion ? 0 : -1 }}
-              transition={{ duration: 0.65, delay: 0.35, type: "spring", stiffness: 70, damping: 14 }}
-              className="rounded-[1.25rem] border border-white/15 bg-white/10 p-3 text-white/75 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:mb-3"
+              initial={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -4 }}
+              transition={{
+                duration: 0.3,
+                ease: "easeOut",
+              }}
+              className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white/70 p-5 text-slate-800 shadow-md backdrop-blur-xl flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-350"
             >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
-                  Raw screenshot
-                </span>
-                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs">
-                  before
+              <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-slate-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Raw Screenshot</span>
+                </div>
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+                  Before
                 </span>
               </div>
-              <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3">
-                <div className="mb-5 flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  <span className="ml-2 h-2 w-24 rounded-full bg-white/10" />
-                </div>
-                <div className="space-y-3">
-                  <div className="h-3.5 w-28 rounded-full bg-white/25" />
-                  <div className="h-2.5 w-40 rounded-full bg-white/10" />
-                  <div className="grid grid-cols-3 gap-2 pt-3">
-                    <div className="h-14 rounded-lg bg-white/10" />
-                    <div className="h-14 rounded-lg bg-white/10" />
-                    <div className="h-14 rounded-lg bg-white/10" />
-                  </div>
+              
+              <div className="relative flex-1 rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-col justify-center items-center overflow-hidden">
+                {/* A plain, straight screenshot image with crisp borders, fully visible, no faded overlay */}
+                <div className="w-full rounded-lg border border-slate-300 bg-white overflow-hidden shadow-sm aspect-[16/10]">
+                  <img 
+                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" 
+                    alt="Raw SaaS Dashboard" 
+                    className="w-full h-full object-cover object-top opacity-100"
+                  />
                 </div>
               </div>
             </motion.div>
 
+            {/* Right Card: After (Stunning Beautified Oceanic Screenshot) */}
             <motion.div
-              animate={shouldReduceMotion ? undefined : { y: [0, -8, 0] }}
+              whileHover={{ y: -4 }}
               transition={{
-                duration: 2.8,
-                repeat: Infinity,
-                ease: "easeInOut",
+                duration: 0.3,
+                ease: "easeOut",
               }}
+              className="h-full"
             >
               <LandingHoverTilt
-                className="overflow-hidden rounded-2xl border border-white/20 bg-white shadow-2xl shadow-slate-950/35 ring-1 ring-white/30"
+                className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white p-5 shadow-xl flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-teal-300"
                 settings={{
-                  perspective: 1100,
+                  perspective: 1200,
                   rotateX: 0,
                   rotateY: 0,
                   rotateZ: 0,
-                  sensitivity: 9,
+                  sensitivity: 10,
                 }}
               >
-                <div className="flex h-10 items-center gap-2 rounded-t-2xl border-b border-slate-200 bg-slate-50 px-4">
-                  <span className="h-3 w-3 rounded-full bg-rose-400" />
-                  <span className="h-3 w-3 rounded-full bg-amber-400" />
-                  <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                  <span className="ml-3 hidden w-44 rounded-full bg-white py-1.5 text-center text-xs text-slate-400 shadow-sm sm:block">
-                    yourproduct.com
+                {/* Canvas Background with Premium Oceanic Shifting Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-teal-600 via-cyan-500 to-emerald-500 opacity-95 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                {/* Grid Overlay */}
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:16px_16px] opacity-25 pointer-events-none" />
+
+                <div className="relative z-10 w-full flex items-center justify-between mb-4 border-b border-white/20 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">Polished Output</span>
+                  </div>
+                  <span className="rounded-full bg-white/25 border border-white/30 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                    After
                   </span>
                 </div>
-                <div className="bg-[radial-gradient(circle_at_18%_18%,rgba(45,212,191,0.28),transparent_28%),linear-gradient(135deg,#ecfeff_0%,#fff7ed_56%,#fdf2f8_100%)] p-4 sm:p-6">
-                  <div className="mb-4 text-center">
-                    <div className="mx-auto mb-2 inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
-                      <WandSparkles className="h-3.5 w-3.5" />
-                      Launch visual
+
+                <div className="relative z-10 flex-1 w-full rounded-xl border border-white/20 bg-white/10 p-3 sm:p-4 flex flex-col justify-between overflow-hidden backdrop-blur-sm min-h-[280px]">
+                  {/* Floating Text Caption Overlay */}
+                  <div className="text-left w-full">
+                    <div className="inline-flex items-center gap-1 rounded-full bg-white/90 border border-white/50 px-2.5 py-0.5 text-[9px] font-bold text-teal-800 shadow-sm backdrop-blur-md">
+                      <Sparkles className="h-2.5 w-2.5 text-teal-600 animate-pulse" />
+                      1-CLICK BEAUTIFIED
                     </div>
-                    <p className="text-xl font-semibold text-slate-950 sm:text-2xl">
-                      New dashboard is live
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Built for posts, decks, and hero images.
+                    <p className="mt-1 text-sm font-bold text-white leading-tight drop-shadow-sm">
+                      Marketing Analytics Dashboard
                     </p>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]">
-                    <div className="rounded-2xl bg-slate-950 p-4 text-white">
-                      <div className="mb-6 flex items-center justify-between">
-                        <div className="h-3 w-24 rounded-full bg-white/30" />
-                        <div className="h-7 w-7 rounded-xl bg-cyan-300" />
+                  {/* Elegant macOS Browser Mockup - Larger, filling container */}
+                  <div className="w-full rounded-lg border border-white/10 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.22)] overflow-hidden flex flex-col transform translate-y-2 group-hover:translate-y-0.5 transition-transform duration-500 [transform-style:preserve-3d] mt-3">
+                    {/* Browser Bar */}
+                    <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-2.5 py-2">
+                      <div className="flex gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-[#ff5f56]" />
+                        <span className="h-2 w-2 rounded-full bg-[#ffbd2e]" />
+                        <span className="h-2 w-2 rounded-full bg-[#27c93f]" />
                       </div>
-                      <div className="h-3.5 w-40 rounded-full bg-white/80" />
-                      <div className="mt-3 h-2.5 w-56 max-w-full rounded-full bg-white/25" />
-                      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
-                        <div className="h-16 rounded-xl bg-white/10" />
-                        <div className="h-16 rounded-xl bg-cyan-300/80" />
-                        <div className="h-16 rounded-xl bg-white/10" />
+                      <div className="h-4 w-28 rounded bg-slate-200/50 border border-slate-200/30 flex items-center justify-center text-[7.5px] font-medium text-slate-500">
+                        analytics.acme.com
                       </div>
+                      <div className="w-6" />
                     </div>
-                    <div className="space-y-3">
-                      <div className="h-20 rounded-2xl bg-white/70 shadow-sm" />
-                      <div className="h-20 rounded-2xl bg-white/70 shadow-sm" />
+                    
+                    {/* High-fidelity screenshot */}
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-50">
+                      <img 
+                        src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" 
+                        alt="Beautified SaaS Dashboard" 
+                        className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
+                      />
                     </div>
                   </div>
                 </div>
