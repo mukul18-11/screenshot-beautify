@@ -41,19 +41,36 @@ export default function HowItWorks() {
           {STEPS.map((step, index) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover="hover"
               viewport={{ once: true, margin: "-80px" }}
-              transition={{
-                duration: 0.28,
-                delay: shouldReduceMotion ? 0 : index * 0.04,
-                ease: "easeOut",
+              variants={{
+                hover: {
+                  y: shouldReduceMotion ? 0 : -6,
+                  borderColor: "rgba(14, 116, 144, 0.3)",
+                  boxShadow: "0 15px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03)",
+                }
               }}
-              className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+              transition={{
+                type: "spring",
+                stiffness: 110,
+                damping: 17,
+                delay: shouldReduceMotion ? 0 : index * 0.05,
+              }}
+              className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm cursor-default"
             >
-              <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
+              <motion.div 
+                variants={{
+                  hover: {
+                    scale: 1.12,
+                    backgroundColor: "rgb(14, 116, 144)",
+                  }
+                }}
+                className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white shadow-md shadow-slate-950/10 transition-colors duration-250"
+              >
                 {index + 1}
-              </div>
+              </motion.div>
               <h3 className="text-base font-semibold text-slate-950">
                 {step.title}
               </h3>

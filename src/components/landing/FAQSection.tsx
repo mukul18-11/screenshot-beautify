@@ -1,3 +1,5 @@
+"use client";
+
 export const FAQS = [
   {
     question: "What is Screenshot Beautifier?",
@@ -30,24 +32,48 @@ export const FAQS = [
   },
 ] as const;
 
+import { motion, useReducedMotion } from "motion/react";
+
 export default function FAQSection() {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <section
       id="faq"
       className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
-      <div className="mx-auto max-w-xl text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.45 }}
+        className="mx-auto max-w-xl text-center"
+      >
         <p className="text-sm font-semibold text-cyan-700">FAQ</p>
         <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
           Practical answers before you start
         </h2>
-      </div>
+      </motion.div>
 
       <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
-        {FAQS.map((faq) => (
-          <div
+        {FAQS.map((faq, index) => (
+          <motion.div
             key={faq.question}
-            className="rounded-2xl border border-slate-200 bg-white/75 p-4 shadow-sm backdrop-blur-xl"
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{ 
+              y: shouldReduceMotion ? 0 : -3, 
+              borderColor: "rgba(14, 116, 144, 0.25)",
+              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.04)"
+            }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 16,
+              delay: shouldReduceMotion ? 0 : index * 0.04,
+            }}
+            className="rounded-2xl border border-slate-200 bg-white/75 p-4 shadow-sm backdrop-blur-xl transition-all cursor-default"
           >
             <h3 className="text-base font-semibold text-slate-950">
               {faq.question}
@@ -55,7 +81,7 @@ export default function FAQSection() {
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {faq.answer}
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

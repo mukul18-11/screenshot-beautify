@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 
 import { ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 import CTASection from "@/components/landing/CTASection";
 import ExampleShowcase from "@/components/landing/ExampleShowcase";
@@ -25,13 +28,21 @@ const USE_CASES = [
 ] as const;
 
 function UseCasesSection() {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <section
       id="use-cases"
       className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
       <div className="grid gap-7 border-y border-slate-950/10 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="max-w-xl">
+        <motion.div 
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.45 }}
+          className="max-w-xl"
+        >
           <p className="text-sm font-semibold text-cyan-700">Use cases</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
             Made for the moments builders actually share
@@ -41,21 +52,34 @@ function UseCasesSection() {
             product teams who need polished product screenshots quickly without
             opening a full design tool.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {USE_CASES.map((useCase) => (
-            <Link
+          {USE_CASES.map((useCase, index) => (
+            <motion.div
               key={useCase}
-              href="/editor"
-              className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white/65 px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-md"
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{
+                type: "spring",
+                stiffness: 110,
+                damping: 17,
+                delay: shouldReduceMotion ? 0 : index * 0.035,
+              }}
             >
-              <span>{useCase}</span>
-              <ArrowRight
-                className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-950"
-                aria-hidden="true"
-              />
-            </Link>
+              <Link
+                href="/editor"
+                className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white/65 px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-xl transition hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-md"
+              >
+                <span>{useCase}</span>
+                <ArrowRight
+                  className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-950"
+                  aria-hidden="true"
+                />
+              </Link>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -64,9 +88,17 @@ function UseCasesSection() {
 }
 
 function SearchIntentSection() {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
-      <div className="grid gap-7 rounded-[1.5rem] border border-white/70 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:grid-cols-[0.8fr_1.2fr] lg:p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.55, type: "spring", stiffness: 70, damping: 15 }}
+        className="grid gap-7 rounded-[1.5rem] border border-white/70 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:grid-cols-[0.8fr_1.2fr] lg:p-8"
+      >
         <div>
           <p className="text-sm font-semibold text-cyan-700">
             Screenshot tool for launches
@@ -98,7 +130,7 @@ function SearchIntentSection() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

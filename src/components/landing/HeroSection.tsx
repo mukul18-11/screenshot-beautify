@@ -8,44 +8,130 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import LandingHoverTilt from "@/components/landing/LandingHoverTilt";
 
+const textContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+} as const;
+
+const textItemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 90,
+      damping: 16,
+    },
+  },
+} as const;
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 18,
+    },
+  },
+} as const;
+
 function HeroMockup() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+      initial={{ opacity: 0, y: 22, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
+      transition={{ duration: 0.65, delay: 0.15, type: "spring", stiffness: 60, damping: 14 }}
       className="relative mx-auto w-full max-w-4xl lg:max-w-none"
       aria-hidden="true"
     >
       <div className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-[radial-gradient(circle_at_14%_16%,rgba(20,184,166,0.38),transparent_28%),radial-gradient(circle_at_86%_14%,rgba(251,146,60,0.32),transparent_28%),radial-gradient(circle_at_78%_86%,rgba(236,72,153,0.22),transparent_30%),linear-gradient(135deg,#0f172a_0%,#111827_48%,#164e63_100%)] p-3 shadow-2xl shadow-slate-950/25 sm:p-5 lg:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:24px_24px] opacity-30" />
-        <div className="absolute -right-16 top-12 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl" />
+        
+        {/* Animated ambient backdrop glows */}
+        <motion.div
+          animate={shouldReduceMotion ? undefined : {
+            scale: [1, 1.15, 1],
+            opacity: [0.3, 0.45, 0.3],
+            x: [0, 15, 0],
+            y: [0, -10, 0],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -right-16 top-12 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl pointer-events-none"
+        />
+        <motion.div
+          animate={shouldReduceMotion ? undefined : {
+            scale: [1, 1.2, 1],
+            opacity: [0.22, 0.35, 0.22],
+            x: [0, -15, 0],
+            y: [0, 15, 0],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+          className="absolute -left-12 bottom-12 h-56 w-56 rounded-full bg-pink-400/10 blur-3xl pointer-events-none"
+        />
 
         <div className="relative">
-          <div className="mb-5 flex flex-col gap-4 text-white sm:flex-row sm:items-end sm:justify-between">
+          <motion.div 
+            variants={textContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="mb-5 flex flex-col gap-4 text-white sm:flex-row sm:items-end sm:justify-between"
+          >
             <div>
-              <div className="mb-3 inline-flex rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-xl">
+              <motion.div 
+                variants={textItemVariants}
+                className="mb-3 inline-flex rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-xl"
+              >
                 QUICK STYLE PREVIEW
-              </div>
-              <p className="max-w-[34rem] text-2xl font-semibold leading-[1.04] sm:text-[2.45rem] lg:text-[2.65rem]">
+              </motion.div>
+              <motion.p 
+                variants={textItemVariants}
+                className="max-w-[34rem] text-2xl font-semibold leading-[1.04] sm:text-[2.45rem] lg:text-[2.65rem]"
+              >
                 Before post.
                 <span className="block text-cyan-100">
                   After launch visual.
                 </span>
-              </p>
+              </motion.p>
             </div>
-            <div className="flex shrink-0 items-end justify-start lg:justify-end">
+            <motion.div 
+              variants={textItemVariants}
+              className="flex shrink-0 items-end justify-start lg:justify-end"
+            >
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white/80 backdrop-blur-xl">
                 <ShieldCheck className="h-4 w-4 text-emerald-300" />
                 Local-only export
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
-            <div className="rounded-[1.25rem] border border-white/15 bg-white/10 p-3 text-white/75 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:mb-3">
+            <motion.div
+              initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20, rotate: shouldReduceMotion ? 0 : -1.5 }}
+              animate={{ opacity: 1, x: 0, rotate: shouldReduceMotion ? 0 : -1 }}
+              transition={{ duration: 0.65, delay: 0.35, type: "spring", stiffness: 70, damping: 14 }}
+              className="rounded-[1.25rem] border border-white/15 bg-white/10 p-3 text-white/75 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:mb-3"
+            >
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
                   Raw screenshot
@@ -71,12 +157,12 @@ function HeroMockup() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             <motion.div
               animate={shouldReduceMotion ? undefined : { y: [0, -8, 0] }}
               transition={{
-                duration: 2.4,
+                duration: 2.8,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
@@ -149,59 +235,95 @@ export default function HeroSection() {
     <section className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] w-full max-w-6xl items-center gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.78fr_1.12fr] lg:gap-10 lg:py-12">
       <div className="text-center lg:text-left">
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
+          variants={textContainerVariants}
+          initial="hidden"
+          animate="show"
           className="mx-auto max-w-3xl lg:mx-0"
         >
-          <div className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-white/70 bg-white/65 px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur-xl lg:mx-0">
+          <motion.div 
+            variants={textItemVariants}
+            className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-white/70 bg-white/65 px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur-xl lg:mx-0"
+          >
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span className="truncate">Your screenshots never leave your browser.</span>
-          </div>
-          <h1 className="text-balance text-4xl font-semibold leading-[1.03] text-slate-950 sm:text-5xl lg:text-[4rem]">
+          </motion.div>
+          
+          <motion.h1 
+            variants={textItemVariants}
+            className="text-balance text-4xl font-semibold leading-[1.03] text-slate-950 sm:text-5xl lg:text-[4rem]"
+          >
             Screenshot Beautifier turns raw screenshots into launch-ready visuals
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0">
+          </motion.h1>
+          
+          <motion.p 
+            variants={textItemVariants}
+            className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0"
+          >
             Paste a product screenshot, choose a quick style, add browser
             frames, text, and tasteful depth, then export a sharp PNG for X,
             LinkedIn, Product Hunt, decks, or landing pages.
-          </p>
-          <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
+          </motion.p>
+          
+          <motion.div 
+            variants={textItemVariants}
+            className="mt-7 flex flex-col items-center gap-3 sm:flex-row lg:justify-start"
+          >
             <motion.div
-              whileHover={{ y: shouldReduceMotion ? 0 : -2 }}
+              whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
               whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
             >
               <Button
                 asChild
                 size="lg"
-                className="bg-slate-950 text-white shadow-2xl shadow-slate-950/20 hover:bg-slate-800"
+                className="bg-slate-950 text-white shadow-2xl shadow-slate-950/20 hover:bg-slate-800 flex items-center gap-2 group"
               >
                 <Link href="/editor">
                   Start beautifying
-                  <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                  <motion.span
+                    variants={{
+                      hidden: { x: 0 },
+                      hover: { x: 4 }
+                    }}
+                    transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                  >
+                    <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+                  </motion.span>
                 </Link>
               </Button>
             </motion.div>
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="border border-white/70 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950"
+            
+            <motion.div
+              whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
+              whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
             >
-              <Link href="#examples">View examples</Link>
-            </Button>
-          </div>
+              <Button
+                asChild
+                size="lg"
+                variant="secondary"
+                className="border border-white/70 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950"
+              >
+                <Link href="#examples">View examples</Link>
+              </Button>
+            </motion.div>
+          </motion.div>
 
-          <div className="mt-6 grid gap-3 text-left text-sm font-medium text-slate-600 sm:grid-cols-3">
+          <motion.div 
+            variants={textItemVariants}
+            className="mt-6 grid gap-3 text-left text-sm font-medium text-slate-600 sm:grid-cols-3"
+          >
             {["No account", "No upload server", "PNG export"].map((item) => (
-              <div key={item} className="flex items-center gap-2">
+              <motion.div 
+                key={item} 
+                className="flex items-center gap-2"
+                variants={itemVariants}
+              >
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
                 {item}
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </motion.div>
       </div>
 
@@ -209,3 +331,4 @@ export default function HeroSection() {
     </section>
   );
 }
+

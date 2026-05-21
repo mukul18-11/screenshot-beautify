@@ -292,10 +292,10 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
         delay: shouldReduceMotion ? 0 : index * 0.04,
         ease: "easeOut",
       }}
-      className="overflow-hidden rounded-2xl border border-white/70 bg-white/70 p-2.5 shadow-soft backdrop-blur-xl"
+      className="flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/70 p-2.5 shadow-soft backdrop-blur-xl"
     >
       <div
-        className="relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-2xl p-4"
+        className="relative flex flex-1 min-h-[300px] flex-col justify-between overflow-hidden rounded-2xl p-4"
         style={{ background: example.background }}
       >
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:22px_22px] opacity-30" />
