@@ -56,7 +56,7 @@ function MacosTopBar({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-center gap-3 border-b px-3",
+        "pointer-events-none relative z-10 flex shrink-0 items-center gap-3 border-b px-3",
         frameClasses.topBar,
       )}
       style={{ height: `${MACOS_TOP_BAR_HEIGHT}px` }}
@@ -102,7 +102,7 @@ function MinimalTopBar({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-center border-b px-3",
+        "pointer-events-none relative z-10 flex shrink-0 items-center border-b px-3",
         frameClasses.topBar,
       )}
       style={{ height: `${MINIMAL_TOP_BAR_HEIGHT}px` }}

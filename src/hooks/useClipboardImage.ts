@@ -2,10 +2,7 @@
 
 import { useEffect } from "react";
 
-type UploadClipboardFile = (
-  file: File,
-  options?: { successMessage?: string },
-) => Promise<void>;
+type UploadClipboardFile = (file: File) => Promise<void>;
 
 type UseClipboardImageOptions = {
   enabled?: boolean;
@@ -64,7 +61,7 @@ export function useClipboardImage({
         return;
       }
 
-      void uploadFile(file, { successMessage: "Screenshot pasted" });
+      void uploadFile(file);
     };
 
     window.addEventListener("paste", handlePaste);

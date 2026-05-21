@@ -852,10 +852,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }, [applyBackgroundParallax, canParallaxBackground]);
 
     useEffect(() => {
-      if (isExportMode) {
-        return;
-      }
-
       const screenshotSlot = screenshotSlotRef.current;
 
       if (!screenshotSlot) {
@@ -885,7 +881,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       return () => {
         resizeObserver.disconnect();
       };
-    }, [isExportMode]);
+    }, []);
 
     useEffect(() => {
       return () => {
@@ -1910,7 +1906,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const croppedImageWidth = uploadedImage.width * cropRatios.width;
     const croppedImageHeight = uploadedImage.height * cropRatios.height;
     const maxScreenshotWidth =
-      !isExportMode && screenshotSlotWidth !== null
+      screenshotSlotWidth !== null
         ? screenshotSlotWidth *
           getScreenshotMaxWidthRatio(hasTextOverlay, textPosition)
         : null;

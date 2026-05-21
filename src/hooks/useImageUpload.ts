@@ -17,10 +17,6 @@ import {
 } from "@/lib/image-validation";
 import { useEditorStore } from "@/store/editor-store";
 
-type UploadFileOptions = {
-  successMessage?: string;
-};
-
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -88,7 +84,7 @@ export function useImageUpload() {
   }, []);
 
   const uploadFile = useCallback(
-    async (file: File, options?: UploadFileOptions) => {
+    async (file: File) => {
       if (!isMountedRef.current) {
         return;
       }
@@ -121,18 +117,12 @@ export function useImageUpload() {
         // uploadedImage to the dependency array (which would recreate this
         // callback on every upload and cascade re-renders).
         const currentImage = useEditorStore.getState().uploadedImage;
-        const successMessage =
-          options?.successMessage ??
-          (currentImage ? "Screenshot replaced" : "Screenshot ready");
 
         if (!currentImage) {
           resetEditorForNewUpload();
         }
 
         replaceUploadedImage(image);
-        toast.success(successMessage, {
-          description: `${image.width} x ${image.height} px - ${formatFileSize(image.size)}`,
-        });
       } catch (error) {
         if (requestId === uploadRequestIdRef.current) {
           showError(getErrorMessage(error));
