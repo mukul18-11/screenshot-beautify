@@ -41,7 +41,7 @@ export default function HowItWorks() {
           {STEPS.map((step, index) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover="hover"
               variants={{

@@ -47,7 +47,7 @@ export default function FeatureGrid() {
         
         {/* Card 1: Upload & Styles (col-span-4) */}
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 15 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-4 flex flex-col justify-between min-h-[300px]"
@@ -113,7 +113,7 @@ export default function FeatureGrid() {
 
         {/* Card 2: Interactive 3D Depth (col-span-2) */}
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.05 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-2 flex flex-col justify-between min-h-[300px]"
@@ -175,7 +175,7 @@ export default function FeatureGrid() {
 
         {/* Card 3: Browser Frames (col-span-3) */}
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-3 flex flex-col justify-between min-h-[300px]"
@@ -224,7 +224,7 @@ export default function FeatureGrid() {
 
         {/* Card 4: Text Overlays (col-span-3) */}
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.15 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-3 flex flex-col justify-between min-h-[300px]"
@@ -262,7 +262,7 @@ export default function FeatureGrid() {
 
         {/* Card 5: Local Privacy (col-span-2) */}
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.2 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-2 flex flex-col justify-between min-h-[300px]"
@@ -302,7 +302,7 @@ export default function FeatureGrid() {
 
         {/* Card 6: Custom Canvas & Export (col-span-4) */}
         <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.25 }}
           className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-6 shadow-soft backdrop-blur-xl md:col-span-4 flex flex-col justify-between min-h-[300px]"

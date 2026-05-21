@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import LandingHoverTilt from "@/components/landing/LandingHoverTilt";
 
 const textContainerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
@@ -20,7 +20,7 @@ const textContainerVariants = {
 } as const;
 
 const textItemVariants = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 1, y: 0 },
   show: {
     opacity: 1,
     y: 0,
@@ -33,7 +33,7 @@ const textItemVariants = {
 } as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 14 },
+  hidden: { opacity: 1, y: 0 },
   show: {
     opacity: 1,
     y: 0,
@@ -50,7 +50,7 @@ function HeroMockup() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 22, scale: 0.97 }}
+      initial={{ opacity: 1, y: 0, scale: 1 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.65, delay: 0.15, type: "spring", stiffness: 60, damping: 14 }}
       className="relative mx-auto w-full max-w-4xl lg:max-w-none"
@@ -127,7 +127,7 @@ function HeroMockup() {
 
           <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
             <motion.div
-              initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20, rotate: shouldReduceMotion ? 0 : -1.5 }}
+              initial={{ opacity: 1, x: 0, rotate: shouldReduceMotion ? 0 : -1 }}
               animate={{ opacity: 1, x: 0, rotate: shouldReduceMotion ? 0 : -1 }}
               transition={{ duration: 0.65, delay: 0.35, type: "spring", stiffness: 70, damping: 14 }}
               className="rounded-[1.25rem] border border-white/15 bg-white/10 p-3 text-white/75 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:mb-3"
@@ -331,4 +331,3 @@ export default function HeroSection() {
     </section>
   );
 }
-

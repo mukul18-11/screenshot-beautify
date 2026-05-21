@@ -43,7 +43,7 @@ export default function FAQSection() {
       className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
     >
       <motion.div 
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
         className="mx-auto max-w-xl text-center"
@@ -58,7 +58,7 @@ export default function FAQSection() {
         {FAQS.map((faq, index) => (
           <motion.div
             key={faq.question}
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ 
               y: shouldReduceMotion ? 0 : -3, 

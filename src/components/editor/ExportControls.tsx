@@ -108,7 +108,7 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+      initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
       className="border-b border-slate-200/70 py-5 dark:border-white/10"

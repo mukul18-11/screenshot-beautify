@@ -453,7 +453,7 @@ export default function TextOverlayControls() {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
+      initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}

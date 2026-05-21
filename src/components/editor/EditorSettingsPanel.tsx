@@ -60,7 +60,7 @@ function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
+      initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
@@ -135,7 +135,7 @@ function EmptySettingsContent() {
   return (
     <motion.div
       key="empty-settings"
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
@@ -188,7 +188,7 @@ export default function EditorSettingsPanel({
 }: EditorSettingsPanelProps) {
   return (
     <motion.aside
-      initial={{ opacity: 0, x: 16 }}
+      initial={{ opacity: 1, x: 0 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.32, delay: 0.08, ease: "easeOut" }}
       className={cn(
@@ -206,11 +206,11 @@ export default function EditorSettingsPanel({
         </span>
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false} mode="wait">
         {uploadedImage ? (
           <motion.div
             key="canvas-settings"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}

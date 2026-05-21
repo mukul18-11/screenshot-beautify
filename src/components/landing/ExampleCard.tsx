@@ -283,7 +283,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
+      initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: shouldReduceMotion ? 0 : -4 }}
       transition={{

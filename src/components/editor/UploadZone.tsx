@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, type KeyboardEvent } from "react";
+import { useCallback, type KeyboardEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
@@ -36,12 +36,6 @@ export default function UploadZone() {
     toast.success("Screenshot removed");
   }, [clearError, clearUploadedImage]);
 
-  useEffect(() => {
-    return () => {
-      clearUploadedImage();
-    };
-  }, [clearUploadedImage]);
-
   const handleRootKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
       if (event.currentTarget !== event.target) {
@@ -70,7 +64,7 @@ export default function UploadZone() {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: "easeOut" }}
       className="relative z-10 flex h-full min-h-0 w-full"
@@ -129,7 +123,7 @@ export default function UploadZone() {
             )}
           </AnimatePresence>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence initial={false} mode="wait">
             {uploadedImage ? (
               <ImagePreview
                 key="uploaded"
@@ -141,7 +135,7 @@ export default function UploadZone() {
             ) : (
               <motion.div
                 key="empty"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 1, y: 0 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}

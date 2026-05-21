@@ -31,9 +31,9 @@ export default function ImagePreview({
   return (
     <motion.div
       initial={{
-        opacity: 0,
-        scale: shouldReduceMotion ? 1 : 0.97,
-        y: shouldReduceMotion ? 0 : 14,
+        opacity: 1,
+        scale: 1,
+        y: 0,
       }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{

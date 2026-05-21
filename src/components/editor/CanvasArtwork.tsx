@@ -2120,10 +2120,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           ...style,
         }}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} mode="wait">
           <motion.div
             key={backgroundKey}
-            initial={{ opacity: isExportMode || shouldReduceMotion ? 1 : 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: isExportMode || shouldReduceMotion ? 1 : 0 }}
             transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}

@@ -37,7 +37,7 @@ function UseCasesSection() {
     >
       <div className="grid gap-7 border-y border-slate-950/10 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <motion.div 
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
           className="max-w-xl"
@@ -57,7 +57,7 @@ function UseCasesSection() {
           {USE_CASES.map((useCase, index) => (
             <motion.div
               key={useCase}
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
               transition={{
@@ -86,12 +86,10 @@ function UseCasesSection() {
 }
 
 function SearchIntentSection() {
-  const shouldReduceMotion = useReducedMotion();
-
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
       <motion.div 
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, type: "spring", stiffness: 70, damping: 15 }}
         className="grid gap-7 rounded-[1.5rem] border border-white/70 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:grid-cols-[0.8fr_1.2fr] lg:p-8"

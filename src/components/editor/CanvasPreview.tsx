@@ -51,9 +51,9 @@ export default function CanvasPreview({
   return (
     <motion.div
       initial={{
-        opacity: 0,
-        y: shouldReduceMotion ? 0 : 12,
-        scale: shouldReduceMotion ? 1 : 0.985,
+        opacity: 1,
+        y: 0,
+        scale: 1,
       }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{
