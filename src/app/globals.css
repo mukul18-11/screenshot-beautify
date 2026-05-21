@@ -55,6 +55,23 @@ body {
   text-rendering: geometricPrecision;
 }
 
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 200% auto !important;
+  animation: gradient-flow 6s linear infinite !important;
+}
+
 @keyframes editor-scanline {
   0% {
     transform: translateX(-18%);

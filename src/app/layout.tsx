@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import { Toaster } from "sonner";
 
 import {
@@ -15,6 +15,13 @@ const appSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-app-sans",
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const appDisplay = Outfit({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-app-display",
+  weight: ["500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -89,8 +96,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={appSans.variable}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${appSans.variable} ${appDisplay.variable} antialiased`}>
         {children}
         <Toaster richColors closeButton position="top-center" />
       </body>

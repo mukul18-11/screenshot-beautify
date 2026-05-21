@@ -44,13 +44,12 @@ export default function FAQSection() {
     >
       <motion.div 
         initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
         className="mx-auto max-w-xl text-center"
       >
-        <p className="text-sm font-semibold text-cyan-700">FAQ</p>
-        <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
+        <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">FAQ</p>
+        <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
           Practical answers before you start
         </h2>
       </motion.div>
@@ -60,13 +59,12 @@ export default function FAQSection() {
           <motion.div
             key={faq.question}
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             whileHover={{ 
               y: shouldReduceMotion ? 0 : -3, 
               borderColor: "rgba(14, 116, 144, 0.25)",
               boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.04)"
             }}
-            viewport={{ once: true, margin: "-60px" }}
             transition={{
               type: "spring",
               stiffness: 100,
@@ -75,7 +73,7 @@ export default function FAQSection() {
             }}
             className="rounded-2xl border border-slate-200 bg-white/75 p-4 shadow-sm backdrop-blur-xl transition-all cursor-default"
           >
-            <h3 className="text-base font-semibold text-slate-950">
+            <h3 className="text-base font-bold font-display tracking-tight text-slate-950">
               {faq.question}
             </h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">

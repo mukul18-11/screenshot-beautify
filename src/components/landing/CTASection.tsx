@@ -14,8 +14,7 @@ export default function CTASection() {
     <section className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10 sm:px-6">
       <motion.div 
         initial={{ opacity: 0, scale: 0.97, y: shouldReduceMotion ? 0 : 25 }}
-        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 70, damping: 15 }}
         className="relative overflow-hidden rounded-[1.5rem] border border-white/70 bg-[radial-gradient(circle_at_18%_18%,rgba(45,212,191,0.28),transparent_32%),radial-gradient(circle_at_84%_18%,rgba(244,114,182,0.24),transparent_30%),linear-gradient(135deg,#0f172a_0%,#312e81_58%,#111827_100%)] px-5 py-10 text-center text-white shadow-2xl shadow-slate-950/20 sm:px-8 sm:py-14"
       >
@@ -55,8 +54,8 @@ export default function CTASection() {
             <ShieldCheck className="h-4 w-4 text-emerald-300" />
             Local-first screenshot polish
           </div>
-          <h2 className="text-3xl font-semibold sm:text-4xl">
-            Make your next product screenshot launch-ready
+          <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl leading-tight">
+            Make your next product screenshot <span className="bg-gradient-to-r from-cyan-300 via-teal-200 to-indigo-200 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(6,182,212,0.15)]">launch-ready</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-white/72 sm:text-lg">
             Open the editor, paste a screenshot, choose a quick style, and

@@ -29,11 +29,11 @@ export default function EditorClient() {
                   <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                 </div>
                 <div>
-                  <span className="block text-sm font-extrabold text-[var(--editor-ink)]">
+                  <span className="block text-sm font-bold font-display tracking-tight text-[var(--editor-ink)]">
                     Screenshot Beautifier
                   </span>
                   <span className="hidden text-[11px] font-semibold text-[var(--editor-muted)] sm:block">
-                    Launch visuals, made locally
+                    Launch visuals, <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-pink-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-bold animate-gradient-flow">made locally</span>
                   </span>
                 </div>
               </div>

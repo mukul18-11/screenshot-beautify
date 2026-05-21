@@ -31,9 +31,9 @@ export default function HowItWorks() {
     >
       <div className="rounded-[1.5rem] border border-slate-200 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:p-8">
         <div className="max-w-xl">
-          <p className="text-sm font-semibold text-cyan-700">How it works</p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-[2rem]">
-            Four steps from raw screenshot to launch visual
+          <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">How it works</p>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
+            Four steps from raw screenshot to <span className="bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent font-extrabold tracking-tighter">launch visual</span>
           </h2>
         </div>
 
@@ -42,9 +42,8 @@ export default function HowItWorks() {
             <motion.div
               key={step.title}
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               whileHover="hover"
-              viewport={{ once: true, margin: "-80px" }}
               variants={{
                 hover: {
                   y: shouldReduceMotion ? 0 : -6,
@@ -71,7 +70,7 @@ export default function HowItWorks() {
               >
                 {index + 1}
               </motion.div>
-              <h3 className="text-base font-semibold text-slate-950">
+              <h3 className="text-base font-bold font-display tracking-tight text-slate-950">
                 {step.title}
               </h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">

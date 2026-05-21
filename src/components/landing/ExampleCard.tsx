@@ -284,9 +284,8 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
   return (
     <motion.article
       initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: shouldReduceMotion ? 0 : -4 }}
-      viewport={{ once: true, margin: "-80px" }}
       transition={{
         duration: 0.32,
         delay: shouldReduceMotion ? 0 : index * 0.04,

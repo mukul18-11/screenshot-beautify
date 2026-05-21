@@ -154,8 +154,8 @@ function EmptySettingsContent() {
               <Sparkles className="h-4 w-4" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-[15px] font-extrabold leading-5 text-[var(--editor-ink)]">
-                Start with a screenshot
+              <h3 className="text-[15px] font-bold font-display tracking-tight leading-5 text-[var(--editor-ink)]">
+                Start with a <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-pink-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-black animate-gradient-flow">screenshot</span>
               </h3>
               <p className="mt-1 text-xs font-medium leading-5 text-[var(--editor-muted)]">
                 Your design controls appear here as soon as an image lands on

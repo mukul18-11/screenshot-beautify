@@ -50,10 +50,10 @@ export default function LandingNav() {
           className="flex min-w-0 items-center gap-3 text-slate-950"
           aria-label="Screenshot Beautifier home"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 transition-transform duration-350 hover:scale-105">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
-          <span className="truncate text-sm font-semibold">
+          <span className="truncate text-sm font-display font-bold tracking-tight text-slate-950">
             Screenshot Beautifier
           </span>
         </Link>

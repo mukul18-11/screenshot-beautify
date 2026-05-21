@@ -106,10 +106,10 @@ function HeroMockup() {
               </motion.div>
               <motion.p 
                 variants={textItemVariants}
-                className="max-w-[34rem] text-2xl font-semibold leading-[1.04] sm:text-[2.45rem] lg:text-[2.65rem]"
+                className="max-w-[34rem] font-display text-2xl font-bold leading-[1.04] sm:text-[2.45rem] lg:text-[2.65rem]"
               >
                 Before post.
-                <span className="block text-cyan-100">
+                <span className="block bg-gradient-to-r from-cyan-300 via-teal-200 to-indigo-200 bg-clip-text text-transparent font-extrabold tracking-tight">
                   After launch visual.
                 </span>
               </motion.p>
@@ -250,9 +250,9 @@ export default function HeroSection() {
           
           <motion.h1 
             variants={textItemVariants}
-            className="text-balance text-4xl font-semibold leading-[1.03] text-slate-950 sm:text-5xl lg:text-[4rem]"
+            className="text-balance font-display text-4xl font-extrabold leading-[1.03] tracking-tight text-slate-950 sm:text-5xl lg:text-[4.25rem]"
           >
-            Screenshot Beautifier turns raw screenshots into launch-ready visuals
+            Screenshot Beautifier turns raw screenshots into <span className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(6,182,212,0.1)]">launch-ready visuals</span>
           </motion.h1>
           
           <motion.p 

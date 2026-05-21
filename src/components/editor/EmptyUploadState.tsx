@@ -97,8 +97,19 @@ export default function EmptyUploadState({
           )}
         </motion.button>
 
-        <h1 className="relative mt-5 max-w-md text-balance text-[1.72rem] font-extrabold leading-tight text-slate-950 sm:text-[2rem]">
-          {isUploading ? "Reading screenshot..." : copy.title}
+        <h1 className="relative mt-5 max-w-md text-balance font-display text-[1.72rem] font-extrabold leading-tight text-slate-950 sm:text-[2rem]">
+          {isUploading ? (
+            "Reading screenshot..."
+          ) : dragState === "idle" ? (
+            <>
+              Make your screenshot{" "}
+              <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-pink-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-black tracking-tight animate-gradient-flow">
+                launch-ready
+              </span>
+            </>
+          ) : (
+            copy.title
+          )}
         </h1>
         <p className="relative mt-2 max-w-sm text-sm font-medium leading-6 text-slate-600 sm:text-[15px]">
           {copy.description}
