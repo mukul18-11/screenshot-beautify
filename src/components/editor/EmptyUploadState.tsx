@@ -75,18 +75,44 @@ export default function EmptyUploadState({
           }}
           whileHover={{ y: shouldReduceMotion || isUploading ? 0 : -3 }}
           whileTap={{ scale: shouldReduceMotion || isUploading ? 1 : 0.98 }}
+          animate={
+            dragState === "idle" && !shouldReduceMotion && !isUploading
+              ? { scale: [1, 1.045, 1] }
+              : { scale: 1 }
+          }
+          transition={{
+            duration: 1.8,
+            ease: "easeInOut",
+            repeat:
+              dragState === "idle" && !shouldReduceMotion && !isUploading
+                ? Infinity
+                : 0,
+          }}
           className={cn(
-            "group relative mt-5 flex h-28 w-28 items-center justify-center rounded-[1.45rem] border bg-white shadow-[0_18px_55px_-28px_rgba(15,23,42,0.85)] outline-none transition",
-            "focus-visible:ring-2 focus-visible:ring-[var(--editor-accent)]/25",
+            "group relative mt-5 flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.45rem] border bg-white shadow-[0_18px_55px_-28px_rgba(15,23,42,0.85)] outline-none transition",
+            "focus-visible:ring-2 focus-visible:ring-sky-400/30",
             dragState === "idle" &&
-              "border-slate-200 text-slate-950 hover:border-[var(--editor-accent)]/30 hover:text-[var(--editor-accent)]",
+              "border-sky-300/70 bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 text-sky-600 shadow-[0_22px_60px_-26px_rgba(2,132,199,0.9)] hover:border-sky-400/80 hover:text-sky-700",
             dragState === "accept" &&
               "border-emerald-300 bg-emerald-50/95 text-emerald-700",
             dragState === "reject" &&
               "border-rose-300 bg-rose-50/95 text-rose-700",
           )}
         >
-          <span className="absolute inset-3 rounded-[1rem] border border-dashed border-slate-200 transition group-hover:border-current" />
+          {dragState === "idle" && !shouldReduceMotion && !isUploading && (
+            <motion.span
+              className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/75 to-transparent"
+              animate={{ x: ["0%", "330%"] }}
+              transition={{
+                duration: 2.4,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatDelay: 0.6,
+              }}
+              aria-hidden="true"
+            />
+          )}
+          <span className="absolute inset-3 rounded-[1rem] border border-dashed border-current/30 transition group-hover:border-current/50" />
           {isUploading ? (
             <Loader2 className="h-9 w-9 animate-spin" aria-hidden="true" />
           ) : (
