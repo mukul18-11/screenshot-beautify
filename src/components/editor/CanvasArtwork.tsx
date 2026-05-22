@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -213,6 +214,29 @@ function getScreenshotMaxWidthRatio(
   }
 
   return 1;
+}
+
+function getFallbackScreenshotSlotWidth({
+  canvasWidth,
+  imagePadding,
+  textOverlayEnabled,
+  textPosition,
+}: {
+  canvasWidth: number;
+  imagePadding: number;
+  textOverlayEnabled: boolean;
+  textPosition: TextPosition;
+}) {
+  const contentWidth = Math.max(1, canvasWidth - imagePadding * 2);
+
+  if (
+    textOverlayEnabled &&
+    (textPosition === "left" || textPosition === "right")
+  ) {
+    return Math.max(1, contentWidth * 0.62);
+  }
+
+  return contentWidth;
 }
 
 function mergeRefs<T>(
@@ -853,16 +877,20 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       };
     }, [applyBackgroundParallax, canParallaxBackground]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       const screenshotSlot = screenshotSlotRef.current;
 
       if (!screenshotSlot) {
         return;
       }
 
-      const updateScreenshotSlotWidth = () => {
+      const updateScreenshotSlotWidth = (entry?: ResizeObserverEntry) => {
         setScreenshotSlotWidth((currentWidth) => {
-          const nextWidth = screenshotSlot.getBoundingClientRect().width;
+          const observedWidth = entry?.contentRect.width;
+          const nextWidth =
+            observedWidth && observedWidth > 0
+              ? observedWidth
+              : screenshotSlot.clientWidth;
 
           if (
             currentWidth !== null &&
@@ -877,7 +905,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       updateScreenshotSlotWidth();
 
-      const resizeObserver = new ResizeObserver(updateScreenshotSlotWidth);
+      const resizeObserver = new ResizeObserver((entries) => {
+        updateScreenshotSlotWidth(entries[0]);
+      });
       resizeObserver.observe(screenshotSlot);
 
       return () => {
@@ -1902,6 +1932,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       hasTextOverlay,
       textPosition,
     );
+    const fallbackScreenshotSlotWidth = getFallbackScreenshotSlotWidth({
+      canvasWidth,
+      imagePadding,
+      textOverlayEnabled: hasTextOverlay,
+      textPosition,
+    });
+    const resolvedScreenshotSlotWidth =
+      screenshotSlotWidth !== null && screenshotSlotWidth > 0
+        ? screenshotSlotWidth
+        : fallbackScreenshotSlotWidth;
     const activeScreenshot = screenshots.find(
       (screenshot) => screenshot.id === activeScreenshotId,
     );
@@ -1967,20 +2007,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const croppedImageHeight =
         screenshot.uploadedImage.height * layerCropRatios.height;
       const maxScreenshotWidth =
-        screenshotSlotWidth !== null
-          ? screenshotSlotWidth *
-            getScreenshotMaxWidthRatio(hasTextOverlay, textPosition)
-          : null;
+        resolvedScreenshotSlotWidth *
+        getScreenshotMaxWidthRatio(hasTextOverlay, textPosition);
       const screenshotCropWidth =
-        maxScreenshotWidth !== null
-          ? Math.max(
-              1,
-              Math.min(
-                croppedImageWidth,
-                maxScreenshotWidth * layerCropRatios.width,
-              ),
-            )
-          : croppedImageWidth;
+        Math.max(
+          1,
+          Math.min(
+            croppedImageWidth,
+            maxScreenshotWidth * layerCropRatios.width,
+          ),
+        );
       const layerTiltEnabled = layerSettings.tiltEnabled;
       const layerScreenshotShadow = createImageShadowCss({
         ...layerSettings.imageShadow,
