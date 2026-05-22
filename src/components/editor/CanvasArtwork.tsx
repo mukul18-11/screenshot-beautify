@@ -1711,6 +1711,33 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
     }
 
+    function getScreenshotLayerElementAtPoint(clientX: number, clientY: number) {
+      const canvasShell = canvasShellRef.current;
+
+      if (!canvasShell || typeof document === "undefined") {
+        return null;
+      }
+
+      for (const element of document.elementsFromPoint(clientX, clientY)) {
+        if (!(element instanceof HTMLElement) || !canvasShell.contains(element)) {
+          continue;
+        }
+
+        const mockupVisual = element.closest("[data-screenshot-mockup-visual]");
+        const layerElement = element.closest("[data-screenshot-layer-id]");
+
+        if (
+          mockupVisual instanceof HTMLElement &&
+          layerElement instanceof HTMLElement &&
+          canvasShell.contains(layerElement)
+        ) {
+          return layerElement;
+        }
+      }
+
+      return null;
+    }
+
     function handleMockupPointerDown(
       screenshotId: string,
       event: PointerEvent<HTMLDivElement>,
@@ -1721,22 +1748,38 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       event.stopPropagation();
 
-      if (screenshotId !== activeScreenshotId) {
-        event.preventDefault();
-        selectScreenshot(screenshotId);
-        setIsMockupSelected(true);
-        setActiveTextLayerId(null);
-        return;
-      }
-
       const canvasShell = canvasShellRef.current;
-      const mockupVisual = mockupVisualRef.current;
+      const targetLayerElement =
+        getScreenshotLayerElementAtPoint(event.clientX, event.clientY) ??
+        event.currentTarget;
+      const targetScreenshotId =
+        targetLayerElement.dataset.screenshotLayerId ?? screenshotId;
+      const mockupVisual = targetLayerElement.querySelector<HTMLElement>(
+        "[data-screenshot-mockup-visual]",
+      );
 
       if (!canvasShell || !mockupVisual) {
         return;
       }
 
       event.preventDefault();
+      if (targetScreenshotId !== activeScreenshotId) {
+        selectScreenshot(targetScreenshotId);
+      }
+
+      const state = useEditorStore.getState();
+      const selectedScreenshot = state.screenshots.find(
+        (screenshot) =>
+          screenshot.id === targetScreenshotId && screenshot.isPlaced,
+      );
+
+      if (
+        !selectedScreenshot ||
+        state.activeScreenshotId !== targetScreenshotId
+      ) {
+        return;
+      }
+
       setIsMockupSelected(true);
       setActiveTextLayerId(null);
       transformDragActiveRef.current = false;
@@ -1747,11 +1790,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         mockupRect: mockupVisual.getBoundingClientRect(),
         moved: false,
         pointerId: event.pointerId,
-        screenshotId,
+        screenshotId: targetScreenshotId,
         startClientX: event.clientX,
         startClientY: event.clientY,
-        startOffsetX: imageOffsetX,
-        startOffsetY: imageOffsetY,
+        startOffsetX: state.imageOffsetX,
+        startOffsetY: state.imageOffsetY,
       };
 
       setIsDraggingCanvasItem(true);
@@ -1799,6 +1842,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       );
 
       scheduleTransformUpdate(() => {
+        if (
+          useEditorStore.getState().activeScreenshotId !==
+          dragState.screenshotId
+        ) {
+          return;
+        }
+
         setImageTransform({
           offsetX: nextOffsetX,
           offsetY: nextOffsetY,
@@ -1808,13 +1858,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleMockupPointerEnd(event: PointerEvent<HTMLDivElement>) {
       const dragState = mockupDragStateRef.current;
-      transformDragActiveRef.current = false;
-      cancelTransformUpdate();
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
         return;
       }
 
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
       event.preventDefault();
       event.stopPropagation();
 
@@ -2292,14 +2342,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             !isExportMode && "cursor-grab active:cursor-grabbing",
           )}
           aria-selected={!isExportMode ? isActiveLayer : undefined}
-          onPointerCancel={isActiveLayer ? handleMockupPointerEnd : undefined}
+          onPointerCancel={handleMockupPointerEnd}
           onPointerDown={(event) => handleMockupPointerDown(screenshot.id, event)}
-          onPointerMove={isActiveLayer ? handleMockupPointerMove : undefined}
-          onPointerUp={isActiveLayer ? handleMockupPointerEnd : undefined}
+          onPointerMove={handleMockupPointerMove}
+          onPointerUp={handleMockupPointerEnd}
           style={imagePlacementStyle}
         >
           <div
             ref={isActiveLayer ? mockupVisualRef : undefined}
+            data-screenshot-mockup-visual="true"
             className={cn("relative flex", screenshotShellClasses)}
             style={mockupScaleStyle}
           >
