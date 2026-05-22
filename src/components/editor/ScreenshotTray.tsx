@@ -6,8 +6,10 @@ import {
   Check,
   Image as ImageIcon,
   Plus,
+  Redo2,
   RefreshCw,
   Trash2,
+  Undo2,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -36,8 +38,12 @@ export default function ScreenshotTray({
   const screenshots = useEditorStore((state) => state.screenshots);
   const activeScreenshotId = useEditorStore((state) => state.activeScreenshotId);
   const isExporting = useEditorStore((state) => state.isExporting);
+  const canRedo = useEditorStore((state) => state.historyFuture.length > 0);
+  const canUndo = useEditorStore((state) => state.historyPast.length > 0);
   const placeScreenshot = useEditorStore((state) => state.placeScreenshot);
+  const redo = useEditorStore((state) => state.redo);
   const selectScreenshot = useEditorStore((state) => state.selectScreenshot);
+  const undo = useEditorStore((state) => state.undo);
   const isAtLimit = screenshots.length >= MAX_SCREENSHOT_UPLOADS;
   const isBusy = isUploading || isExporting;
 
@@ -172,6 +178,36 @@ export default function ScreenshotTray({
       </div>
 
       <div className="flex shrink-0 items-center gap-1 border-l border-slate-200/70 pl-2">
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          disabled={isBusy || !canUndo}
+          aria-label="Undo last edit"
+          title="Undo last edit"
+          onClick={(event) => {
+            event.stopPropagation();
+            undo();
+          }}
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950"
+        >
+          <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
+        </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          disabled={isBusy || !canRedo}
+          aria-label="Redo last undone edit"
+          title="Redo last undone edit"
+          onClick={(event) => {
+            event.stopPropagation();
+            redo();
+          }}
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950"
+        >
+          <Redo2 className="h-3.5 w-3.5" aria-hidden="true" />
+        </Button>
         <span className="hidden min-w-10 text-center text-[11px] font-bold text-slate-500 sm:inline">
           {screenshots.length}/{MAX_SCREENSHOT_UPLOADS}
         </span>

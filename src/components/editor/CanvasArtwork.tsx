@@ -95,6 +95,7 @@ type MockupDragState = {
   mockupRect: DOMRect;
   moved: boolean;
   pointerId: number;
+  screenshotId: string;
   startClientX: number;
   startClientY: number;
   startOffsetX: number;
@@ -264,6 +265,7 @@ const DRAG_THRESHOLD_PX = 4;
 const MIN_VISIBLE_MOCKUP_PX = 48;
 const MIN_RESIZED_MOCKUP_HEIGHT_PX = 96;
 const MIN_RESIZED_MOCKUP_WIDTH_PX = 144;
+const REMOVE_FROM_CANVAS_OUTSET_PX = 24;
 const SNAP_THRESHOLD_PX = 12;
 const TEXT_ROTATION_DEGREES_PER_PX = 0.45;
 const RESIZE_HANDLES = [
@@ -289,6 +291,38 @@ function getDraggedScreenshotId(event: DragEvent<HTMLDivElement>) {
 function hasScreenshotTrayDrag(event: DragEvent<HTMLDivElement>) {
   return Array.from(event.dataTransfer.types).includes(
     SCREENSHOT_TRAY_DRAG_TYPE,
+  );
+}
+
+function isEditableKeyboardTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+  const editableParent = target.closest("[contenteditable]");
+
+  return (
+    target.isContentEditable ||
+    (editableParent instanceof HTMLElement &&
+      editableParent.contentEditable !== "false") ||
+    tagName === "input" ||
+    tagName === "textarea" ||
+    tagName === "select"
+  );
+}
+
+function isPointOutsideRect(
+  rect: DOMRect,
+  clientX: number,
+  clientY: number,
+  outset = 0,
+) {
+  return (
+    clientX < rect.left - outset ||
+    clientX > rect.right + outset ||
+    clientY < rect.top - outset ||
+    clientY > rect.bottom + outset
   );
 }
 
@@ -465,7 +499,8 @@ function MockupTransformControls({
       <button
         type="button"
         aria-label="Remove screenshot from canvas"
-        className="pointer-events-auto absolute -right-3 -top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/80 bg-white text-slate-500 shadow-lg shadow-slate-950/15 outline-none transition hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-blue-300"
+        title="Remove from artwork"
+        className="pointer-events-auto absolute left-1/2 top-0 z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-[calc(100%+10px)] items-center justify-center rounded-full border border-white/80 bg-slate-950 text-white shadow-lg shadow-slate-950/20 outline-none transition hover:bg-rose-600 focus-visible:ring-2 focus-visible:ring-blue-300"
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -1059,6 +1094,39 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       isExportMode,
       screenshotScale,
       setImageTransform,
+    ]);
+
+    useEffect(() => {
+      if (isExportMode || !activeScreenshotId || !isMockupSelected) {
+        return;
+      }
+
+      const selectedScreenshotId = activeScreenshotId;
+
+      function handleKeyDown(event: globalThis.KeyboardEvent) {
+        if (event.key !== "Delete" && event.key !== "Backspace") {
+          return;
+        }
+
+        if (isEditableKeyboardTarget(event.target)) {
+          return;
+        }
+
+        event.preventDefault();
+        removeScreenshotFromCanvas(selectedScreenshotId);
+        setIsMockupSelected(false);
+      }
+
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [
+      activeScreenshotId,
+      isExportMode,
+      isMockupSelected,
+      removeScreenshotFromCanvas,
     ]);
 
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -1679,6 +1747,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         mockupRect: mockupVisual.getBoundingClientRect(),
         moved: false,
         pointerId: event.pointerId,
+        screenshotId,
         startClientX: event.clientX,
         startClientY: event.clientY,
         startOffsetX: imageOffsetX,
@@ -1746,11 +1815,28 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
+      event.preventDefault();
+      event.stopPropagation();
+
+      const shouldRemoveFromCanvas =
+        dragState.moved &&
+        isPointOutsideRect(
+          dragState.canvasRect,
+          event.clientX,
+          event.clientY,
+          REMOVE_FROM_CANVAS_OUTSET_PX,
+        );
+
       mockupDragStateRef.current = null;
       setIsDraggingCanvasItem(false);
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      if (shouldRemoveFromCanvas) {
+        removeScreenshotFromCanvas(dragState.screenshotId);
+        setIsMockupSelected(false);
       }
     }
 
@@ -2311,9 +2397,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             {showMockupControls && (
               <MockupTransformControls
                 imageRadius={layerSettings.imageRadius}
-                onRemoveFromCanvas={() =>
-                  removeScreenshotFromCanvas(screenshot.id)
-                }
+                onRemoveFromCanvas={() => {
+                  removeScreenshotFromCanvas(screenshot.id);
+                  setIsMockupSelected(false);
+                }}
                 onResizePointerCancel={handleResizePointerEnd}
                 onResizePointerDown={handleResizePointerDown}
                 onResizePointerMove={handleResizePointerMove}

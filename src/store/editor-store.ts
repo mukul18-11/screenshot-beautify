@@ -47,11 +47,124 @@ import type {
 export type { ScreenshotDesign, UploadedImage } from "@/types/editor";
 
 export const MAX_SCREENSHOT_UPLOADS = 12;
+const MAX_EDITOR_HISTORY_ENTRIES = 50;
+
+type HistoryGlobalSettings = Pick<
+  EditorDesignSettings,
+  | "canvasPreset"
+  | "canvasWidth"
+  | "canvasHeight"
+  | "backgroundType"
+  | "backgroundValue"
+  | "backgroundPresetId"
+  | "imagePadding"
+  | "textOverlayEnabled"
+  | "headlineText"
+  | "subtitleText"
+  | "badgeText"
+  | "textPosition"
+  | "textAlign"
+  | "textColor"
+  | "textFontId"
+  | "textFontWeight"
+  | "textItalic"
+  | "textUnderline"
+  | "textLetterSpacing"
+  | "textLineHeight"
+  | "textOpacity"
+  | "textShadowEnabled"
+  | "textShadowMode"
+  | "textShadowPresetId"
+  | "textShadowColor"
+  | "textShadowBlur"
+  | "textShadowOffsetX"
+  | "textShadowOffsetY"
+  | "textShadowOpacity"
+  | "textShadowDepth"
+  | "headlineSize"
+  | "subtitleSize"
+  | "badgeSize"
+  | "badgeRotation"
+  | "headlineRotation"
+  | "subtitleRotation"
+  | "badgeEnabled"
+  | "badgeOffsetX"
+  | "badgeOffsetY"
+  | "headlineOffsetX"
+  | "headlineOffsetY"
+  | "subtitleOffsetX"
+  | "subtitleOffsetY"
+  | "backgroundParallaxEnabled"
+  | "backgroundParallaxStrength"
+  | "exportScale"
+  | "exportFileName"
+>;
+
+type EditorHistorySnapshot = {
+  activeScreenshotId: string | null;
+  globalSettings: HistoryGlobalSettings;
+  screenshots: ScreenshotDesign[];
+};
+
+const HISTORY_GLOBAL_SETTING_KEYS = [
+  "canvasPreset",
+  "canvasWidth",
+  "canvasHeight",
+  "backgroundType",
+  "backgroundValue",
+  "backgroundPresetId",
+  "imagePadding",
+  "textOverlayEnabled",
+  "headlineText",
+  "subtitleText",
+  "badgeText",
+  "textPosition",
+  "textAlign",
+  "textColor",
+  "textFontId",
+  "textFontWeight",
+  "textItalic",
+  "textUnderline",
+  "textLetterSpacing",
+  "textLineHeight",
+  "textOpacity",
+  "textShadowEnabled",
+  "textShadowMode",
+  "textShadowPresetId",
+  "textShadowColor",
+  "textShadowBlur",
+  "textShadowOffsetX",
+  "textShadowOffsetY",
+  "textShadowOpacity",
+  "textShadowDepth",
+  "headlineSize",
+  "subtitleSize",
+  "badgeSize",
+  "badgeRotation",
+  "headlineRotation",
+  "subtitleRotation",
+  "badgeEnabled",
+  "badgeOffsetX",
+  "badgeOffsetY",
+  "headlineOffsetX",
+  "headlineOffsetY",
+  "subtitleOffsetX",
+  "subtitleOffsetY",
+  "backgroundParallaxEnabled",
+  "backgroundParallaxStrength",
+  "exportScale",
+  "exportFileName",
+] as const satisfies readonly (keyof HistoryGlobalSettings)[];
 
 type EditorStore = EditorDesignSettings & {
+    historyPast: EditorHistorySnapshot[];
+    historyFuture: EditorHistorySnapshot[];
     screenshots: ScreenshotDesign[];
     activeScreenshotId: string | null;
     uploadedImage: UploadedImage | null;
+    undo: () => void;
+    redo: () => void;
+    clearHistory: () => void;
     selectScreenshot: (screenshotId: string) => void;
     placeScreenshot: (
       screenshotId: string,
@@ -231,6 +344,15 @@ function cloneEditorDesignSettings(
   };
 }
 
+function cloneScreenshotDesigns(
+  screenshots: ScreenshotDesign[],
+): ScreenshotDesign[] {
+  return screenshots.map((screenshot) => ({
+    ...screenshot,
+    settings: cloneEditorDesignSettings(screenshot.settings),
+  }));
+}
+
 function getEditorDesignSettingsFromState(
   state: EditorStore,
 ): EditorDesignSettings {
@@ -311,6 +433,60 @@ function getEditorDesignSettingsFromState(
     lastExportedAt: state.lastExportedAt,
     lastBeautifyPresetId: state.lastBeautifyPresetId,
   });
+}
+
+function getHistoryGlobalSettingsFromState(
+  state: EditorStore,
+): HistoryGlobalSettings {
+  return {
+    canvasPreset: state.canvasPreset,
+    canvasWidth: state.canvasWidth,
+    canvasHeight: state.canvasHeight,
+    backgroundType: state.backgroundType,
+    backgroundValue: state.backgroundValue,
+    backgroundPresetId: state.backgroundPresetId,
+    imagePadding: state.imagePadding,
+    textOverlayEnabled: state.textOverlayEnabled,
+    headlineText: state.headlineText,
+    subtitleText: state.subtitleText,
+    badgeText: state.badgeText,
+    textPosition: state.textPosition,
+    textAlign: state.textAlign,
+    textColor: state.textColor,
+    textFontId: state.textFontId,
+    textFontWeight: state.textFontWeight,
+    textItalic: state.textItalic,
+    textUnderline: state.textUnderline,
+    textLetterSpacing: state.textLetterSpacing,
+    textLineHeight: state.textLineHeight,
+    textOpacity: state.textOpacity,
+    textShadowEnabled: state.textShadowEnabled,
+    textShadowMode: state.textShadowMode,
+    textShadowPresetId: state.textShadowPresetId,
+    textShadowColor: state.textShadowColor,
+    textShadowBlur: state.textShadowBlur,
+    textShadowOffsetX: state.textShadowOffsetX,
+    textShadowOffsetY: state.textShadowOffsetY,
+    textShadowOpacity: state.textShadowOpacity,
+    textShadowDepth: state.textShadowDepth,
+    headlineSize: state.headlineSize,
+    subtitleSize: state.subtitleSize,
+    badgeSize: state.badgeSize,
+    badgeRotation: state.badgeRotation,
+    headlineRotation: state.headlineRotation,
+    subtitleRotation: state.subtitleRotation,
+    badgeEnabled: state.badgeEnabled,
+    badgeOffsetX: state.badgeOffsetX,
+    badgeOffsetY: state.badgeOffsetY,
+    headlineOffsetX: state.headlineOffsetX,
+    headlineOffsetY: state.headlineOffsetY,
+    subtitleOffsetX: state.subtitleOffsetX,
+    subtitleOffsetY: state.subtitleOffsetY,
+    backgroundParallaxEnabled: state.backgroundParallaxEnabled,
+    backgroundParallaxStrength: state.backgroundParallaxStrength,
+    exportScale: state.exportScale,
+    exportFileName: state.exportFileName,
+  };
 }
 
 function createExportFileNameFromImage(uploadedImage: UploadedImage) {
@@ -491,6 +667,242 @@ function getLayerSettingsPatchFromState(state: EditorStore) {
   return getLayerSettingsPatch(getEditorDesignSettingsFromState(state));
 }
 
+const LAYER_HISTORY_SCALAR_SETTING_KEYS = [
+  "imageRadius",
+  "imageBorderEnabled",
+  "browserFrameEnabled",
+  "browserFrameTheme",
+  "browserFrameStyle",
+  "browserFrameUrl",
+  "browserFrameShowUrl",
+  "tiltEnabled",
+  "tiltPresetId",
+  "perspective",
+  "rotateX",
+  "rotateY",
+  "rotateZ",
+  "translateY",
+  "tiltShadowMultiplier",
+  "hoverTiltEnabled",
+  "hoverTiltSensitivity",
+  "lastBeautifyPresetId",
+] as const satisfies readonly (keyof ReturnType<typeof getLayerSettingsPatch>)[];
+
+function getCurrentScreenshotGeometry(state: EditorStore) {
+  const geometry = new Map<
+    string,
+    Pick<
+      EditorDesignSettings,
+      | "imageOffsetX"
+      | "imageOffsetY"
+      | "imageScale"
+      | "imageZoom"
+      | "imageZoomOffsetX"
+      | "imageZoomOffsetY"
+    >
+  >();
+
+  state.screenshots.forEach((screenshot) => {
+    const isActiveScreenshot =
+      screenshot.id === state.activeScreenshotId && screenshot.isPlaced;
+
+    geometry.set(screenshot.id, {
+      imageOffsetX: isActiveScreenshot
+        ? state.imageOffsetX
+        : screenshot.settings.imageOffsetX,
+      imageOffsetY: isActiveScreenshot
+        ? state.imageOffsetY
+        : screenshot.settings.imageOffsetY,
+      imageScale: isActiveScreenshot
+        ? state.imageScale
+        : screenshot.settings.imageScale,
+      imageZoom: isActiveScreenshot
+        ? state.imageZoom
+        : screenshot.settings.imageZoom,
+      imageZoomOffsetX: isActiveScreenshot
+        ? state.imageZoomOffsetX
+        : screenshot.settings.imageZoomOffsetX,
+      imageZoomOffsetY: isActiveScreenshot
+        ? state.imageZoomOffsetY
+        : screenshot.settings.imageZoomOffsetY,
+    });
+  });
+
+  return geometry;
+}
+
+function getHistoryScreenshotsFromState(
+  state: EditorStore,
+): ScreenshotDesign[] {
+  const activeSettingsPatch = state.activeScreenshotId
+    ? getLayerSettingsPatchFromState(state)
+    : null;
+
+  return state.screenshots.map((screenshot) => {
+    let settings = cloneEditorDesignSettings(screenshot.settings);
+
+    if (
+      screenshot.isPlaced &&
+      screenshot.id === state.activeScreenshotId &&
+      activeSettingsPatch
+    ) {
+      settings = {
+        ...settings,
+        ...activeSettingsPatch,
+        imageCrop: activeSettingsPatch.imageCrop
+          ? { ...activeSettingsPatch.imageCrop }
+          : settings.imageCrop,
+        imageShadow: activeSettingsPatch.imageShadow
+          ? { ...activeSettingsPatch.imageShadow }
+          : settings.imageShadow,
+      };
+    }
+
+    return {
+      ...screenshot,
+      settings,
+    };
+  });
+}
+
+function createHistorySnapshot(state: EditorStore): EditorHistorySnapshot {
+  return {
+    activeScreenshotId: state.activeScreenshotId,
+    globalSettings: getHistoryGlobalSettingsFromState(state),
+    screenshots: getHistoryScreenshotsFromState(state),
+  };
+}
+
+function createStateFromHistorySnapshot(
+  snapshot: EditorHistorySnapshot,
+  currentState: EditorStore,
+): Partial<EditorStore> {
+  const currentGeometry = getCurrentScreenshotGeometry(currentState);
+  const screenshots = cloneScreenshotDesigns(snapshot.screenshots).map(
+    (screenshot) => {
+      const currentGeometryForScreenshot = currentGeometry.get(screenshot.id);
+
+      if (!currentGeometryForScreenshot) {
+        return screenshot;
+      }
+
+      return {
+        ...screenshot,
+        settings: {
+          ...screenshot.settings,
+          ...currentGeometryForScreenshot,
+        },
+      };
+    },
+  );
+  const activeScreenshot =
+    screenshots.find(
+      (screenshot) =>
+        screenshot.id === snapshot.activeScreenshotId && screenshot.isPlaced,
+    ) ?? null;
+
+  return {
+    screenshots,
+    activeScreenshotId: activeScreenshot?.id ?? null,
+    uploadedImage: activeScreenshot?.uploadedImage ?? null,
+    ...snapshot.globalSettings,
+    ...(activeScreenshot
+      ? getLayerSettingsPatch(activeScreenshot.settings)
+      : {}),
+    isExporting: currentState.isExporting,
+    lastExportedAt: currentState.lastExportedAt,
+  };
+}
+
+function didScreenshotLibraryChange(
+  previousState: EditorStore,
+  nextState: EditorStore,
+) {
+  if (previousState.screenshots.length !== nextState.screenshots.length) {
+    return true;
+  }
+
+  return previousState.screenshots.some((screenshot, index) => {
+    const nextScreenshot = nextState.screenshots[index];
+
+    return (
+      !nextScreenshot ||
+      screenshot.id !== nextScreenshot.id ||
+      screenshot.uploadedImage.id !== nextScreenshot.uploadedImage.id
+    );
+  });
+}
+
+function didHistoryGlobalSettingsChange(
+  previousSettings: HistoryGlobalSettings,
+  nextSettings: HistoryGlobalSettings,
+) {
+  return HISTORY_GLOBAL_SETTING_KEYS.some(
+    (key) => previousSettings[key] !== nextSettings[key],
+  );
+}
+
+function didLayerHistorySettingsChange(
+  previousSettings: EditorDesignSettings,
+  nextSettings: EditorDesignSettings,
+) {
+  if (
+    previousSettings.imageCrop.top !== nextSettings.imageCrop.top ||
+    previousSettings.imageCrop.right !== nextSettings.imageCrop.right ||
+    previousSettings.imageCrop.bottom !== nextSettings.imageCrop.bottom ||
+    previousSettings.imageCrop.left !== nextSettings.imageCrop.left ||
+    previousSettings.imageShadow.enabled !== nextSettings.imageShadow.enabled ||
+    previousSettings.imageShadow.blur !== nextSettings.imageShadow.blur ||
+    previousSettings.imageShadow.opacity !== nextSettings.imageShadow.opacity ||
+    previousSettings.imageShadow.offsetY !== nextSettings.imageShadow.offsetY
+  ) {
+    return true;
+  }
+
+  return LAYER_HISTORY_SCALAR_SETTING_KEYS.some(
+    (key) => previousSettings[key] !== nextSettings[key],
+  );
+}
+
+function didHistoryScreenshotsChange(
+  previousScreenshots: ScreenshotDesign[],
+  nextScreenshots: ScreenshotDesign[],
+) {
+  if (previousScreenshots.length !== nextScreenshots.length) {
+    return true;
+  }
+
+  return previousScreenshots.some((screenshot, index) => {
+    const nextScreenshot = nextScreenshots[index];
+
+    return (
+      !nextScreenshot ||
+      screenshot.id !== nextScreenshot.id ||
+      screenshot.isPlaced !== nextScreenshot.isPlaced ||
+      didLayerHistorySettingsChange(
+        screenshot.settings,
+        nextScreenshot.settings,
+      )
+    );
+  });
+}
+
+function didHistorySnapshotChange(
+  previousSnapshot: EditorHistorySnapshot,
+  nextSnapshot: EditorHistorySnapshot,
+) {
+  return (
+    didHistoryGlobalSettingsChange(
+      previousSnapshot.globalSettings,
+      nextSnapshot.globalSettings,
+    ) ||
+    didHistoryScreenshotsChange(
+      previousSnapshot.screenshots,
+      nextSnapshot.screenshots,
+    )
+  );
+}
+
 const LAYER_SCALAR_SETTING_KEYS = [
   "imageRadius",
   "imageScale",
@@ -576,11 +988,81 @@ function didLayerSettingsChange(
   );
 }
 
+let isApplyingHistoryStateChange = false;
+let isSyncingActiveScreenshotSettings = false;
+
 export const useEditorStore = create<EditorStore>((set, get) => ({
+  historyPast: [],
+  historyFuture: [],
   screenshots: [],
   activeScreenshotId: null,
   uploadedImage: null,
   ...createDefaultEditorDesignSettings(),
+  undo: () => {
+    const state = get();
+    const previousSnapshot = state.historyPast[state.historyPast.length - 1];
+
+    if (!previousSnapshot || state.isExporting) {
+      return;
+    }
+
+    const currentSnapshot = createHistorySnapshot(state);
+
+    isApplyingHistoryStateChange = true;
+    try {
+      set({
+        ...createStateFromHistorySnapshot(previousSnapshot, state),
+        historyPast: state.historyPast.slice(0, -1),
+        historyFuture: [
+          currentSnapshot,
+          ...state.historyFuture,
+        ].slice(0, MAX_EDITOR_HISTORY_ENTRIES),
+      });
+    } finally {
+      isApplyingHistoryStateChange = false;
+    }
+  },
+  redo: () => {
+    const state = get();
+    const nextSnapshot = state.historyFuture[0];
+
+    if (!nextSnapshot || state.isExporting) {
+      return;
+    }
+
+    const currentSnapshot = createHistorySnapshot(state);
+
+    isApplyingHistoryStateChange = true;
+    try {
+      set({
+        ...createStateFromHistorySnapshot(nextSnapshot, state),
+        historyPast: [
+          ...state.historyPast,
+          currentSnapshot,
+        ].slice(-MAX_EDITOR_HISTORY_ENTRIES),
+        historyFuture: state.historyFuture.slice(1),
+      });
+    } finally {
+      isApplyingHistoryStateChange = false;
+    }
+  },
+  clearHistory: () => {
+    const state = get();
+
+    if (!state.historyPast.length && !state.historyFuture.length) {
+      return;
+    }
+
+    isApplyingHistoryStateChange = true;
+    try {
+      set({
+        historyPast: [],
+        historyFuture: [],
+      });
+    } finally {
+      isApplyingHistoryStateChange = false;
+    }
+  },
   selectScreenshot: (screenshotId) => {
     const screenshot = get().screenshots.find(
       (item) => item.id === screenshotId,
@@ -1317,11 +1799,43 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
 }));
 
-let isSyncingActiveScreenshotSettings = false;
-
 useEditorStore.subscribe((state, previousState) => {
+  if (isApplyingHistoryStateChange || isSyncingActiveScreenshotSettings) {
+    return;
+  }
+
+  if (didScreenshotLibraryChange(previousState, state)) {
+    isApplyingHistoryStateChange = true;
+    try {
+      useEditorStore.setState({
+        historyPast: [],
+        historyFuture: [],
+      });
+    } finally {
+      isApplyingHistoryStateChange = false;
+    }
+    return;
+  }
+
+  const previousHistorySnapshot = createHistorySnapshot(previousState);
+  const nextHistorySnapshot = createHistorySnapshot(state);
+
+  if (didHistorySnapshotChange(previousHistorySnapshot, nextHistorySnapshot)) {
+    isApplyingHistoryStateChange = true;
+    try {
+      useEditorStore.setState({
+        historyPast: [
+          ...state.historyPast,
+          previousHistorySnapshot,
+        ].slice(-MAX_EDITOR_HISTORY_ENTRIES),
+        historyFuture: [],
+      });
+    } finally {
+      isApplyingHistoryStateChange = false;
+    }
+  }
+
   if (
-    isSyncingActiveScreenshotSettings ||
     !state.activeScreenshotId ||
     state.activeScreenshotId !== previousState.activeScreenshotId ||
     !didLayerSettingsChange(previousState, state)
