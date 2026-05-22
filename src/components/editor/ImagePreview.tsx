@@ -13,7 +13,7 @@ type ImagePreviewProps = {
   onRemove?: () => void;
   onReplace?: () => void;
   toolbar?: ReactNode;
-  uploadedImage: UploadedImage;
+  uploadedImage?: UploadedImage | null;
 };
 
 export default function ImagePreview({
@@ -25,8 +25,12 @@ export default function ImagePreview({
 }: ImagePreviewProps) {
   const shouldReduceMotion = useReducedMotion();
   const [loadedImageId, setLoadedImageId] = useState<string | null>(null);
-  const isLoading = loadedImageId !== uploadedImage.id;
+  const isLoading = uploadedImage ? loadedImageId !== uploadedImage.id : false;
   const handleImageLoad = () => {
+    if (!uploadedImage) {
+      return;
+    }
+
     setLoadedImageId(uploadedImage.id);
   };
 

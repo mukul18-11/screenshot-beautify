@@ -1,9 +1,18 @@
 "use client";
 
-import { Image as ImageIcon, Plus, RefreshCw, Trash2 } from "lucide-react";
+import type { DragEvent } from "react";
+
+import {
+  Check,
+  Image as ImageIcon,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import { SCREENSHOT_TRAY_DRAG_TYPE } from "@/lib/editor-drag";
 import { cn } from "@/lib/utils";
 import {
   MAX_SCREENSHOT_UPLOADS,
@@ -27,6 +36,7 @@ export default function ScreenshotTray({
   const screenshots = useEditorStore((state) => state.screenshots);
   const activeScreenshotId = useEditorStore((state) => state.activeScreenshotId);
   const isExporting = useEditorStore((state) => state.isExporting);
+  const placeScreenshot = useEditorStore((state) => state.placeScreenshot);
   const selectScreenshot = useEditorStore((state) => state.selectScreenshot);
   const isAtLimit = screenshots.length >= MAX_SCREENSHOT_UPLOADS;
   const isBusy = isUploading || isExporting;
@@ -41,17 +51,47 @@ export default function ScreenshotTray({
         >
           {screenshots.map((screenshot, index) => {
             const isSelected = screenshot.id === activeScreenshotId;
+            const isPlaced = screenshot.isPlaced;
 
             return (
               <div key={screenshot.id} role="listitem" className="shrink-0">
                 <motion.button
                   type="button"
-                  aria-label={`Edit screenshot ${index + 1}: ${screenshot.uploadedImage.name}`}
+                  aria-label={
+                    isPlaced
+                      ? `Edit screenshot ${index + 1}: ${screenshot.uploadedImage.name}`
+                      : `Place screenshot ${index + 1}: ${screenshot.uploadedImage.name}`
+                  }
                   aria-pressed={isSelected}
+                  draggable={!isBusy}
                   disabled={isBusy}
+                  title={
+                    isPlaced ? "Edit placed screenshot" : "Drag or click to place"
+                  }
                   onClick={(event) => {
                     event.stopPropagation();
-                    selectScreenshot(screenshot.id);
+                    if (isPlaced) {
+                      selectScreenshot(screenshot.id);
+                      return;
+                    }
+
+                    placeScreenshot(screenshot.id);
+                  }}
+                  onDragStartCapture={(
+                    event: DragEvent<HTMLButtonElement>,
+                  ) => {
+                    if (isBusy) {
+                      event.preventDefault();
+                      return;
+                    }
+
+                    event.stopPropagation();
+                    event.dataTransfer.effectAllowed = "copy";
+                    event.dataTransfer.setData(
+                      SCREENSHOT_TRAY_DRAG_TYPE,
+                      screenshot.id,
+                    );
+                    event.dataTransfer.setData("text/plain", screenshot.id);
                   }}
                   whileHover={{ y: shouldReduceMotion || isBusy ? 0 : -1 }}
                   whileTap={{
@@ -61,7 +101,9 @@ export default function ScreenshotTray({
                     "group relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border bg-slate-100 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-slate-950/20",
                     isSelected
                       ? "border-slate-950 ring-2 ring-slate-950/12"
-                      : "border-white/80 hover:border-slate-300",
+                      : isPlaced
+                        ? "border-white/80 hover:border-slate-300"
+                        : "border-dashed border-slate-300 hover:border-slate-500",
                   )}
                 >
                   <span
@@ -73,6 +115,12 @@ export default function ScreenshotTray({
                       backgroundSize: "cover",
                     }}
                   />
+                  {!isPlaced && (
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 bg-white/15"
+                    />
+                  )}
                   <span
                     className={cn(
                       "absolute left-1.5 top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold shadow-sm",
@@ -85,6 +133,11 @@ export default function ScreenshotTray({
                   </span>
                   {isSelected && (
                     <span className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-inset ring-slate-950" />
+                  )}
+                  {isPlaced && (
+                    <span className="absolute bottom-1.5 right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                      <Check className="h-3 w-3" aria-hidden="true" />
+                    </span>
                   )}
                 </motion.button>
               </div>

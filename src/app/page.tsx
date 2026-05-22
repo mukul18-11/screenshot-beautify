@@ -85,51 +85,6 @@ function UseCasesSection() {
   );
 }
 
-function SearchIntentSection() {
-  return (
-    <section className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
-      <motion.div 
-        initial={{ opacity: 1, y: 0 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, type: "spring", stiffness: 70, damping: 15 }}
-        className="grid gap-7 rounded-[1.5rem] border border-white/70 bg-white/70 p-5 shadow-soft backdrop-blur-2xl sm:p-7 lg:grid-cols-[0.8fr_1.2fr] lg:p-8"
-      >
-        <div>
-          <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">
-            Screenshot tool for launches
-          </p>
-          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
-            A browser-based <span className="bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent font-extrabold tracking-tighter">screenshot beautifier</span>, not a full design suite
-          </h2>
-        </div>
-
-        <div className="space-y-4 text-base leading-7 text-slate-600">
-          <p>
-            Use it when you need a fast screenshot mockup generator for SaaS
-            dashboards, product updates, changelogs, social posts, pitch decks,
-            and landing page hero images.
-          </p>
-          <p>
-            The editor keeps image handling local in the browser, supports PNG,
-            JPG, and WebP screenshots, and exports high-resolution PNG artwork
-            with quick styles, browser frames, text overlays, and CSS 3D tilt.
-          </p>
-          <div className="grid gap-3 pt-1 sm:grid-cols-3">
-            {["Client-side", "No signup", "Fast PNG export"].map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-    </section>
-  );
-}
-
 function StructuredData() {
   const webSite = {
     "@context": "https://schema.org",
@@ -210,11 +165,10 @@ export default function Home() {
   return (
     <>
       <StructuredData />
-      <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_88%_4%,rgba(99,102,241,0.14),transparent_30%),radial-gradient(circle_at_74%_92%,rgba(20,184,166,0.14),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#eff6ff_50%,#f0fdfa_100%)] text-slate-950">
+      <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_18%_8%,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_88%_4%,rgba(99,102,241,0.14),transparent_30%),radial-gradient(circle_at_74%_92%,rgba(20,184,166,0.14),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#eff6ff_50%,#f0fdfa_100%)] text-slate-950">
         <LandingNav />
         <HeroSection />
         <ExampleShowcase />
-        <SearchIntentSection />
         <FeatureGrid />
         <HowItWorks />
         <UseCasesSection />

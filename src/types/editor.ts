@@ -220,6 +220,7 @@ export type EditorDesignSettings = BeautifySettings &
 
 export type ScreenshotDesign = {
   id: string;
+  isPlaced: boolean;
   uploadedImage: UploadedImage;
   settings: EditorDesignSettings;
 };

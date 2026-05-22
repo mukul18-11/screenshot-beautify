@@ -84,31 +84,16 @@ export default function LandingNav() {
           ))}
         </div>
 
-        <motion.div
-          animate={shouldReduceMotion ? undefined : {
-            scale: [1, 1.04, 1],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="relative group p-[1.5px] rounded-[10px] overflow-hidden bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 animate-gradient-flow inline-flex items-center justify-center"
+        <Button
+          asChild
+          size="sm"
+          className="bg-slate-950 text-white hover:bg-slate-900 flex items-center gap-1.5 rounded-lg shadow-sm"
         >
-          {/* Ambient Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 rounded-[10px] blur-[6px] opacity-35 group-hover:opacity-75 transition-opacity duration-350 animate-gradient-flow pointer-events-none" />
-
-          <Button
-            asChild
-            size="sm"
-            className="relative z-10 bg-slate-950 text-white hover:bg-slate-900 border-none flex items-center gap-1.5 rounded-lg shadow-none"
-          >
-            <Link href="/editor">
-              Open editor
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </Button>
-        </motion.div>
+          <Link href="/editor">
+            Open editor
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </Button>
       </nav>
     </header>
   );

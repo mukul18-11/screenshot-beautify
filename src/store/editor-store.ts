@@ -53,6 +53,11 @@ type EditorStore = EditorDesignSettings & {
     activeScreenshotId: string | null;
     uploadedImage: UploadedImage | null;
     selectScreenshot: (screenshotId: string) => void;
+    placeScreenshot: (
+      screenshotId: string,
+      placement?: { offsetX: number; offsetY: number },
+    ) => void;
+    removeScreenshotFromCanvas: (screenshotId: string) => void;
     addUploadedImages: (uploadedImages: UploadedImage[]) => void;
     removeUploadedImage: (screenshotId: string) => void;
     setUploadedImage: (uploadedImage: UploadedImage | null) => void;
@@ -329,9 +334,11 @@ function createSettingsForUploadedImage(
 function createScreenshotDesign(
   uploadedImage: UploadedImage,
   settings: EditorDesignSettings,
+  isPlaced = false,
 ): ScreenshotDesign {
   return {
     id: `design-${uploadedImage.id}`,
+    isPlaced,
     uploadedImage,
     settings: cloneEditorDesignSettings(settings),
   };
@@ -364,8 +371,18 @@ function arrangeScreenshotLayers(screenshots: ScreenshotDesign[]) {
     return screenshots;
   }
 
-  return screenshots.map((screenshot, index) => {
-    const layout = createLayerLayout(index, screenshots.length);
+  const placedScreenshots = screenshots.filter(
+    (screenshot) => screenshot.isPlaced,
+  );
+  let placedIndex = 0;
+
+  return screenshots.map((screenshot) => {
+    if (!screenshot.isPlaced) {
+      return screenshot;
+    }
+
+    const layout = createLayerLayout(placedIndex, placedScreenshots.length);
+    placedIndex += 1;
 
     return {
       ...screenshot,
@@ -380,7 +397,8 @@ function arrangeScreenshotLayers(screenshots: ScreenshotDesign[]) {
 function getActiveScreenshot(state: EditorStore) {
   return (
     state.screenshots.find(
-      (screenshot) => screenshot.id === state.activeScreenshotId,
+      (screenshot) =>
+        screenshot.id === state.activeScreenshotId && screenshot.isPlaced,
     ) ?? null
   );
 }
@@ -389,7 +407,16 @@ function getNextActiveScreenshot(
   screenshots: ScreenshotDesign[],
   removedIndex: number,
 ) {
-  return screenshots[removedIndex + 1] ?? screenshots[removedIndex - 1] ?? null;
+  return (
+    screenshots
+      .slice(removedIndex + 1)
+      .find((screenshot) => screenshot.isPlaced) ??
+    screenshots
+      .slice(0, removedIndex)
+      .reverse()
+      .find((screenshot) => screenshot.isPlaced) ??
+    null
+  );
 }
 
 function clampFitScale(scale: number) {
@@ -559,7 +586,11 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       (item) => item.id === screenshotId,
     );
 
-    if (!screenshot || get().activeScreenshotId === screenshot.id) {
+    if (
+      !screenshot ||
+      !screenshot.isPlaced ||
+      get().activeScreenshotId === screenshot.id
+    ) {
       return;
     }
 
@@ -567,6 +598,106 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       activeScreenshotId: screenshot.id,
       uploadedImage: screenshot.uploadedImage,
       ...getLayerSettingsPatch(screenshot.settings),
+    });
+  },
+  placeScreenshot: (screenshotId, placement) => {
+    const state = get();
+    const screenshot = state.screenshots.find(
+      (item) => item.id === screenshotId,
+    );
+
+    if (!screenshot) {
+      return;
+    }
+
+    const placedCount = state.screenshots.filter(
+      (item) => item.isPlaced,
+    ).length;
+    const layout =
+      !screenshot.isPlaced && !placement
+        ? createLayerLayout(placedCount, placedCount + 1)
+        : null;
+    const settings = cloneEditorDesignSettings(
+      screenshot.id === state.activeScreenshotId && screenshot.isPlaced
+        ? getEditorDesignSettingsFromState(state)
+        : screenshot.settings,
+    );
+    const nextSettings: EditorDesignSettings = {
+      ...settings,
+      ...(layout ?? {}),
+      ...(placement
+        ? {
+            imageOffsetX: clampUnitOffset(placement.offsetX),
+            imageOffsetY: clampUnitOffset(placement.offsetY),
+          }
+        : {}),
+    };
+
+    if (!screenshot.isPlaced && placement && placedCount > 0) {
+      nextSettings.imageScale = Math.min(nextSettings.imageScale, 58);
+    }
+
+    set({
+      screenshots: state.screenshots.map((item) =>
+        item.id === screenshot.id
+          ? {
+              ...item,
+              isPlaced: true,
+              settings: nextSettings,
+            }
+          : item,
+      ),
+      activeScreenshotId: screenshot.id,
+      uploadedImage: screenshot.uploadedImage,
+      ...getLayerSettingsPatch(nextSettings),
+    });
+  },
+  removeScreenshotFromCanvas: (screenshotId) => {
+    const state = get();
+    const removedIndex = state.screenshots.findIndex(
+      (screenshot) => screenshot.id === screenshotId,
+    );
+
+    if (removedIndex === -1) {
+      return;
+    }
+
+    const screenshot = state.screenshots[removedIndex]!;
+    const currentSettings =
+      screenshot.id === state.activeScreenshotId && screenshot.isPlaced
+        ? getEditorDesignSettingsFromState(state)
+        : screenshot.settings;
+    const nextScreenshots = state.screenshots.map((item) =>
+      item.id === screenshotId
+        ? {
+            ...item,
+            isPlaced: false,
+            settings: cloneEditorDesignSettings(currentSettings),
+          }
+        : item,
+    );
+    const activeScreenshot =
+      state.activeScreenshotId === screenshotId
+        ? getNextActiveScreenshot(nextScreenshots, removedIndex)
+        : getActiveScreenshot({
+            ...state,
+            screenshots: nextScreenshots,
+          });
+
+    if (!activeScreenshot) {
+      set({
+        screenshots: nextScreenshots,
+        activeScreenshotId: null,
+        uploadedImage: null,
+      });
+      return;
+    }
+
+    set({
+      screenshots: nextScreenshots,
+      activeScreenshotId: activeScreenshot.id,
+      uploadedImage: activeScreenshot.uploadedImage,
+      ...getLayerSettingsPatch(activeScreenshot.settings),
     });
   },
   addUploadedImages: (uploadedImages) => {
@@ -588,18 +719,37 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       return;
     }
 
+    const shouldPlaceFirstImage = state.screenshots.length === 0;
     const sourceSettings = getEditorDesignSettingsFromState(state);
-    const nextScreenshots = imagesToAdd.map((uploadedImage) =>
+    const nextScreenshots = imagesToAdd.map((uploadedImage, index) =>
       createScreenshotDesign(
         uploadedImage,
         createSettingsForUploadedImage(uploadedImage, sourceSettings),
+        shouldPlaceFirstImage && index === 0,
       ),
     );
-    const arrangedScreenshots = arrangeScreenshotLayers([
+    const mergedScreenshots = [
       ...state.screenshots,
       ...nextScreenshots,
-    ]);
-    const activeScreenshot = arrangedScreenshots[arrangedScreenshots.length - 1]!;
+    ];
+    const arrangedScreenshots = shouldPlaceFirstImage
+      ? arrangeScreenshotLayers(mergedScreenshots)
+      : mergedScreenshots;
+    const activeScreenshot = shouldPlaceFirstImage
+      ? arrangedScreenshots.find(
+          (screenshot) => screenshot.id === nextScreenshots[0]?.id,
+        )
+      : getActiveScreenshot({
+          ...state,
+          screenshots: arrangedScreenshots,
+        });
+
+    if (!activeScreenshot) {
+      set({
+        screenshots: arrangedScreenshots,
+      });
+      return;
+    }
 
     set({
       screenshots: arrangedScreenshots,
@@ -629,12 +779,21 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     revokeObjectUrl(removedScreenshot.uploadedImage);
 
-    if (!activeScreenshot) {
+    if (!remainingScreenshots.length) {
       set({
         screenshots: remainingScreenshots,
         activeScreenshotId: null,
         uploadedImage: null,
         ...createDefaultEditorDesignSettings(),
+      });
+      return;
+    }
+
+    if (!activeScreenshot) {
+      set({
+        screenshots: remainingScreenshots,
+        activeScreenshotId: null,
+        uploadedImage: null,
       });
       return;
     }

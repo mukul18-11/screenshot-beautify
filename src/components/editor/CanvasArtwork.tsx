@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEvent,
   type ForwardedRef,
   type MouseEvent,
   type MutableRefObject,
@@ -16,12 +17,14 @@ import {
 } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Trash2 } from "lucide-react";
 
 import BrowserFrame from "@/components/editor/BrowserFrame";
 import TextOverlay, {
   type TextResizeHandleId,
 } from "@/components/editor/TextOverlay";
 import TiltedMockupWrapper from "@/components/editor/TiltedMockupWrapper";
+import { SCREENSHOT_TRAY_DRAG_TYPE } from "@/lib/editor-drag";
 import {
   BEAUTIFY_SETTING_LIMITS,
   createImageShadowCss,
@@ -128,6 +131,7 @@ type ZoomPanDragState = {
 
 type MockupTransformControlsProps = {
   imageRadius: number;
+  onRemoveFromCanvas: () => void;
   onResizePointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
   onResizePointerDown: (
     handleId: ResizeHandleId,
@@ -143,7 +147,7 @@ type CanvasArtworkProps = {
   mode: CanvasArtworkMode;
   onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
   style?: CSSProperties;
-  uploadedImage: UploadedImage;
+  uploadedImage?: UploadedImage | null;
 };
 
 type ScreenshotWheelEvent = {
@@ -273,6 +277,20 @@ const RESIZE_HANDLES = [
   "w",
 ] as const satisfies readonly ResizeHandleId[];
 const EXPAND_CROP_DIRECTIONS = { x: 1, y: 1 };
+
+function getDraggedScreenshotId(event: DragEvent<HTMLDivElement>) {
+  return (
+    event.dataTransfer.getData(SCREENSHOT_TRAY_DRAG_TYPE) ||
+    event.dataTransfer.getData("text/plain") ||
+    null
+  );
+}
+
+function hasScreenshotTrayDrag(event: DragEvent<HTMLDivElement>) {
+  return Array.from(event.dataTransfer.types).includes(
+    SCREENSHOT_TRAY_DRAG_TYPE,
+  );
+}
 
 function isCornerResizeHandle(handleId: ResizeHandleId) {
   const directions = getResizeHandleDirections(handleId);
@@ -431,6 +449,7 @@ function getResizeHandleVisualClass(handleId: ResizeHandleId) {
 
 function MockupTransformControls({
   imageRadius,
+  onRemoveFromCanvas,
   onResizePointerCancel,
   onResizePointerDown,
   onResizePointerMove,
@@ -443,6 +462,22 @@ function MockupTransformControls({
       className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] ring-2 ring-blue-400/80 ring-offset-1 ring-offset-white/25"
       style={{ borderRadius: `${imageRadius}px` }}
     >
+      <button
+        type="button"
+        aria-label="Remove screenshot from canvas"
+        className="pointer-events-auto absolute -right-3 -top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/80 bg-white text-slate-500 shadow-lg shadow-slate-950/15 outline-none transition hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-blue-300"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onRemoveFromCanvas();
+        }}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
+        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
       {RESIZE_HANDLES.map((handleId) => (
         <button
           key={handleId}
@@ -672,6 +707,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const headlineOffsetY = useEditorStore((state) => state.headlineOffsetY);
     const subtitleOffsetX = useEditorStore((state) => state.subtitleOffsetX);
     const subtitleOffsetY = useEditorStore((state) => state.subtitleOffsetY);
+    const placeScreenshot = useEditorStore((state) => state.placeScreenshot);
+    const removeScreenshotFromCanvas = useEditorStore(
+      (state) => state.removeScreenshotFromCanvas,
+    );
     const setImageTransform = useEditorStore(
       (state) => state.setImageTransform,
     );
@@ -714,8 +753,21 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const isExportMode = mode === "export";
     const canvasPadding = `${(imagePadding / canvasWidth) * 100}cqw`;
     const screenshotScale = imageScale / 100;
+    const activeScreenshot = screenshots.find(
+      (screenshot) =>
+        screenshot.id === activeScreenshotId && screenshot.isPlaced,
+    );
+    const activeLayerImage = activeScreenshot?.uploadedImage ?? null;
+    const canvasBackgroundImage =
+      uploadedImage ??
+      activeLayerImage ??
+      screenshots.find((screenshot) => screenshot.isPlaced)?.uploadedImage ??
+      screenshots[0]?.uploadedImage ??
+      null;
     const backgroundKey = `${backgroundType}-${backgroundValue}-${
-      backgroundType === "image-blur" ? uploadedImage.id : "static"
+      backgroundType === "image-blur" && canvasBackgroundImage
+        ? canvasBackgroundImage.id
+        : "static"
     }`;
     const canParallaxBackground =
       !isExportMode &&
@@ -938,7 +990,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }, []);
 
     useEffect(() => {
-      if (isExportMode) {
+      if (isExportMode || !activeLayerImage) {
         return;
       }
 
@@ -960,21 +1012,22 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         screenshotZoomTarget.removeEventListener("wheel", handleNativeWheel);
       };
     }, [
+      activeLayerImage,
       applyScreenshotWheelZoom,
       browserFrameEnabled,
       isExportMode,
-      uploadedImage.id,
     ]);
 
     useEffect(() => {
-      if (isExportMode) {
+      if (isExportMode || !activeLayerImage) {
         return;
       }
 
       const cropRatios = getCropRatios(imageCrop);
-      const renderedWidth = uploadedImage.width * screenshotScale * cropRatios.width;
+      const renderedWidth =
+        activeLayerImage.width * screenshotScale * cropRatios.width;
       const renderedHeight =
-        uploadedImage.height * screenshotScale * cropRatios.height;
+        activeLayerImage.height * screenshotScale * cropRatios.height;
 
       if (
         renderedWidth >= MIN_RESIZED_MOCKUP_WIDTH_PX &&
@@ -986,8 +1039,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const nextCrop = constrainCropToRenderedSize(
         imageCrop,
         EXPAND_CROP_DIRECTIONS,
-        uploadedImage.width * screenshotScale,
-        uploadedImage.height * screenshotScale,
+        activeLayerImage.width * screenshotScale,
+        activeLayerImage.height * screenshotScale,
       );
 
       if (
@@ -1001,12 +1054,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       setImageTransform({ crop: nextCrop });
     }, [
+      activeLayerImage,
       imageCrop,
       isExportMode,
       screenshotScale,
       setImageTransform,
-      uploadedImage.height,
-      uploadedImage.width,
     ]);
 
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -1031,6 +1083,41 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const shiftY = -normalizedY * backgroundParallaxStrength * 0.35;
 
       scheduleBackgroundParallax(shiftX, shiftY);
+    }
+
+    function handleCanvasDragOver(event: DragEvent<HTMLDivElement>) {
+      if (isExportMode || !hasScreenshotTrayDrag(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    }
+
+    function handleCanvasDrop(event: DragEvent<HTMLDivElement>) {
+      if (isExportMode) {
+        return;
+      }
+
+      const screenshotId = getDraggedScreenshotId(event);
+
+      if (!screenshotId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const canvasRect = event.currentTarget.getBoundingClientRect();
+      const offsetX = (event.clientX - canvasRect.left) / canvasRect.width;
+      const offsetY = (event.clientY - canvasRect.top) / canvasRect.height;
+
+      placeScreenshot(screenshotId, {
+        offsetX: offsetX * 2 - 1,
+        offsetY: offsetY * 2 - 1,
+      });
+      setIsMockupSelected(true);
+      setActiveTextLayerId(null);
     }
 
     function handleCanvasPointerLeave() {
@@ -1942,9 +2029,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       screenshotSlotWidth !== null && screenshotSlotWidth > 0
         ? screenshotSlotWidth
         : fallbackScreenshotSlotWidth;
-    const activeScreenshot = screenshots.find(
-      (screenshot) => screenshot.id === activeScreenshotId,
-    );
     const activeLayerSettings = activeScreenshot
       ? ({
           ...activeScreenshot.settings,
@@ -1975,14 +2059,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           hoverTiltSensitivity,
         } satisfies EditorDesignSettings)
       : null;
-    const screenshotLayers = screenshots.map((screenshot) =>
-      screenshot.id === activeScreenshotId && activeLayerSettings
-        ? {
-            ...screenshot,
-            settings: activeLayerSettings,
-          }
-        : screenshot,
-    );
+    const screenshotLayers = screenshots
+      .filter((screenshot) => screenshot.isPlaced)
+      .map((screenshot) =>
+        screenshot.id === activeScreenshotId && activeLayerSettings
+          ? {
+              ...screenshot,
+              settings: activeLayerSettings,
+            }
+          : screenshot,
+      );
     const sortedScreenshotLayers = [...screenshotLayers].sort((a, b) => {
       if (a.id === activeScreenshotId) {
         return 1;
@@ -2225,6 +2311,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             {showMockupControls && (
               <MockupTransformControls
                 imageRadius={layerSettings.imageRadius}
+                onRemoveFromCanvas={() =>
+                  removeScreenshotFromCanvas(screenshot.id)
+                }
                 onResizePointerCancel={handleResizePointerEnd}
                 onResizePointerDown={handleResizePointerDown}
                 onResizePointerMove={handleResizePointerMove}
@@ -2294,6 +2383,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     return (
       <div
         ref={mergeRefs(canvasShellRef, forwardedRef)}
+        onDragOver={handleCanvasDragOver}
+        onDrop={handleCanvasDrop}
         onPointerCancel={handleCanvasPointerLeave}
         onPointerDown={handleCanvasPointerDown}
         onPointerLeave={handleCanvasPointerLeave}
@@ -2336,12 +2427,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     : undefined,
               }}
             >
-              {backgroundType === "image-blur" ? (
+              {backgroundType === "image-blur" && canvasBackgroundImage ? (
                 <>
                   <div
                     className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
                     style={{
-                      backgroundImage: `url(${uploadedImage.objectUrl})`,
+                      backgroundImage: `url(${canvasBackgroundImage.objectUrl})`,
                       backgroundPosition: "center",
                       backgroundSize: "cover",
                     }}

@@ -10,7 +10,7 @@ import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 type CanvasPreviewProps = {
   isLoading?: boolean;
   onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
-  uploadedImage: UploadedImage;
+  uploadedImage?: UploadedImage | null;
 };
 
 export default function CanvasPreview({
@@ -83,7 +83,7 @@ export default function CanvasPreview({
           }}
         >
           <CanvasArtwork
-            key={uploadedImage.id}
+            key={uploadedImage?.id ?? "library-canvas"}
             mode="preview"
             isLoading={isLoading}
             onImageLoad={onImageLoad}

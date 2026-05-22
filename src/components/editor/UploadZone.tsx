@@ -28,6 +28,7 @@ export default function UploadZone() {
     isDragReject,
     isUploading: isAdding,
     open,
+    screenshots,
     uploadFile,
     uploadedImage,
   } = addUpload;
@@ -41,6 +42,7 @@ export default function UploadZone() {
   } = replaceUpload;
   const isUploading = isAdding || isReplacing;
   const errorMessage = addErrorMessage ?? replaceErrorMessage;
+  const hasScreenshots = screenshots.length > 0;
 
   useClipboardImage({ uploadFile });
 
@@ -110,7 +112,7 @@ export default function UploadZone() {
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
           "relative flex h-full min-h-[calc(100svh-4rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-slate-950/10",
-          !uploadedImage
+          !hasScreenshots
             ? "border-transparent bg-transparent p-4 sm:p-6 lg:p-8"
             : "border-transparent bg-transparent",
           isDragActive && "border-blue-500/60 bg-blue-50/50",
@@ -156,7 +158,7 @@ export default function UploadZone() {
           </AnimatePresence>
 
           <AnimatePresence initial={false} mode="wait">
-            {uploadedImage ? (
+            {hasScreenshots ? (
               <ImagePreview
                 key="uploaded"
                 isUploading={isUploading}
