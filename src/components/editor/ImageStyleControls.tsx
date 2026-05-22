@@ -191,7 +191,7 @@ export default function ImageStyleControls() {
         </div>
 
         <p className="text-[11px] text-slate-400 dark:text-slate-500">
-          Scroll on the image to zoom in. Drag to pan when zoomed.
+          Scroll on the image to zoom in. Use Pan X and Pan Y to adjust focus.
         </p>
 
         <EditorSliderRow

@@ -120,16 +120,6 @@ type MockupResizeState = {
   startScale: number;
 };
 
-type ZoomPanDragState = {
-  pointerId: number;
-  startClientX: number;
-  startClientY: number;
-  startZoomOffsetX: number;
-  startZoomOffsetY: number;
-  imgRect: DOMRect;
-  moved: boolean;
-};
-
 type MockupTransformControlsProps = {
   imageRadius: number;
   onRemoveFromCanvas: () => void;
@@ -652,7 +642,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       horizontal: null,
       vertical: null,
     });
-    const zoomPanDragStateRef = useRef<ZoomPanDragState | null>(null);
     const canvasWidth = useEditorStore((state) => state.canvasWidth);
     const canvasHeight = useEditorStore((state) => state.canvasHeight);
     const screenshots = useEditorStore((state) => state.screenshots);
@@ -1220,76 +1209,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleImageLoad(event: SyntheticEvent<HTMLImageElement>) {
       onImageLoad?.(event);
-    }
-
-    function handleZoomPanPointerDown(event: PointerEvent<HTMLDivElement>) {
-      if (isExportMode || event.button !== 0) return;
-      if (isMockupSelected) return;
-
-      const currentZoom = useEditorStore.getState().imageZoom;
-      if (currentZoom <= 100) return; // No pan if not zoomed
-
-      event.preventDefault();
-      event.stopPropagation();
-      transformDragActiveRef.current = false;
-      cancelTransformUpdate();
-      transformDragActiveRef.current = true;
-
-      zoomPanDragStateRef.current = {
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        startZoomOffsetX: useEditorStore.getState().imageZoomOffsetX,
-        startZoomOffsetY: useEditorStore.getState().imageZoomOffsetY,
-        imgRect: event.currentTarget.getBoundingClientRect(),
-        moved: false,
-      };
-
-      setIsDraggingCanvasItem(true);
-      event.currentTarget.setPointerCapture(event.pointerId);
-    }
-
-    function handleZoomPanPointerMove(event: PointerEvent<HTMLDivElement>) {
-      const drag = zoomPanDragStateRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) return;
-
-      const deltaX = event.clientX - drag.startClientX;
-      const deltaY = event.clientY - drag.startClientY;
-      const distance = Math.hypot(deltaX, deltaY);
-
-      if (!drag.moved && distance < DRAG_THRESHOLD_PX) return;
-      drag.moved = true;
-      event.preventDefault();
-      event.stopPropagation();
-
-      const currentZoom = useEditorStore.getState().imageZoom / 100;
-      if (currentZoom <= 1) return;
-
-      // Convert pixel delta to normalized offset change (opposite direction)
-      const normalizedDeltaX = -(deltaX / drag.imgRect.width) * 2 / currentZoom;
-      const normalizedDeltaY = -(deltaY / drag.imgRect.height) * 2 / currentZoom;
-
-      const nextOffsetX = drag.startZoomOffsetX + normalizedDeltaX;
-      const nextOffsetY = drag.startZoomOffsetY + normalizedDeltaY;
-
-      scheduleTransformUpdate(() => {
-        setImageZoomOffset(nextOffsetX, nextOffsetY);
-      });
-    }
-
-    function handleZoomPanPointerEnd(event: PointerEvent<HTMLDivElement>) {
-      const drag = zoomPanDragStateRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) return;
-
-      transformDragActiveRef.current = false;
-      cancelTransformUpdate();
-      zoomPanDragStateRef.current = null;
-      setIsDraggingCanvasItem(false);
-      event.stopPropagation();
-
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
     }
 
     const textLayerOffsets = {
@@ -2375,28 +2294,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                       className={cn(
                         "relative overflow-hidden",
                         screenshotShellClasses,
-                        !isExportMode &&
-                          isActiveLayer &&
-                          (isLayerZoomed
-                            ? "cursor-grab active:cursor-grabbing"
-                            : "cursor-zoom-in"),
                       )}
                       style={{
                         ...screenshotCropStyle,
-                        touchAction: isLayerZoomed ? "none" : "pan-y",
+                        touchAction: "pan-y",
                       }}
-                      onPointerDown={
-                        isActiveLayer ? handleZoomPanPointerDown : undefined
-                      }
-                      onPointerMove={
-                        isActiveLayer ? handleZoomPanPointerMove : undefined
-                      }
-                      onPointerUp={
-                        isActiveLayer ? handleZoomPanPointerEnd : undefined
-                      }
-                      onPointerCancel={
-                        isActiveLayer ? handleZoomPanPointerEnd : undefined
-                      }
                     >
                       <div style={cropContentStyle}>
                         <AnimatePresence mode="wait">
@@ -2412,29 +2314,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   className={cn(
                     "relative overflow-hidden",
                     screenshotShellClasses,
-                    !isExportMode &&
-                      isActiveLayer &&
-                      (isLayerZoomed
-                        ? "cursor-grab active:cursor-grabbing"
-                        : "cursor-zoom-in"),
                   )}
                   style={{
                     ...screenshotCropStyle,
                     ...mockupDecorationStyle,
-                    touchAction: isLayerZoomed ? "none" : "pan-y",
+                    touchAction: "pan-y",
                   }}
-                  onPointerDown={
-                    isActiveLayer ? handleZoomPanPointerDown : undefined
-                  }
-                  onPointerMove={
-                    isActiveLayer ? handleZoomPanPointerMove : undefined
-                  }
-                  onPointerUp={
-                    isActiveLayer ? handleZoomPanPointerEnd : undefined
-                  }
-                  onPointerCancel={
-                    isActiveLayer ? handleZoomPanPointerEnd : undefined
-                  }
                 >
                   <div style={cropContentStyle}>
                     <AnimatePresence mode="wait">
