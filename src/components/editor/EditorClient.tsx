@@ -47,10 +47,10 @@ export default function EditorClient() {
           <section className="grid min-h-0 w-full flex-1 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_440px]">
             <div className="relative flex min-h-[calc(100svh-4rem)] min-w-0 items-stretch overflow-hidden bg-white">
               <div
-                className="pointer-events-none absolute inset-0 opacity-40"
+                className="pointer-events-none absolute inset-0 opacity-70"
                 style={{
                   backgroundImage:
-                    "linear-gradient(rgba(9, 9, 11, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(9, 9, 11, 0.035) 1px, transparent 1px)",
+                    "linear-gradient(rgba(9, 9, 11, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(9, 9, 11, 0.07) 1px, transparent 1px)",
                   backgroundSize: "34px 34px",
                 }}
                 aria-hidden="true"

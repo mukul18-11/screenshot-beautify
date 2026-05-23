@@ -45,11 +45,11 @@ export default function EmptyUploadState({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
-      className="flex h-full w-full items-center justify-center p-4 text-center sm:p-6"
+      className="flex h-full w-full items-center justify-center p-4 text-center sm:p-5"
     >
-      <div className="relative flex w-full max-w-[34rem] flex-col items-center overflow-hidden rounded-[1.6rem] border border-white/80 bg-white/70 px-5 py-7 shadow-[0_28px_90px_-52px_rgba(15,23,42,0.65)] backdrop-blur-2xl sm:px-8 sm:py-8">
+      <div className="relative flex w-full max-w-[25rem] flex-col items-center overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/70 px-4.5 py-6 shadow-[0_22px_70px_-40px_rgba(15, 23, 42, 0.5)] backdrop-blur-2xl sm:px-6 sm:py-6.5">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80"
+          className="pointer-events-none absolute inset-x-0 top-0 h-16 opacity-80"
           style={{
             background:
               "linear-gradient(135deg, rgba(49, 87, 213, 0.12), rgba(15, 159, 143, 0.1) 45%, rgba(243, 107, 79, 0.09))",
@@ -57,9 +57,9 @@ export default function EmptyUploadState({
           aria-hidden="true"
         />
 
-        <div className="relative flex items-center gap-2 rounded-full border border-white/80 bg-white/75 px-3 py-1 text-[11px] font-bold uppercase text-[var(--editor-muted)] shadow-sm">
+        <div className="relative flex items-center gap-1.5 rounded-full border border-white/80 bg-white/75 px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--editor-muted)] shadow-sm">
           <Sparkles
-            className="h-3.5 w-3.5 text-[var(--editor-coral)]"
+            className="h-3 w-3 text-[var(--editor-coral)]"
             aria-hidden="true"
           />
           New canvas
@@ -73,11 +73,11 @@ export default function EmptyUploadState({
             event.stopPropagation();
             onBrowse?.();
           }}
-          whileHover={{ y: shouldReduceMotion || isUploading ? 0 : -3 }}
+          whileHover={{ y: shouldReduceMotion || isUploading ? 0 : -2.5 }}
           whileTap={{ scale: shouldReduceMotion || isUploading ? 1 : 0.98 }}
           animate={
             dragState === "idle" && !shouldReduceMotion && !isUploading
-              ? { scale: [1, 1.045, 1] }
+              ? { scale: [1, 1.04, 1] }
               : { scale: 1 }
           }
           transition={{
@@ -89,10 +89,10 @@ export default function EmptyUploadState({
                 : 0,
           }}
           className={cn(
-            "group relative mt-5 flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.45rem] border bg-white shadow-[0_18px_55px_-28px_rgba(15,23,42,0.85)] outline-none transition",
+            "group relative mt-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1.1rem] border bg-white shadow-[0_12px_40px_-20px_rgba(15,23,42,0.8)] outline-none transition",
             "focus-visible:ring-2 focus-visible:ring-sky-400/30",
             dragState === "idle" &&
-              "border-sky-300/70 bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 text-sky-600 shadow-[0_22px_60px_-26px_rgba(2,132,199,0.9)] hover:border-sky-400/80 hover:text-sky-700",
+              "border-sky-300/70 bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 text-sky-600 shadow-[0_16px_45px_-20px_rgba(2,132,199,0.85)] hover:border-sky-400/80 hover:text-sky-700",
             dragState === "accept" &&
               "border-emerald-300 bg-emerald-50/95 text-emerald-700",
             dragState === "reject" &&
@@ -112,18 +112,18 @@ export default function EmptyUploadState({
               aria-hidden="true"
             />
           )}
-          <span className="absolute inset-3 rounded-[1rem] border border-dashed border-current/30 transition group-hover:border-current/50" />
+          <span className="absolute inset-2.5 rounded-[0.8rem] border border-dashed border-current/30 transition group-hover:border-current/50" />
           {isUploading ? (
-            <Loader2 className="h-9 w-9 animate-spin" aria-hidden="true" />
+            <Loader2 className="h-7 w-7 animate-spin" aria-hidden="true" />
           ) : (
             <UploadCloud
-              className="h-9 w-9 transition group-hover:-translate-y-0.5"
+              className="h-7.5 w-7.5 transition group-hover:-translate-y-0.5"
               aria-hidden="true"
             />
           )}
         </motion.button>
 
-        <h1 className="relative mt-5 max-w-md text-balance font-display text-[1.72rem] font-extrabold leading-tight text-slate-950 sm:text-[2rem]">
+        <h1 className="relative mt-4 max-w-xs text-balance font-display text-[1.32rem] font-extrabold leading-tight text-slate-950 sm:text-[1.5rem]">
           {isUploading ? (
             "Reading screenshot..."
           ) : dragState === "idle" ? (
@@ -137,11 +137,11 @@ export default function EmptyUploadState({
             copy.title
           )}
         </h1>
-        <p className="relative mt-2 max-w-sm text-sm font-medium leading-6 text-slate-600 sm:text-[15px]">
+        <p className="relative mt-1.5 max-w-xs text-xs sm:text-[13px] font-medium leading-relaxed text-slate-600">
           {copy.description}
         </p>
 
-        <div className="relative mt-5 flex flex-col items-center gap-2 text-xs font-bold text-slate-600 sm:flex-row">
+        <div className="relative mt-4.5 flex flex-col items-center gap-1.5 text-[10px] font-bold text-slate-600 sm:flex-row">
           <button
             type="button"
             disabled={isUploading}
@@ -149,16 +149,16 @@ export default function EmptyUploadState({
               event.stopPropagation();
               onBrowse?.();
             }}
-            className="inline-flex h-9 items-center gap-2 rounded-full bg-slate-950 px-4 text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/25 disabled:pointer-events-none disabled:opacity-60"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1 text-white shadow-md shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/25 disabled:pointer-events-none disabled:opacity-60"
           >
-            <ArrowUpFromLine className="h-3.5 w-3.5" aria-hidden="true" />
+            <ArrowUpFromLine className="h-3 w-3" aria-hidden="true" />
             Browse files
           </button>
-          <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3 shadow-sm backdrop-blur-xl">
+          <span className="inline-flex h-8 items-center gap-1 rounded-full border border-white/80 bg-white/80 px-2.5 shadow-sm backdrop-blur-xl">
             <FileImage className="h-3.5 w-3.5" aria-hidden="true" />
             PNG, JPG, WebP
           </span>
-          <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3 shadow-sm backdrop-blur-xl">
+          <span className="inline-flex h-8 items-center gap-1 rounded-full border border-white/80 bg-white/80 px-2.5 shadow-sm backdrop-blur-xl">
             <ShieldCheck
               className="h-3.5 w-3.5 text-[var(--editor-teal)]"
               aria-hidden="true"
