@@ -18,10 +18,14 @@ const DEFAULT_CUSTOM_COLOR_C = "#334155";
 type CustomPatternId =
   | "arc-ribbons"
   | "contours"
+  | "glass-ridge"
   | "grid-glow"
   | "linear"
+  | "liquid-chrome"
   | "radial"
-  | "spotlight";
+  | "silk-waves"
+  | "spotlight"
+  | "velvet-storm";
 
 type CustomBackgroundConfig = {
   patternId: CustomPatternId;
@@ -66,6 +70,34 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorA: "#f8fafc",
     colorB: "#3b82f6",
     colorC: "#030712",
+    angle: 135,
+  },
+  "obsidian-silk": {
+    patternId: "silk-waves",
+    colorA: "#f8fafc",
+    colorB: "#38bdf8",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "liquid-chrome": {
+    patternId: "liquid-chrome",
+    colorA: "#f8fafc",
+    colorB: "#60a5fa",
+    colorC: "#111827",
+    angle: 135,
+  },
+  "glass-ridge": {
+    patternId: "glass-ridge",
+    colorA: "#bae6fd",
+    colorB: "#0ea5e9",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "velvet-storm": {
+    patternId: "velvet-storm",
+    colorA: "#ec4899",
+    colorB: "#4f46e5",
+    colorC: "#07030f",
     angle: 135,
   },
   "ocean-blue": {
@@ -254,6 +286,103 @@ function createCustomGradient({
         colorC,
         "#000000",
         0.5,
+      )} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "silk-waves") {
+    return [
+      `radial-gradient(90% 52% at 22% 8%, ${mixHexColors(
+        colorA,
+        "#ffffff",
+        0.18,
+      )} 0%, transparent 48%)`,
+      `radial-gradient(88% 46% at 86% 18%, ${colorB} 0%, transparent 46%)`,
+      `linear-gradient(158deg, transparent 0 18%, ${mixHexColors(
+        colorA,
+        colorC,
+        0.44,
+      )} 25%, transparent 36%, ${mixHexColors(
+        colorC,
+        "#ffffff",
+        0.08,
+      )} 46%, ${mixHexColors(
+        colorA,
+        colorB,
+        0.24,
+      )} 54%, transparent 68%)`,
+      `radial-gradient(130% 62% at 48% 110%, transparent 0%, ${mixHexColors(
+        colorC,
+        "#ffffff",
+        0.08,
+      )} 52%, ${colorC} 100%)`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        "#ffffff",
+        0.08,
+      )} 52%, ${mixHexColors(colorC, "#000000", 0.74)} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "liquid-chrome") {
+    return [
+      `radial-gradient(90% 44% at 12% 22%, ${colorA} 0%, transparent 44%)`,
+      `radial-gradient(82% 42% at 82% 22%, ${colorB} 0%, transparent 48%)`,
+      `linear-gradient(142deg, ${mixHexColors(
+        colorA,
+        colorC,
+        0.12,
+      )} 0 8%, transparent 18% 28%, ${mixHexColors(
+        colorC,
+        "#ffffff",
+        0.26,
+      )} 38%, transparent 50%, ${mixHexColors(
+        colorA,
+        colorB,
+        0.18,
+      )} 62%, transparent 76%)`,
+      `radial-gradient(120% 76% at 50% 116%, ${mixHexColors(
+        colorC,
+        "#000000",
+        0.72,
+      )} 0%, ${colorC} 54%, ${mixHexColors(colorC, "#000000", 0.78)} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "glass-ridge") {
+    return [
+      `repeating-linear-gradient(164deg, transparent 0 38px, ${mixHexColors(
+        colorA,
+        colorC,
+        0.18,
+      )} 39px 41px, transparent 42px 92px)`,
+      `radial-gradient(86% 48% at 18% 18%, ${colorA} 0%, transparent 46%)`,
+      `radial-gradient(72% 42% at 84% 80%, ${colorB} 0%, transparent 48%)`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        colorB,
+        0.24,
+      )} 48%, ${mixHexColors(colorC, "#000000", 0.7)} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "velvet-storm") {
+    return [
+      `conic-gradient(from 220deg at 48% 54%, ${colorA}, ${colorB}, transparent 34%, ${mixHexColors(
+        colorC,
+        "#ffffff",
+        0.1,
+      )}, ${mixHexColors(colorA, colorC, 0.32)})`,
+      `radial-gradient(64% 54% at 50% 50%, ${mixHexColors(
+        colorA,
+        "#ffffff",
+        0.2,
+      )} 0%, transparent 54%)`,
+      `radial-gradient(78% 52% at 82% 12%, ${colorB} 0%, transparent 46%)`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        "#000000",
+        0.76,
       )} 100%)`,
     ].join(", ");
   }

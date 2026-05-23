@@ -30,6 +30,34 @@ export const BACKGROUND_PRESETS = [
       "radial-gradient(70% 54% at 50% 0%, rgba(255, 255, 255, 0.2) 0%, transparent 56%), radial-gradient(64% 46% at 52% 86%, rgba(59, 130, 246, 0.38) 0%, transparent 62%), radial-gradient(rgba(255, 255, 255, 0.12) 0.7px, transparent 0.7px) 0 0 / 14px 14px, linear-gradient(135deg, #030712 0%, #111827 54%, #020617 100%)",
   },
   {
+    id: "obsidian-silk",
+    name: "Obsidian Silk",
+    type: "mesh",
+    cssValue:
+      "radial-gradient(90% 52% at 22% 8%, rgba(248, 250, 252, 0.34) 0%, transparent 48%), radial-gradient(88% 46% at 86% 18%, rgba(56, 189, 248, 0.26) 0%, transparent 46%), linear-gradient(158deg, transparent 0 18%, rgba(148, 163, 184, 0.34) 25%, transparent 36%, rgba(15, 23, 42, 0.08) 46%, rgba(226, 232, 240, 0.26) 54%, transparent 68%), radial-gradient(130% 62% at 48% 110%, rgba(2, 6, 23, 0) 0%, rgba(15, 23, 42, 0.86) 52%, #020617 100%), linear-gradient(135deg, #020617 0%, #0f172a 52%, #030712 100%)",
+  },
+  {
+    id: "liquid-chrome",
+    name: "Liquid Chrome",
+    type: "mesh",
+    cssValue:
+      "radial-gradient(90% 44% at 12% 22%, rgba(255, 255, 255, 0.5) 0%, transparent 44%), radial-gradient(82% 42% at 82% 22%, rgba(96, 165, 250, 0.36) 0%, transparent 48%), linear-gradient(142deg, rgba(255, 255, 255, 0.28) 0 8%, transparent 18% 28%, rgba(71, 85, 105, 0.52) 38%, transparent 50%, rgba(226, 232, 240, 0.32) 62%, transparent 76%), radial-gradient(120% 76% at 50% 116%, #020617 0%, #111827 54%, #020617 100%)",
+  },
+  {
+    id: "glass-ridge",
+    name: "Glass Ridge",
+    type: "mesh",
+    cssValue:
+      "repeating-linear-gradient(164deg, transparent 0 38px, rgba(125, 211, 252, 0.18) 39px 41px, transparent 42px 92px), radial-gradient(86% 48% at 18% 18%, rgba(186, 230, 253, 0.34) 0%, transparent 46%), radial-gradient(72% 42% at 84% 80%, rgba(14, 165, 233, 0.3) 0%, transparent 48%), linear-gradient(135deg, #020617 0%, #082f49 48%, #020617 100%)",
+  },
+  {
+    id: "velvet-storm",
+    name: "Velvet Storm",
+    type: "mesh",
+    cssValue:
+      "conic-gradient(from 220deg at 48% 54%, rgba(236, 72, 153, 0.34), rgba(79, 70, 229, 0.28), transparent 34%, rgba(15, 23, 42, 0.72), rgba(236, 72, 153, 0.26)), radial-gradient(64% 54% at 50% 50%, rgba(255, 255, 255, 0.12) 0%, transparent 54%), radial-gradient(78% 52% at 82% 12%, rgba(99, 102, 241, 0.34) 0%, transparent 46%), linear-gradient(135deg, #07030f 0%, #020617 100%)",
+  },
+  {
     id: "ocean-blue",
     name: "Ocean Blue",
     type: "mesh",
