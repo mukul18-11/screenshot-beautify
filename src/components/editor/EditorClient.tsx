@@ -45,20 +45,12 @@ export default function EditorClient() {
           </header>
 
           <section className="grid min-h-0 w-full flex-1 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_440px]">
-            <div className="relative flex min-h-[calc(100svh-4rem)] min-w-0 items-stretch overflow-hidden bg-[var(--editor-bg)]">
+            <div className="relative flex min-h-[calc(100svh-4rem)] min-w-0 items-stretch overflow-hidden bg-white">
               <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,245,250,0.42) 42%, rgba(228,235,255,0.5) 100%)",
-                }}
-                aria-hidden="true"
-              />
-              <div
-                className="pointer-events-none absolute inset-0 opacity-70"
+                className="pointer-events-none absolute inset-0 opacity-40"
                 style={{
                   backgroundImage:
-                    "linear-gradient(rgba(17, 24, 39, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(17, 24, 39, 0.045) 1px, transparent 1px)",
+                    "linear-gradient(rgba(9, 9, 11, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(9, 9, 11, 0.035) 1px, transparent 1px)",
                   backgroundSize: "34px 34px",
                 }}
                 aria-hidden="true"

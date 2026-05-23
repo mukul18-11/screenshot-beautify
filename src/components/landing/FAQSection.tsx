@@ -128,8 +128,8 @@ export default function FAQSection() {
       ) : (
         <div className="relative w-full overflow-hidden py-2">
           {/* Edge Fading Overlays */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-r from-[#f0fdfa] via-[#f0fdfa]/70 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-l from-[#f0fdfa] via-[#f0fdfa]/70 to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-r from-white via-white/70 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-l from-white via-white/70 to-transparent z-10 pointer-events-none" />
 
           {/* Row 1 (LTR) */}
           <div className="flex w-full overflow-hidden py-2">

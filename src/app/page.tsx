@@ -1,6 +1,6 @@
 "use client";
 
-import CTASection from "@/components/landing/CTASection";
+import Footer from "@/components/landing/Footer";
 import ExampleShowcase from "@/components/landing/ExampleShowcase";
 import FAQSection, { FAQS } from "@/components/landing/FAQSection";
 import FeatureGrid from "@/components/landing/FeatureGrid";
@@ -92,13 +92,13 @@ export default function Home() {
   return (
     <>
       <StructuredData />
-      <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_18%_8%,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_88%_4%,rgba(99,102,241,0.14),transparent_30%),radial-gradient(circle_at_74%_92%,rgba(20,184,166,0.14),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#eff6ff_50%,#f0fdfa_100%)] text-slate-950">
+      <main className="min-h-screen overflow-x-clip bg-white text-slate-950">
         <LandingNav />
         <HeroSection />
         <ExampleShowcase />
         <FeatureGrid />
         <FAQSection />
-        <CTASection />
+        <Footer />
       </main>
     </>
   );
