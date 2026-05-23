@@ -2,6 +2,34 @@ import type { BackgroundPreset } from "@/types/editor";
 
 export const BACKGROUND_PRESETS = [
   {
+    id: "blue-arc-ribbons",
+    name: "Blue Arc Ribbons",
+    type: "mesh",
+    cssValue:
+      "radial-gradient(120% 82% at 56% 116%, transparent 0 38%, rgba(8, 47, 73, 0.96) 38% 47%, transparent 47% 54%, rgba(37, 99, 235, 0.88) 54% 63%, transparent 63% 70%, rgba(34, 211, 238, 0.9) 70% 77%, transparent 77%), radial-gradient(at 78% 28%, rgba(56, 189, 248, 0.28) 0%, transparent 34%), radial-gradient(at 16% 22%, rgba(99, 102, 241, 0.24) 0%, transparent 32%), radial-gradient(rgba(255, 255, 255, 0.16) 0.7px, transparent 0.7px) 0 0 / 12px 12px, linear-gradient(135deg, #020617 0%, #030712 100%)",
+  },
+  {
+    id: "electric-contours",
+    name: "Electric Contours",
+    type: "mesh",
+    cssValue:
+      "radial-gradient(ellipse at 24% 84%, transparent 0 18%, rgba(34, 211, 238, 0.52) 18% 19.5%, transparent 19.5% 31%, rgba(59, 130, 246, 0.38) 31% 32.5%, transparent 32.5% 44%, rgba(147, 51, 234, 0.36) 44% 45.5%, transparent 45.5%), radial-gradient(ellipse at 84% 12%, transparent 0 16%, rgba(99, 102, 241, 0.42) 16% 17.5%, transparent 17.5% 30%, rgba(34, 211, 238, 0.32) 30% 31.5%, transparent 31.5%), linear-gradient(135deg, #020617 0%, #0f172a 48%, #020617 100%)",
+  },
+  {
+    id: "neon-grid-glow",
+    name: "Neon Grid Glow",
+    type: "mesh",
+    cssValue:
+      "linear-gradient(rgba(56, 189, 248, 0.11) 1px, transparent 1px) 0 0 / 34px 34px, linear-gradient(90deg, rgba(56, 189, 248, 0.1) 1px, transparent 1px) 0 0 / 34px 34px, radial-gradient(at 50% 92%, rgba(34, 211, 238, 0.6) 0%, transparent 46%), radial-gradient(at 78% 18%, rgba(99, 102, 241, 0.34) 0%, transparent 34%), linear-gradient(135deg, #020617 0%, #0f172a 100%)",
+  },
+  {
+    id: "midnight-spotlight",
+    name: "Midnight Spotlight",
+    type: "mesh",
+    cssValue:
+      "radial-gradient(70% 54% at 50% 0%, rgba(255, 255, 255, 0.2) 0%, transparent 56%), radial-gradient(64% 46% at 52% 86%, rgba(59, 130, 246, 0.38) 0%, transparent 62%), radial-gradient(rgba(255, 255, 255, 0.12) 0.7px, transparent 0.7px) 0 0 / 14px 14px, linear-gradient(135deg, #030712 0%, #111827 54%, #020617 100%)",
+  },
+  {
     id: "ocean-blue",
     name: "Ocean Blue",
     type: "mesh",

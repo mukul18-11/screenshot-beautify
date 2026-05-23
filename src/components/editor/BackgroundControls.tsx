@@ -13,8 +13,146 @@ import { useEditorStore } from "@/store/editor-store";
 
 const DEFAULT_CUSTOM_COLOR_A = "#f8fafc";
 const DEFAULT_CUSTOM_COLOR_B = "#030712";
+const DEFAULT_CUSTOM_COLOR_C = "#334155";
 
-type CustomGradientMode = "linear" | "radial";
+type CustomPatternId =
+  | "arc-ribbons"
+  | "contours"
+  | "grid-glow"
+  | "linear"
+  | "radial"
+  | "spotlight";
+
+type CustomBackgroundConfig = {
+  patternId: CustomPatternId;
+  colorA: string;
+  colorB: string;
+  colorC: string;
+  angle: number;
+};
+
+const DEFAULT_CUSTOM_CONFIG: CustomBackgroundConfig = {
+  patternId: "radial",
+  colorA: DEFAULT_CUSTOM_COLOR_A,
+  colorB: DEFAULT_CUSTOM_COLOR_B,
+  colorC: DEFAULT_CUSTOM_COLOR_C,
+  angle: 135,
+};
+
+const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
+  "blue-arc-ribbons": {
+    patternId: "arc-ribbons",
+    colorA: "#22d3ee",
+    colorB: "#2563eb",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "electric-contours": {
+    patternId: "contours",
+    colorA: "#22d3ee",
+    colorB: "#6366f1",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "neon-grid-glow": {
+    patternId: "grid-glow",
+    colorA: "#38bdf8",
+    colorB: "#22d3ee",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "midnight-spotlight": {
+    patternId: "spotlight",
+    colorA: "#f8fafc",
+    colorB: "#3b82f6",
+    colorC: "#030712",
+    angle: 135,
+  },
+  "ocean-blue": {
+    patternId: "radial",
+    colorA: "#1d4ed8",
+    colorB: "#22d3ee",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "sunset-glow": {
+    patternId: "radial",
+    colorA: "#fb7185",
+    colorB: "#f43f5e",
+    colorC: "#3b0a16",
+    angle: 135,
+  },
+  "product-hunt-orange": {
+    patternId: "radial",
+    colorA: "#fb923c",
+    colorB: "#f59e0b",
+    colorC: "#fff7ed",
+    angle: 135,
+  },
+  "classic-midnight-purple": {
+    patternId: "linear",
+    colorA: "#160f2e",
+    colorB: "#c084fc",
+    colorC: "#4c1d95",
+    angle: 135,
+  },
+  "classic-ocean-blue": {
+    patternId: "linear",
+    colorA: "#082f49",
+    colorB: "#bae6fd",
+    colorC: "#0284c7",
+    angle: 135,
+  },
+  "classic-sunset-glow": {
+    patternId: "linear",
+    colorA: "#7c2d12",
+    colorB: "#fde68a",
+    colorC: "#fb7185",
+    angle: 135,
+  },
+  "classic-mint-glass": {
+    patternId: "linear",
+    colorA: "#ecfeff",
+    colorB: "#f0fdfa",
+    colorC: "#99f6e4",
+    angle: 135,
+  },
+  "classic-soft-peach": {
+    patternId: "linear",
+    colorA: "#fff7ed",
+    colorB: "#fbcfe8",
+    colorC: "#fed7aa",
+    angle: 135,
+  },
+  "classic-cyber-lime": {
+    patternId: "radial",
+    colorA: "#bef264",
+    colorB: "#22d3ee",
+    colorC: "#052e16",
+    angle: 135,
+  },
+  "classic-clean-gray": {
+    patternId: "linear",
+    colorA: "#f8fafc",
+    colorB: "#e2e8f0",
+    colorC: "#f1f5f9",
+    angle: 135,
+  },
+  "classic-deep-space": {
+    patternId: "radial",
+    colorA: "#6366f1",
+    colorB: "#ec4899",
+    colorC: "#020617",
+    angle: 135,
+  },
+  "classic-product-hunt-orange": {
+    patternId: "linear",
+    colorA: "#ff6154",
+    colorB: "#fff1d6",
+    colorC: "#ff8a3d",
+    angle: 135,
+  },
+};
 
 function hexToRgb(color: string) {
   const normalizedColor = color.trim().replace(/^#/, "");
@@ -45,39 +183,129 @@ function mixHexColors(colorA: string, colorB: string, colorBWeight: number) {
   });
 }
 
-function createCustomGradient(
-  mode: CustomGradientMode,
-  colorA: string,
-  colorB: string,
-  angle: number,
-) {
-  if (mode === "linear") {
-    return `linear-gradient(${angle}deg, ${colorA} 0%, ${colorB} 100%)`;
+function createCustomGradient({
+  patternId,
+  colorA,
+  colorB,
+  colorC,
+  angle,
+}: CustomBackgroundConfig) {
+  if (patternId === "linear") {
+    return `linear-gradient(${angle}deg, ${colorA} 0%, ${colorC} 50%, ${colorB} 100%)`;
+  }
+
+  if (patternId === "arc-ribbons") {
+    return [
+      `radial-gradient(120% 82% at 56% 116%, transparent 0 38%, ${colorA} 38% 47%, transparent 47% 54%, ${colorB} 54% 63%, transparent 63% 70%, ${mixHexColors(
+        colorA,
+        colorB,
+        0.45,
+      )} 70% 77%, transparent 77%)`,
+      `radial-gradient(at 78% 28%, ${mixHexColors(
+        colorA,
+        "#ffffff",
+        0.24,
+      )} 0%, transparent 34%)`,
+      `radial-gradient(at 16% 22%, ${mixHexColors(
+        colorB,
+        "#ffffff",
+        0.16,
+      )} 0%, transparent 32%)`,
+      `radial-gradient(rgba(255, 255, 255, 0.16) 0.7px, transparent 0.7px) 0 0 / 12px 12px`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        "#000000",
+        0.68,
+      )} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "contours") {
+    return [
+      `radial-gradient(ellipse at 24% 84%, transparent 0 18%, ${colorA} 18% 19.5%, transparent 19.5% 31%, ${colorB} 31% 32.5%, transparent 32.5% 44%, ${mixHexColors(
+        colorA,
+        colorB,
+        0.5,
+      )} 44% 45.5%, transparent 45.5%)`,
+      `radial-gradient(ellipse at 84% 12%, transparent 0 16%, ${colorB} 16% 17.5%, transparent 17.5% 30%, ${colorA} 30% 31.5%, transparent 31.5%)`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        "#000000",
+        0.62,
+      )} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "grid-glow") {
+    return [
+      `linear-gradient(${mixHexColors(
+        colorA,
+        "#000000",
+        0.2,
+      )} 1px, transparent 1px) 0 0 / 34px 34px`,
+      `linear-gradient(90deg, ${mixHexColors(
+        colorA,
+        "#000000",
+        0.24,
+      )} 1px, transparent 1px) 0 0 / 34px 34px`,
+      `radial-gradient(at 50% 92%, ${colorB} 0%, transparent 46%)`,
+      `radial-gradient(at 78% 18%, ${colorA} 0%, transparent 34%)`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        "#000000",
+        0.5,
+      )} 100%)`,
+    ].join(", ");
+  }
+
+  if (patternId === "spotlight") {
+    return [
+      `radial-gradient(70% 54% at 50% 0%, ${colorA} 0%, transparent 56%)`,
+      `radial-gradient(64% 46% at 52% 86%, ${colorB} 0%, transparent 62%)`,
+      `radial-gradient(rgba(255, 255, 255, 0.12) 0.7px, transparent 0.7px) 0 0 / 14px 14px`,
+      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+        colorC,
+        "#ffffff",
+        0.08,
+      )} 54%, ${mixHexColors(colorC, "#000000", 0.72)} 100%)`,
+    ].join(", ");
   }
 
   return [
     `radial-gradient(at 18% 24%, ${colorA} 0%, transparent 42%)`,
     `radial-gradient(at 78% 16%, ${colorB} 0%, transparent 58%)`,
     `radial-gradient(at 50% 80%, ${mixHexColors(
-      colorA,
+      colorC,
       colorB,
-      0.62,
+      0.34,
     )} 0%, transparent 52%)`,
-    `linear-gradient(135deg, ${mixHexColors(
-      colorA,
-      colorB,
-      0.76,
-    )} 0%, ${mixHexColors(colorA, colorB, 0.94)} 100%)`,
+    `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
+      colorC,
+      "#000000",
+      0.45,
+    )} 100%)`,
   ].join(", ");
+}
+
+function getCustomPatternOptions(patternId: CustomPatternId) {
+  const options: { id: CustomPatternId; label: string }[] = [
+    { id: "radial", label: "Radial" },
+    { id: "linear", label: "Linear" },
+  ];
+
+  if (patternId !== "linear" && patternId !== "radial") {
+    return [{ id: patternId, label: "Pattern" }, ...options];
+  }
+
+  return options;
 }
 
 export default function BackgroundControls() {
   const shouldReduceMotion = useReducedMotion();
   const [isCustomOpen, setIsCustomOpen] = useState(false);
-  const [customMode, setCustomMode] = useState<CustomGradientMode>("radial");
-  const [customColorA, setCustomColorA] = useState(DEFAULT_CUSTOM_COLOR_A);
-  const [customColorB, setCustomColorB] = useState(DEFAULT_CUSTOM_COLOR_B);
-  const [customAngle, setCustomAngle] = useState(135);
+  const [customConfig, setCustomConfig] = useState<CustomBackgroundConfig>(
+    DEFAULT_CUSTOM_CONFIG,
+  );
   const backgroundPresetId = useEditorStore((state) => state.backgroundPresetId);
   const setBackgroundPreset = useEditorStore(
     (state) => state.setBackgroundPreset,
@@ -87,14 +315,8 @@ export default function BackgroundControls() {
   );
   const isCustomSelected = backgroundPresetId === "custom";
   const customGradient = useMemo(
-    () =>
-      createCustomGradient(
-        customMode,
-        customColorA,
-        customColorB,
-        customAngle,
-      ),
-    [customAngle, customColorA, customColorB, customMode],
+    () => createCustomGradient(customConfig),
+    [customConfig],
   );
   const gradientPresets = BACKGROUND_PRESETS.filter(
     (preset) => preset.type !== "image-blur",
@@ -106,24 +328,29 @@ export default function BackgroundControls() {
   function applyCustomGradient() {
     setGradientBackground(
       customGradient,
-      customMode === "radial" ? "mesh" : "gradient",
+      customConfig.patternId === "linear" ? "gradient" : "mesh",
     );
   }
 
-  function updateCustomGradient(
-    nextMode: CustomGradientMode,
-    nextColorA: string,
-    nextColorB: string,
-    nextAngle: number,
-  ) {
-    if (!isCustomSelected) {
-      return;
+  function selectEditablePreset(presetId: string) {
+    const nextConfig = EDITABLE_PRESET_CONFIGS[presetId];
+
+    if (nextConfig) {
+      setCustomConfig(nextConfig);
     }
 
-    setGradientBackground(
-      createCustomGradient(nextMode, nextColorA, nextColorB, nextAngle),
-      nextMode === "radial" ? "mesh" : "gradient",
-    );
+    return nextConfig;
+  }
+
+  function setLiveCustomConfig(nextConfig: CustomBackgroundConfig) {
+    setCustomConfig(nextConfig);
+
+    if (isCustomSelected) {
+      setGradientBackground(
+        createCustomGradient(nextConfig),
+        nextConfig.patternId === "linear" ? "gradient" : "mesh",
+      );
+    }
   }
 
   return (
@@ -146,6 +373,7 @@ export default function BackgroundControls() {
               aria-pressed={isSelected}
               onClick={() => {
                 setBackgroundPreset(preset.id);
+                selectEditablePreset(preset.id);
                 setIsCustomOpen(false);
               }}
               className={cn(
@@ -183,8 +411,14 @@ export default function BackgroundControls() {
           aria-expanded={isCustomOpen}
           aria-pressed={isCustomSelected}
           onClick={() => {
+            const presetConfig = selectEditablePreset(backgroundPresetId);
+            const nextConfig = presetConfig ?? customConfig;
+
             setIsCustomOpen((isOpen) => !isOpen);
-            applyCustomGradient();
+            setGradientBackground(
+              createCustomGradient(nextConfig),
+              nextConfig.patternId === "linear" ? "gradient" : "mesh",
+            );
           }}
           className={cn(
             "relative flex h-10 items-center justify-center overflow-hidden rounded-xl border text-[12px] font-semibold transition",
@@ -239,7 +473,7 @@ export default function BackgroundControls() {
             aria-hidden="true"
           />
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1.5">
               <Label
                 htmlFor="custom-background-color-a"
@@ -250,17 +484,14 @@ export default function BackgroundControls() {
               <input
                 id="custom-background-color-a"
                 type="color"
-                value={customColorA}
+                value={customConfig.colorA}
                 onChange={(event) => {
                   const nextColor = event.target.value;
 
-                  setCustomColorA(nextColor);
-                  updateCustomGradient(
-                    customMode,
-                    nextColor,
-                    customColorB,
-                    customAngle,
-                  );
+                  setLiveCustomConfig({
+                    ...customConfig,
+                    colorA: nextColor,
+                  });
                 }}
                 className="h-9 w-full cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
               />
@@ -275,67 +506,80 @@ export default function BackgroundControls() {
               <input
                 id="custom-background-color-b"
                 type="color"
-                value={customColorB}
+                value={customConfig.colorB}
                 onChange={(event) => {
                   const nextColor = event.target.value;
 
-                  setCustomColorB(nextColor);
-                  updateCustomGradient(
-                    customMode,
-                    customColorA,
-                    nextColor,
-                    customAngle,
-                  );
+                  setLiveCustomConfig({
+                    ...customConfig,
+                    colorB: nextColor,
+                  });
+                }}
+                className="h-9 w-full cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="custom-background-color-c"
+                className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
+              >
+                Base
+              </Label>
+              <input
+                id="custom-background-color-c"
+                type="color"
+                value={customConfig.colorC}
+                onChange={(event) => {
+                  const nextColor = event.target.value;
+
+                  setLiveCustomConfig({
+                    ...customConfig,
+                    colorC: nextColor,
+                  });
                 }}
                 className="h-9 w-full cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1 dark:bg-white/[0.08]">
-            {(["radial", "linear"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => {
-                  setCustomMode(mode);
-                  updateCustomGradient(
-                    mode,
-                    customColorA,
-                    customColorB,
-                    customAngle,
-                  );
-                }}
-                className={cn(
-                  "h-8 rounded-md text-[12px] font-semibold capitalize transition",
-                  customMode === mode
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white"
-                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white",
-                )}
-                aria-pressed={customMode === mode}
-              >
-                {mode}
-              </button>
-            ))}
+          <div className="grid grid-cols-3 rounded-lg bg-slate-100 p-1 dark:bg-white/[0.08]">
+            {getCustomPatternOptions(customConfig.patternId).map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() =>
+                    setLiveCustomConfig({
+                      ...customConfig,
+                      patternId: option.id,
+                    })
+                  }
+                  className={cn(
+                    "h-8 rounded-md text-[12px] font-semibold transition",
+                    customConfig.patternId === option.id
+                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white"
+                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white",
+                  )}
+                  aria-pressed={customConfig.patternId === option.id}
+                >
+                  {option.label}
+                </button>
+              ))}
           </div>
 
-          {customMode === "linear" && (
+          {customConfig.patternId === "linear" && (
             <EditorSliderRow
               label="Angle"
               labelClassName="text-slate-600 dark:text-slate-300"
               min={0}
               max={360}
               step={1}
-              value={customAngle}
+              value={customConfig.angle}
               suffix="deg"
               onChange={(angle) => {
-                setCustomAngle(angle);
-                updateCustomGradient(
-                  customMode,
-                  customColorA,
-                  customColorB,
+                setLiveCustomConfig({
+                  ...customConfig,
                   angle,
-                );
+                });
               }}
             />
           )}
