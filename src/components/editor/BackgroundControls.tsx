@@ -11,8 +11,8 @@ import { BACKGROUND_PRESETS } from "@/lib/background-presets";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 
-const DEFAULT_CUSTOM_COLOR_A = "#7c3aed";
-const DEFAULT_CUSTOM_COLOR_B = "#ec4899";
+const DEFAULT_CUSTOM_COLOR_A = "#f8fafc";
+const DEFAULT_CUSTOM_COLOR_B = "#030712";
 
 type CustomGradientMode = "linear" | "radial";
 
@@ -56,18 +56,18 @@ function createCustomGradient(
   }
 
   return [
-    `radial-gradient(at 20% 30%, ${colorA} 0%, transparent 60%)`,
-    `radial-gradient(at 80% 10%, ${colorB} 0%, transparent 50%)`,
+    `radial-gradient(at 18% 24%, ${colorA} 0%, transparent 42%)`,
+    `radial-gradient(at 78% 16%, ${colorB} 0%, transparent 58%)`,
     `radial-gradient(at 50% 80%, ${mixHexColors(
       colorA,
       colorB,
-      0.5,
-    )} 0%, transparent 60%)`,
+      0.62,
+    )} 0%, transparent 52%)`,
     `linear-gradient(135deg, ${mixHexColors(
       colorA,
       colorB,
-      0.18,
-    )} 0%, ${mixHexColors(colorA, colorB, 0.82)} 100%)`,
+      0.76,
+    )} 0%, ${mixHexColors(colorA, colorB, 0.94)} 100%)`,
   ].join(", ");
 }
 

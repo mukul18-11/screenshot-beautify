@@ -48,6 +48,7 @@ export type { ScreenshotDesign, UploadedImage } from "@/types/editor";
 
 export const MAX_SCREENSHOT_UPLOADS = 12;
 const MAX_EDITOR_HISTORY_ENTRIES = 50;
+const HISTORY_ENABLED_TILT_PRESET_ID = "left-angle";
 
 type HistoryGlobalSettings = Pick<
   EditorDesignSettings,
@@ -355,6 +356,39 @@ function cloneScreenshotDesigns(
     ...screenshot,
     settings: cloneEditorDesignSettings(screenshot.settings),
   }));
+}
+
+function hasVisibleTiltEffect(settings: TiltSettings) {
+  return (
+    settings.tiltEnabled &&
+    (settings.rotateX !== DEFAULT_TILT_SETTINGS.rotateX ||
+      settings.rotateY !== DEFAULT_TILT_SETTINGS.rotateY ||
+      settings.rotateZ !== DEFAULT_TILT_SETTINGS.rotateZ ||
+      settings.translateY !== DEFAULT_TILT_SETTINGS.translateY ||
+      settings.tiltShadowMultiplier !==
+        DEFAULT_TILT_SETTINGS.tiltShadowMultiplier)
+  );
+}
+
+function createHistoryTiltSettings(settings: TiltSettings): TiltSettings {
+  if (!hasVisibleTiltEffect(settings)) {
+    return createDefaultTiltSettings();
+  }
+
+  return {
+    ...createDefaultTiltSettings(),
+    ...createTiltPresetSettings(HISTORY_ENABLED_TILT_PRESET_ID),
+    tiltEnabled: true,
+  };
+}
+
+function normalizeTiltSettingsForHistory(
+  settings: EditorDesignSettings,
+): EditorDesignSettings {
+  return {
+    ...settings,
+    ...createHistoryTiltSettings(settings),
+  };
 }
 
 function getEditorDesignSettingsFromState(
@@ -764,7 +798,7 @@ function getHistoryScreenshotsFromState(
 
     return {
       ...screenshot,
-      settings,
+      settings: normalizeTiltSettingsForHistory(settings),
     };
   });
 }
