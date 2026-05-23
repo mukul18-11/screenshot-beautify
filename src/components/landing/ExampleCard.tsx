@@ -14,266 +14,127 @@ type ExampleCardProps = {
 function getTiltSettings(tilt: ExampleShowcaseItem["tilt"]) {
   if (tilt === "left") {
     return {
-      perspective: 900,
-      rotateX: 8,
-      rotateY: -11,
-      rotateZ: -1,
-      sensitivity: 7,
+      perspective: 1000,
+      rotateX: 5,
+      rotateY: -7,
+      rotateZ: -0.3,
+      sensitivity: 4,
     };
   }
 
   if (tilt === "right") {
     return {
-      perspective: 900,
-      rotateX: 8,
-      rotateY: 11,
-      rotateZ: 1,
-      sensitivity: 7,
+      perspective: 1000,
+      rotateX: 5,
+      rotateY: 7,
+      rotateZ: 0.3,
+      sensitivity: 4,
     };
   }
 
   return {
-    perspective: 950,
+    perspective: 1000,
     rotateX: 0,
     rotateY: 0,
     rotateZ: 0,
-    sensitivity: 6,
+    sensitivity: 3,
   };
 }
 
-function BrowserBar({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
+function BrowserBar({ theme, id }: { theme: "light" | "dark"; id: string }) {
+  const isDark = theme === "dark";
+  const domainName =
+    id === "payment-analytics"
+      ? "analytics.stripe.com"
+      : id === "new-york-statue"
+      ? "new-york.sh"
+      : id === "ride-camper"
+      ? "van-life.sh"
+      : id === "neon-urban-life"
+      ? "life-outdoors.sh"
+      : id === "x-analytics"
+      ? "x.com/creator-analytics"
+      : id === "developer-code"
+      ? "MainContent.tsx"
+      : "beautifier.sh";
+
   return (
     <div
       className={cn(
-        "flex h-8 items-center gap-1.5 rounded-t-2xl border-b px-3",
-        theme === "dark"
-          ? "border-white/10 bg-slate-900"
-          : "border-slate-200 bg-slate-50",
+        "flex h-7 items-center justify-between border-b px-3 select-none shrink-0",
+        isDark
+          ? "border-white/10 bg-slate-900 text-white/40"
+          : "border-slate-200 bg-slate-50 text-slate-400",
       )}
     >
-      <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
-      <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-      <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
-      <span
-        className={cn(
-          "ml-2 hidden h-3 w-24 rounded-full sm:block",
-          theme === "dark" ? "bg-white/10" : "bg-white",
-        )}
-      />
-    </div>
-  );
-}
-
-function DashboardMock({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
-  const isDark = theme === "dark";
-
-  return (
-    <div className="grid grid-cols-[0.7fr_1.3fr] gap-3 p-4">
-      <div
-        className={cn(
-          "space-y-2 rounded-xl p-3",
-          isDark ? "bg-white/5" : "bg-slate-100",
-        )}
-      >
-        <div
-          className={cn(
-            "h-3 w-14 rounded-full",
-            isDark ? "bg-white/25" : "bg-slate-300",
-          )}
-        />
-        <div
-          className={cn(
-            "h-2 w-20 rounded-full",
-            isDark ? "bg-white/15" : "bg-slate-200",
-          )}
-        />
-        <div
-          className={cn(
-            "h-2 w-16 rounded-full",
-            isDark ? "bg-white/15" : "bg-slate-200",
-          )}
-        />
-        <div
-          className={cn(
-            "mt-5 h-16 rounded-xl",
-            isDark ? "bg-cyan-300/25" : "bg-white",
-          )}
-        />
+      <div className="flex gap-1.5 shrink-0">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
       </div>
-      <div className="space-y-3">
-        <div
-          className={cn(
-            "h-4 w-36 rounded-full",
-            isDark ? "bg-white/35" : "bg-slate-300",
-          )}
-        />
-        <div className="grid grid-cols-3 gap-2">
-          <div
-            className={cn(
-              "h-16 rounded-xl",
-              isDark ? "bg-white/10" : "bg-slate-100",
-            )}
-          />
-          <div
-            className={cn(
-              "h-16 rounded-xl",
-              isDark ? "bg-cyan-300/70" : "bg-slate-950",
-            )}
-          />
-          <div
-            className={cn(
-              "h-16 rounded-xl",
-              isDark ? "bg-white/10" : "bg-slate-100",
-            )}
-          />
-        </div>
-        <div
-          className={cn(
-            "h-16 rounded-xl",
-            isDark ? "bg-white/10" : "bg-slate-100",
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-function PostMock({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
-  const isDark = theme === "dark";
-
-  return (
-    <div className="space-y-3 p-4">
       <div
         className={cn(
-          "h-4 w-40 rounded-full",
-          isDark ? "bg-white/40" : "bg-slate-300",
-        )}
-      />
-      <div
-        className={cn(
-          "h-3 w-56 max-w-full rounded-full",
-          isDark ? "bg-white/20" : "bg-slate-200",
-        )}
-      />
-      <div className="grid grid-cols-2 gap-3">
-        <div
-          className={cn(
-            "h-20 rounded-xl",
-            isDark ? "bg-white/10" : "bg-slate-100",
-          )}
-        />
-        <div
-          className={cn(
-            "h-20 rounded-xl",
-            isDark ? "bg-cyan-300/60" : "bg-slate-950",
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-function MobileMock({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
-  const isDark = theme === "dark";
-
-  return (
-    <div className="flex justify-center p-4">
-      <div
-        className={cn(
-          "h-40 w-20 rounded-[1.4rem] border p-2 shadow-lg",
+          "h-4 w-44 rounded border flex items-center justify-center text-[8px] font-medium tracking-tight",
           isDark
-            ? "border-white/10 bg-slate-950"
-            : "border-slate-200 bg-white",
+            ? "bg-slate-950 border-white/5 text-white/30"
+            : "bg-white border-slate-200/50 text-slate-400",
         )}
       >
-        <div
-          className={cn(
-            "mx-auto mb-3 h-1.5 w-8 rounded-full",
-            isDark ? "bg-white/20" : "bg-slate-200",
-          )}
-        />
-        <div
-          className={cn(
-            "h-16 rounded-2xl",
-            isDark ? "bg-cyan-300/70" : "bg-slate-950",
-          )}
-        />
-        <div className="mt-3 space-y-1.5">
-          <div
-            className={cn(
-              "h-2 w-12 rounded-full",
-              isDark ? "bg-white/30" : "bg-slate-300",
-            )}
-          />
-          <div
-            className={cn(
-              "h-2 w-9 rounded-full",
-              isDark ? "bg-white/20" : "bg-slate-200",
-            )}
-          />
-        </div>
+        {domainName}
       </div>
-    </div>
-  );
-}
-
-function ChangelogMock({ theme }: { theme: ExampleShowcaseItem["frameTheme"] }) {
-  const isDark = theme === "dark";
-
-  return (
-    <div className="space-y-3 p-4">
-      {[0, 1, 2].map((item) => (
-        <div
-          key={item}
-          className={cn(
-            "flex items-center gap-3 rounded-xl p-3",
-            isDark ? "bg-white/[0.08]" : "bg-slate-100",
-          )}
-        >
-          <div
-            className={cn(
-              "h-8 w-8 rounded-lg",
-              item === 0
-                ? "bg-cyan-300"
-                : isDark
-                  ? "bg-white/15"
-                  : "bg-white",
-            )}
-          />
-          <div className="flex-1 space-y-1.5">
-            <div
-              className={cn(
-                "h-2.5 w-28 rounded-full",
-                isDark ? "bg-white/30" : "bg-slate-300",
-              )}
-            />
-            <div
-              className={cn(
-                "h-2 w-20 rounded-full",
-                isDark ? "bg-white/15" : "bg-slate-200",
-              )}
-            />
-          </div>
-        </div>
-      ))}
+      <div className="w-10 shrink-0" />
     </div>
   );
 }
 
 function MockContent({ example }: { example: ExampleShowcaseItem }) {
-  if (example.layout === "dashboard" || example.layout === "launch") {
-    return <DashboardMock theme={example.frameTheme} />;
+  if (example.imagePath) {
+    return (
+      <div
+        className={cn(
+          "relative w-full overflow-hidden bg-slate-950 flex flex-col justify-center items-center select-none",
+          example.layout === "mobile" ? "aspect-[9/16] h-[340px]" : "aspect-[16/10] w-full"
+        )}
+      >
+        {/* Premium high-fidelity screenshot or picture */}
+        <img
+          src={example.imagePath}
+          alt={example.title}
+          className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
+          loading="lazy"
+        />
+
+        {/* Gradient Overlay for legibility */}
+        {example.overlayText && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15 pointer-events-none" />
+        )}
+
+        {/* Surgical Text Overlay Positioning based on item ID */}
+        {example.overlayText && (
+          <div
+            className={cn(
+              "absolute z-10 pointer-events-none w-full px-4",
+              example.id === "ride-camper" && "inset-x-0 top-14 flex justify-center text-center",
+              example.id === "neon-urban-life" && "left-4 top-8 flex flex-col items-start text-left",
+              example.id === "new-york-statue" && "inset-x-0 top-12 flex justify-center text-center",
+              example.id === "breaking-bad-desert" && "left-4 top-8 flex flex-col items-start text-left"
+            )}
+          >
+            <span className={cn(example.overlayColor, example.overlayClass)}>
+              {example.overlayText}
+            </span>
+          </div>
+        )}
+      </div>
+    );
   }
 
-  if (example.layout === "mobile") {
-    return <MobileMock theme={example.frameTheme} />;
-  }
-
-  if (example.layout === "changelog") {
-    return <ChangelogMock theme={example.frameTheme} />;
-  }
-
-  return <PostMock theme={example.frameTheme} />;
+  // Generic fallback if image is missing
+  return (
+    <div className="p-8 text-center text-xs text-slate-400 bg-slate-900 w-full aspect-[16/10] flex items-center justify-center">
+      Mock preview placeholder
+    </div>
+  );
 }
 
 export default function ExampleCard({ example, index }: ExampleCardProps) {
@@ -291,37 +152,37 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
         delay: shouldReduceMotion ? 0 : index * 0.04,
         ease: "easeOut",
       }}
-      className="flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/70 p-2.5 shadow-soft backdrop-blur-xl"
+      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 p-2 shadow-soft backdrop-blur-xl transition hover:border-slate-350 hover:shadow-md h-full justify-between"
     >
       <div
-        className="relative flex flex-1 min-h-[300px] flex-col justify-between overflow-hidden rounded-2xl p-4"
+        className="relative flex flex-1 flex-col justify-between overflow-hidden rounded-xl p-4 sm:p-5"
         style={{ background: example.background }}
       >
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:22px_22px] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px] opacity-40 pointer-events-none" />
 
-        <div className="relative">
+        <div className="relative mb-5 z-20">
           <div
             className={cn(
-              "mb-2.5 w-fit rounded-full border px-2.5 py-1 text-xs font-semibold",
+              "mb-2.5 w-fit rounded-full border px-2.5 py-0.5 text-[9px] font-bold tracking-wider uppercase select-none",
               isLightText
-                ? "border-white/20 bg-white/15 text-white"
-                : "border-white/70 bg-white/45 text-slate-800",
+                ? "border-white/20 bg-white/10 text-white"
+                : "border-slate-950/10 bg-white/45 text-slate-800",
             )}
           >
             {example.badge}
           </div>
           <h3
             className={cn(
-              "text-xl font-semibold leading-tight",
-              isLightText ? "text-white" : "text-slate-950",
+              "text-lg font-extrabold font-display tracking-tight leading-snug",
+              isLightText ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]" : "text-slate-950",
             )}
           >
             {example.title}
           </h3>
           <p
             className={cn(
-              "mt-2 max-w-[20rem] text-sm leading-5",
-              isLightText ? "text-white/72" : "text-slate-700",
+              "mt-1.5 max-w-[20rem] text-xs leading-relaxed",
+              isLightText ? "text-white/80" : "text-slate-650",
             )}
           >
             {example.description}
@@ -330,15 +191,15 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
 
         <LandingHoverTilt
           className={cn(
-            "relative mt-5 overflow-hidden rounded-2xl border shadow-2xl shadow-slate-950/25 transition-transform duration-300",
+            "relative mt-auto overflow-hidden rounded-xl border shadow-xl shadow-slate-950/20 transition-transform duration-300 w-full flex flex-col",
             isDarkFrame
               ? "border-white/10 bg-slate-950"
-              : "border-white/25 bg-white",
+              : "border-white/20 bg-white",
           )}
           settings={getTiltSettings(example.tilt)}
         >
-          {example.layout !== "mobile" && (
-            <BrowserBar theme={example.frameTheme} />
+          {example.showBrowserBar && (
+            <BrowserBar theme={example.browserTheme} id={example.id} />
           )}
           <MockContent example={example} />
         </LandingHoverTilt>

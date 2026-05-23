@@ -7,45 +7,46 @@ export const FAQS = [
   {
     question: "What is Screenshot Beautifier?",
     answer:
-      "Screenshot Beautifier is a browser-based tool for turning product screenshots into polished launch graphics with quick styles, browser frames, text overlays, depth, and PNG export.",
+      "A fast browser-based tool for turning screenshots and photos into polished, launch-ready visual creatives for social posts, landing pages, and decks.",
   },
   {
-    question: "Do screenshots upload to a server?",
+    question: "Are my files uploaded to a server?",
     answer:
-      "No. Screenshot Beautifier handles the image in your browser for this MVP.",
+      "No. All image processing happens client-side. Your screenshots and private financial data never leave your browser, ensuring absolute privacy.",
   },
   {
-    question: "What file types can I use?",
-    answer: "PNG, JPG, and WebP screenshots up to 10 MB are supported.",
-  },
-  {
-    question: "Can I export for social posts and landing pages?",
+    question: "What formats and sizes are supported?",
     answer:
-      "Yes. Use built-in canvas sizes and export sharp PNGs for X, LinkedIn, Product Hunt, decks, and hero images.",
+      "We support PNG, JPG, and WebP files up to 10 MB. Perfect for dashboard screenshots or raw photographic mockups.",
   },
   {
-    question: "Who is it for?",
+    question: "How do exports work?",
     answer:
-      "It is built for founders, makers, marketers, and product teams who need polished screenshots for launches, changelogs, demos, and social posts.",
+      "Download crisp, sharp PNG graphics upscaled to 1x, 2x, or 4x for retina displays, or copy directly to your clipboard for fast sharing.",
   },
   {
-    question: "Do I need an account?",
+    question: "Who is this built for?",
     answer:
-      "No. The editor runs locally in your browser and does not require login.",
+      "Founders, software builders, designers, and creators who want professional visuals without opening complex design tools like Figma.",
+  },
+  {
+    question: "Is an account or card required?",
+    answer:
+      "No sign-up, accounts, or card details required. The beautifier is fully free, local-only, and active instantly in one click.",
   },
 ] as const;
 
 function FAQCard({ faq }: { faq: typeof FAQS[number] }) {
   return (
-    <div className="w-[280px] sm:w-[350px] shrink-0 rounded-2xl border border-slate-250/70 bg-white/90 p-5 shadow-sm transition-all duration-300 hover:border-cyan-300/80 hover:shadow-[0_8px_30px_rgba(6,182,212,0.08)] cursor-default flex flex-col justify-between whitespace-normal">
+    <div className="w-[280px] sm:w-[320px] shrink-0 rounded-2xl border border-slate-200 bg-white/90 p-4.5 shadow-sm transition-all duration-300 hover:border-cyan-300 hover:shadow-[0_8px_30px_rgba(6,182,212,0.06)] cursor-default flex flex-col justify-between whitespace-normal">
       <div>
-        <div className="flex items-start gap-2.5">
+        <div className="flex items-start gap-2">
           <HelpCircle className="h-4.5 w-4.5 text-cyan-600 shrink-0 mt-0.5" />
-          <h3 className="text-sm font-bold font-display tracking-tight text-slate-900">
+          <h3 className="text-xs.5 font-bold font-display tracking-tight text-slate-900 leading-snug">
             {faq.question}
           </h3>
         </div>
-        <p className="mt-2 text-xs leading-relaxed text-slate-500">
+        <p className="mt-2.5 text-[11px] leading-relaxed text-slate-500">
           {faq.answer}
         </p>
       </div>
@@ -96,29 +97,29 @@ export default function FAQSection() {
       <motion.div 
         initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
+        transition={{ duration: 0.5 }}
         className="mx-auto max-w-xl text-center mb-10"
       >
         <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">FAQ</p>
         <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
-          Practical answers before you start
+          Frequently asked questions
         </h2>
       </motion.div>
 
       {shouldReduceMotion ? (
-        <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
+        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
           {FAQS.map((faq) => (
             <div
               key={faq.question}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+              className="rounded-2xl border border-slate-200 bg-white p-4.5 shadow-sm"
             >
               <div className="flex items-start gap-2">
                 <HelpCircle className="h-4 w-4 text-cyan-600 shrink-0 mt-0.5" />
-                <h3 className="text-sm font-bold font-display tracking-tight text-slate-900">
+                <h3 className="text-xs font-bold font-display tracking-tight text-slate-900 leading-snug">
                   {faq.question}
                 </h3>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
                 {faq.answer}
               </p>
             </div>
