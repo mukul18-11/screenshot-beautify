@@ -182,6 +182,10 @@ type EditorStore = EditorDesignSettings & {
     setCanvasSize: (width: number, height: number) => void;
     setBackgroundPreset: (presetId: string) => void;
     setSolidBackground: (color: string) => void;
+    setGradientBackground: (
+      cssValue: string,
+      backgroundType: Extract<BackgroundType, "gradient" | "mesh">,
+    ) => void;
     setImagePadding: (value: number) => void;
     setImageRadius: (value: number) => void;
     setImageScale: (value: number) => void;
@@ -1201,7 +1205,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       return;
     }
 
-    const shouldPlaceFirstImage = state.screenshots.length === 0;
+    const shouldPlaceFirstImage =
+      state.screenshots.length === 0 && imagesToAdd.length === 1;
     const sourceSettings = getEditorDesignSettingsFromState(state);
     const nextScreenshots = imagesToAdd.map((uploadedImage, index) =>
       createScreenshotDesign(
@@ -1381,6 +1386,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       backgroundType: "solid",
       backgroundValue: color,
+      backgroundPresetId: "custom",
+    });
+  },
+  setGradientBackground: (cssValue, backgroundType) => {
+    set({
+      backgroundType,
+      backgroundValue: cssValue,
       backgroundPresetId: "custom",
     });
   },

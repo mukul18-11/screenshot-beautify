@@ -123,12 +123,14 @@ export default function UploadZone() {
         <input
           {...getInputProps({
             accept,
-            "aria-label": "Browse for a screenshot image",
+            multiple: true,
+            "aria-label": "Browse for screenshot images",
           })}
         />
         <input
           {...getReplaceInputProps({
             accept: replaceAccept,
+            multiple: false,
             "aria-label": "Replace active screenshot image",
           })}
         />
