@@ -28,6 +28,9 @@ import type {
   BrowserFrameSettings,
   BrowserFrameStyle,
   BrowserFrameTheme,
+  CustomTextLayer,
+  CustomTextLayerId,
+  DefaultTextLayerId,
   EditorDesignSettings,
   ExportScale,
   ExportSettings,
@@ -38,6 +41,7 @@ import type {
   TextFontId,
   TextFontWeight,
   TextLayerId,
+  TextLayerStyle,
   TextOverlaySettings,
   TextPosition,
   TextShadowMode,
@@ -51,6 +55,7 @@ export type { ScreenshotDesign, UploadedImage } from "@/types/editor";
 export const MAX_SCREENSHOT_UPLOADS = 12;
 const MAX_EDITOR_HISTORY_ENTRIES = 50;
 const HISTORY_ENABLED_TILT_PRESET_ID = "left-angle";
+const DEFAULT_TEXT_LAYER_IDS = ["badge", "headline", "subtitle"] as const;
 
 type HistoryGlobalSettings = Pick<
   EditorDesignSettings,
@@ -68,6 +73,8 @@ type HistoryGlobalSettings = Pick<
   | "headlineText"
   | "subtitleText"
   | "badgeText"
+  | "customTextLayers"
+  | "textLayerStyles"
   | "textPosition"
   | "textAlign"
   | "textColor"
@@ -170,6 +177,7 @@ type EditorStore = EditorDesignSettings & {
     historyFuture: EditorHistorySnapshot[];
     screenshots: ScreenshotDesign[];
     activeScreenshotId: string | null;
+    activeTextLayerId: TextLayerId | null;
     uploadedImage: UploadedImage | null;
     undo: () => void;
     redo: () => void;
@@ -229,6 +237,10 @@ type EditorStore = EditorDesignSettings & {
     setHeadlineText: (value: string) => void;
     setSubtitleText: (value: string) => void;
     setBadgeText: (value: string) => void;
+    addCustomTextLayer: () => void;
+    removeTextLayer: (layerId: TextLayerId) => void;
+    setCustomTextLayerText: (layerId: CustomTextLayerId, value: string) => void;
+    setActiveTextLayerId: (layerId: TextLayerId | null) => void;
     setTextPosition: (position: TextPosition) => void;
     setTextAlign: (align: TextAlign) => void;
     setTextColor: (color: string) => void;
@@ -337,6 +349,33 @@ function createDefaultExportSettings(): ExportSettings {
   };
 }
 
+function cloneTextLayerStyles(
+  textLayerStyles: Record<DefaultTextLayerId, TextLayerStyle>,
+): Record<DefaultTextLayerId, TextLayerStyle> {
+  return {
+    badge: {
+      ...textLayerStyles.badge,
+    },
+    headline: {
+      ...textLayerStyles.headline,
+    },
+    subtitle: {
+      ...textLayerStyles.subtitle,
+    },
+  };
+}
+
+function cloneCustomTextLayers(
+  customTextLayers: CustomTextLayer[],
+): CustomTextLayer[] {
+  return customTextLayers.map((layer) => ({
+    ...layer,
+    style: {
+      ...layer.style,
+    },
+  }));
+}
+
 function createDefaultEditorDesignSettings(): EditorDesignSettings {
   return {
     ...createDefaultBeautifySettings(),
@@ -359,6 +398,8 @@ function cloneEditorDesignSettings(
     imageShadow: {
       ...settings.imageShadow,
     },
+    customTextLayers: cloneCustomTextLayers(settings.customTextLayers),
+    textLayerStyles: cloneTextLayerStyles(settings.textLayerStyles),
   };
 }
 
@@ -437,6 +478,8 @@ function getEditorDesignSettingsFromState(
     headlineText: state.headlineText,
     subtitleText: state.subtitleText,
     badgeText: state.badgeText,
+    customTextLayers: cloneCustomTextLayers(state.customTextLayers),
+    textLayerStyles: cloneTextLayerStyles(state.textLayerStyles),
     textPosition: state.textPosition,
     textAlign: state.textAlign,
     textColor: state.textColor,
@@ -507,6 +550,8 @@ function getHistoryGlobalSettingsFromState(
     headlineText: state.headlineText,
     subtitleText: state.subtitleText,
     badgeText: state.badgeText,
+    customTextLayers: cloneCustomTextLayers(state.customTextLayers),
+    textLayerStyles: cloneTextLayerStyles(state.textLayerStyles),
     textPosition: state.textPosition,
     textAlign: state.textAlign,
     textColor: state.textColor,
@@ -660,7 +705,17 @@ function clampFitScale(scale: number) {
   return Math.max(1, Math.min(180, Math.floor(scale * 100) / 100));
 }
 
+function isDefaultTextLayerId(
+  layerId: TextLayerId,
+): layerId is DefaultTextLayerId {
+  return DEFAULT_TEXT_LAYER_IDS.includes(layerId as DefaultTextLayerId);
+}
+
 function getTextLayerOffsetKeys(layerId: TextLayerId) {
+  if (!isDefaultTextLayerId(layerId)) {
+    return null;
+  }
+
   return {
     x: `${layerId}OffsetX`,
     y: `${layerId}OffsetY`,
@@ -668,7 +723,87 @@ function getTextLayerOffsetKeys(layerId: TextLayerId) {
 }
 
 function getTextLayerRotationKey(layerId: TextLayerId) {
+  if (!isDefaultTextLayerId(layerId)) {
+    return null;
+  }
+
   return `${layerId}Rotation` as const;
+}
+
+function getCustomTextLayer(
+  state: EditorStore,
+  layerId: TextLayerId,
+): CustomTextLayer | null {
+  if (isDefaultTextLayerId(layerId)) {
+    return null;
+  }
+
+  return state.customTextLayers.find((layer) => layer.id === layerId) ?? null;
+}
+
+function createCustomTextLayer(state: EditorStore): CustomTextLayer {
+  const layerNumber = state.customTextLayers.length + 1;
+
+  return {
+    id: `custom-${Date.now()}-${layerNumber}` as CustomTextLayerId,
+    offsetX: 0,
+    offsetY: Math.min(0.48, layerNumber * 0.1),
+    rotation: 0,
+    size: state.headlineSize,
+    style: {
+      ...state.textLayerStyles.headline,
+    },
+    text: "New text",
+  };
+}
+
+function getActiveTextLayerId(state: EditorStore) {
+  return state.activeTextLayerId ?? "headline";
+}
+
+function getActiveTextLayerStyle(state: EditorStore) {
+  const layerId = getActiveTextLayerId(state);
+
+  if (isDefaultTextLayerId(layerId)) {
+    return state.textLayerStyles[layerId];
+  }
+
+  return (
+    getCustomTextLayer(state, layerId)?.style ?? state.textLayerStyles.headline
+  );
+}
+
+function createTextLayerStyleStatePatch(
+  state: EditorStore,
+  patch: Partial<TextLayerStyle>,
+) {
+  const layerId = getActiveTextLayerId(state);
+
+  if (!isDefaultTextLayerId(layerId)) {
+    return {
+      customTextLayers: state.customTextLayers.map((layer) =>
+        layer.id === layerId
+          ? {
+              ...layer,
+              style: {
+                ...layer.style,
+                ...patch,
+              },
+            }
+          : layer,
+      ),
+    };
+  }
+
+  return {
+    textLayerStyles: {
+      ...state.textLayerStyles,
+      [layerId]: {
+        ...state.textLayerStyles[layerId],
+        ...patch,
+      },
+    },
+  };
 }
 
 function getBackgroundState(presetId: string): {
@@ -894,9 +1029,84 @@ function didHistoryGlobalSettingsChange(
   previousSettings: HistoryGlobalSettings,
   nextSettings: HistoryGlobalSettings,
 ) {
+  if (
+    didTextLayerStylesChange(
+      previousSettings.textLayerStyles,
+      nextSettings.textLayerStyles,
+    ) ||
+    didCustomTextLayersChange(
+      previousSettings.customTextLayers,
+      nextSettings.customTextLayers,
+    )
+  ) {
+    return true;
+  }
+
   return HISTORY_GLOBAL_SETTING_KEYS.some(
     (key) => previousSettings[key] !== nextSettings[key],
   );
+}
+
+function didTextLayerStylesChange(
+  previousStyles: Record<DefaultTextLayerId, TextLayerStyle>,
+  nextStyles: Record<DefaultTextLayerId, TextLayerStyle>,
+) {
+  return DEFAULT_TEXT_LAYER_IDS.some((layerId) => {
+    const previousStyle = previousStyles[layerId];
+    const nextStyle = nextStyles[layerId];
+
+    return (
+      previousStyle.textAlign !== nextStyle.textAlign ||
+      previousStyle.textColor !== nextStyle.textColor ||
+      previousStyle.textFontId !== nextStyle.textFontId ||
+      previousStyle.textFontWeight !== nextStyle.textFontWeight ||
+      previousStyle.textItalic !== nextStyle.textItalic ||
+      previousStyle.textUnderline !== nextStyle.textUnderline ||
+      previousStyle.textLetterSpacing !== nextStyle.textLetterSpacing ||
+      previousStyle.textLineHeight !== nextStyle.textLineHeight ||
+      previousStyle.textOpacity !== nextStyle.textOpacity ||
+      previousStyle.textShadowEnabled !== nextStyle.textShadowEnabled ||
+      previousStyle.textShadowMode !== nextStyle.textShadowMode ||
+      previousStyle.textShadowPresetId !== nextStyle.textShadowPresetId ||
+      previousStyle.textShadowColor !== nextStyle.textShadowColor ||
+      previousStyle.textShadowBlur !== nextStyle.textShadowBlur ||
+      previousStyle.textShadowOffsetX !== nextStyle.textShadowOffsetX ||
+      previousStyle.textShadowOffsetY !== nextStyle.textShadowOffsetY ||
+      previousStyle.textShadowOpacity !== nextStyle.textShadowOpacity ||
+      previousStyle.textShadowDepth !== nextStyle.textShadowDepth
+    );
+  });
+}
+
+function didCustomTextLayersChange(
+  previousLayers: CustomTextLayer[],
+  nextLayers: CustomTextLayer[],
+) {
+  if (previousLayers.length !== nextLayers.length) {
+    return true;
+  }
+
+  return previousLayers.some((layer, index) => {
+    const nextLayer = nextLayers[index];
+
+    return (
+      !nextLayer ||
+      layer.id !== nextLayer.id ||
+      layer.text !== nextLayer.text ||
+      layer.offsetX !== nextLayer.offsetX ||
+      layer.offsetY !== nextLayer.offsetY ||
+      layer.rotation !== nextLayer.rotation ||
+      layer.size !== nextLayer.size ||
+      didTextLayerStylesChange(
+        { badge: layer.style, headline: layer.style, subtitle: layer.style },
+        {
+          badge: nextLayer.style,
+          headline: nextLayer.style,
+          subtitle: nextLayer.style,
+        },
+      )
+    );
+  });
 }
 
 function didLayerHistorySettingsChange(
@@ -1053,6 +1263,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   historyFuture: [],
   screenshots: [],
   activeScreenshotId: null,
+  activeTextLayerId: null,
   uploadedImage: null,
   ...createDefaultEditorDesignSettings(),
   undo: () => {
@@ -1615,6 +1826,56 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setBadgeText: (value) => {
     set({ badgeText: value });
   },
+  addCustomTextLayer: () => {
+    set((state) => {
+      const customTextLayer = createCustomTextLayer(state);
+
+      return {
+        activeTextLayerId: customTextLayer.id,
+        customTextLayers: [...state.customTextLayers, customTextLayer],
+        textOverlayEnabled: true,
+      };
+    });
+  },
+  removeTextLayer: (layerId) => {
+    if (layerId === "badge") {
+      set({ activeTextLayerId: null, badgeText: "" });
+      return;
+    }
+
+    if (layerId === "headline") {
+      set({ activeTextLayerId: null, headlineText: "" });
+      return;
+    }
+
+    if (layerId === "subtitle") {
+      set({ activeTextLayerId: null, subtitleText: "" });
+      return;
+    }
+
+    set((state) => ({
+      activeTextLayerId:
+        state.activeTextLayerId === layerId ? null : state.activeTextLayerId,
+      customTextLayers: state.customTextLayers.filter(
+        (layer) => layer.id !== layerId,
+      ),
+    }));
+  },
+  setCustomTextLayerText: (layerId, value) => {
+    set((state) => ({
+      customTextLayers: state.customTextLayers.map((layer) =>
+        layer.id === layerId
+          ? {
+              ...layer,
+              text: value,
+            }
+          : layer,
+      ),
+    }));
+  },
+  setActiveTextLayerId: (layerId) => {
+    set({ activeTextLayerId: layerId });
+  },
   setTextPosition: (position) => {
     set({
       badgeOffsetX: 0,
@@ -1627,90 +1888,133 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
   setTextAlign: (align) => {
-    set({ textAlign: align });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textAlign: align }),
+    );
   },
   setTextColor: (color) => {
-    set({ textColor: color });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textColor: color }),
+    );
   },
   setTextFont: (fontId) => {
-    set({ textFontId: fontId });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textFontId: fontId }),
+    );
   },
   setTextFontWeight: (fontWeight) => {
-    set({ textFontWeight: fontWeight });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textFontWeight: fontWeight }),
+    );
   },
   setTextItalic: (enabled) => {
-    set({ textItalic: enabled });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textItalic: enabled }),
+    );
   },
   toggleTextItalic: () => {
     set((state) => ({
-      textItalic: !state.textItalic,
+      ...createTextLayerStyleStatePatch(state, {
+        textItalic: !getActiveTextLayerStyle(state).textItalic,
+      }),
     }));
   },
   setTextUnderline: (enabled) => {
-    set({ textUnderline: enabled });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textUnderline: enabled }),
+    );
   },
   toggleTextUnderline: () => {
     set((state) => ({
-      textUnderline: !state.textUnderline,
+      ...createTextLayerStyleStatePatch(state, {
+        textUnderline: !getActiveTextLayerStyle(state).textUnderline,
+      }),
     }));
   },
   setTextLetterSpacing: (spacing) => {
-    set({ textLetterSpacing: spacing });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textLetterSpacing: spacing }),
+    );
   },
   setTextLineHeight: (lineHeight) => {
-    set({ textLineHeight: lineHeight });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textLineHeight: lineHeight }),
+    );
   },
   setTextOpacity: (opacity) => {
-    set({ textOpacity: opacity });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textOpacity: opacity }),
+    );
   },
   setTextShadowEnabled: (enabled) => {
-    set({ textShadowEnabled: enabled });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, { textShadowEnabled: enabled }),
+    );
   },
   toggleTextShadow: () => {
     set((state) => ({
-      textShadowEnabled: !state.textShadowEnabled,
+      ...createTextLayerStyleStatePatch(state, {
+        textShadowEnabled: !getActiveTextLayerStyle(state).textShadowEnabled,
+      }),
     }));
   },
   setTextShadowMode: (mode) => {
-    set({
-      textShadowEnabled: true,
-      textShadowMode: mode,
-      textShadowPresetId: "custom",
-    });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, {
+        textShadowEnabled: true,
+        textShadowMode: mode,
+        textShadowPresetId: "custom",
+      }),
+    );
   },
   applyTextShadowPreset: (presetId) => {
-    set(createTextShadowPresetSettings(presetId));
+    set((state) =>
+      createTextLayerStyleStatePatch(
+        state,
+        createTextShadowPresetSettings(presetId),
+      ),
+    );
   },
   setTextShadowColor: (color) => {
-    set({
-      textShadowColor: color,
-      textShadowPresetId: "custom",
-    });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, {
+        textShadowColor: color,
+        textShadowPresetId: "custom",
+      }),
+    );
   },
   setTextShadowBlur: (blur) => {
-    set({
-      textShadowBlur: blur,
-      textShadowPresetId: "custom",
-    });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, {
+        textShadowBlur: blur,
+        textShadowPresetId: "custom",
+      }),
+    );
   },
   setTextShadowOffset: (offsetX, offsetY) => {
-    set({
-      textShadowOffsetX: offsetX,
-      textShadowOffsetY: offsetY,
-      textShadowPresetId: "custom",
-    });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, {
+        textShadowOffsetX: offsetX,
+        textShadowOffsetY: offsetY,
+        textShadowPresetId: "custom",
+      }),
+    );
   },
   setTextShadowOpacity: (opacity) => {
-    set({
-      textShadowOpacity: opacity,
-      textShadowPresetId: "custom",
-    });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, {
+        textShadowOpacity: opacity,
+        textShadowPresetId: "custom",
+      }),
+    );
   },
   setTextShadowDepth: (depth) => {
-    set({
-      textShadowDepth: depth,
-      textShadowPresetId: "custom",
-    });
+    set((state) =>
+      createTextLayerStyleStatePatch(state, {
+        textShadowDepth: depth,
+        textShadowPresetId: "custom",
+      }),
+    );
   },
   setHeadlineSize: (size) => {
     set({ headlineSize: size });
@@ -1722,6 +2026,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ badgeSize: size });
   },
   setTextLayerSize: (layerId, size) => {
+    if (!isDefaultTextLayerId(layerId)) {
+      set((state) => ({
+        customTextLayers: state.customTextLayers.map((layer) =>
+          layer.id === layerId
+            ? {
+                ...layer,
+                size,
+              }
+            : layer,
+        ),
+      }));
+      return;
+    }
+
     if (layerId === "headline") {
       set({ headlineSize: size });
       return;
@@ -1744,12 +2062,51 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ subtitleRotation: rotation });
   },
   setTextLayerRotation: (layerId, rotation) => {
+    if (!isDefaultTextLayerId(layerId)) {
+      set((state) => ({
+        customTextLayers: state.customTextLayers.map((layer) =>
+          layer.id === layerId
+            ? {
+                ...layer,
+                rotation,
+              }
+            : layer,
+        ),
+      }));
+      return;
+    }
+
+    const rotationKey = getTextLayerRotationKey(layerId);
+
+    if (!rotationKey) {
+      return;
+    }
+
     set({
-      [getTextLayerRotationKey(layerId)]: rotation,
+      [rotationKey]: rotation,
     });
   },
   setTextLayerPosition: (layerId, offsetX, offsetY) => {
+    if (!isDefaultTextLayerId(layerId)) {
+      set((state) => ({
+        customTextLayers: state.customTextLayers.map((layer) =>
+          layer.id === layerId
+            ? {
+                ...layer,
+                offsetX: clampTextLayerOffset(offsetX),
+                offsetY: clampTextLayerOffset(offsetY),
+              }
+            : layer,
+        ),
+      }));
+      return;
+    }
+
     const offsetKeys = getTextLayerOffsetKeys(layerId);
+
+    if (!offsetKeys) {
+      return;
+    }
 
     set({
       [offsetKeys.x]: clampTextLayerOffset(offsetX),
@@ -1758,7 +2115,26 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   resetTextLayerPosition: (layerId) => {
     if (layerId) {
+      if (!isDefaultTextLayerId(layerId)) {
+        set((state) => ({
+          customTextLayers: state.customTextLayers.map((layer) =>
+            layer.id === layerId
+              ? {
+                  ...layer,
+                  offsetX: 0,
+                  offsetY: 0,
+                }
+              : layer,
+          ),
+        }));
+        return;
+      }
+
       const offsetKeys = getTextLayerOffsetKeys(layerId);
+
+      if (!offsetKeys) {
+        return;
+      }
 
       set({
         [offsetKeys.x]: 0,
@@ -1782,7 +2158,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
   resetTextOverlaySettings: () => {
-    set(createDefaultTextOverlaySettings());
+    set({
+      ...createDefaultTextOverlaySettings(),
+      activeTextLayerId: null,
+    });
   },
   toggleTilt: () => {
     set((state) => ({
@@ -1874,6 +2253,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ...createDefaultBrowserFrameSettings(),
       ...createDefaultTextOverlaySettings(),
       ...createDefaultTiltSettings(),
+      activeTextLayerId: null,
       lastBeautifyPresetId: null,
     });
   },

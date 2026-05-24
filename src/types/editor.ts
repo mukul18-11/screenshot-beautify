@@ -15,7 +15,11 @@ export type TextPosition = "top" | "bottom" | "left" | "right" | "center";
 
 export type TextAlign = "left" | "center" | "right";
 
-export type TextLayerId = "badge" | "headline" | "subtitle";
+export type DefaultTextLayerId = "badge" | "headline" | "subtitle";
+
+export type CustomTextLayerId = `custom-${string}`;
+
+export type TextLayerId = DefaultTextLayerId | CustomTextLayerId;
 
 export type TextFontId =
   | "inter"
@@ -58,6 +62,37 @@ export type TextShadowPresetId =
   | "fire"
   | "ice-glow"
   | "custom";
+
+export type TextLayerStyle = {
+  textAlign: TextAlign;
+  textColor: string;
+  textFontId: TextFontId;
+  textFontWeight: TextFontWeight;
+  textItalic: boolean;
+  textUnderline: boolean;
+  textLetterSpacing: number;
+  textLineHeight: number;
+  textOpacity: number;
+  textShadowEnabled: boolean;
+  textShadowMode: TextShadowMode;
+  textShadowPresetId: TextShadowPresetId;
+  textShadowColor: string;
+  textShadowBlur: number;
+  textShadowOffsetX: number;
+  textShadowOffsetY: number;
+  textShadowOpacity: number;
+  textShadowDepth: number;
+};
+
+export type CustomTextLayer = {
+  id: CustomTextLayerId;
+  offsetX: number;
+  offsetY: number;
+  rotation: number;
+  size: number;
+  style: TextLayerStyle;
+  text: string;
+};
 
 export type TiltPresetId =
   | "flat"
@@ -147,6 +182,8 @@ export type TextOverlaySettings = {
   headlineText: string;
   subtitleText: string;
   badgeText: string;
+  customTextLayers: CustomTextLayer[];
+  textLayerStyles: Record<DefaultTextLayerId, TextLayerStyle>;
   textPosition: TextPosition;
   textAlign: TextAlign;
   textColor: string;

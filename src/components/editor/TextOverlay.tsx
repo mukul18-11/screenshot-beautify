@@ -20,10 +20,13 @@ import { getTextFontOption } from "@/lib/text-fonts";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 import type {
+  CustomTextLayer,
+  DefaultTextLayerId,
   TextAlign,
   TextFontId,
   TextFontWeight,
   TextLayerId,
+  TextLayerStyle,
   TextPosition,
   TextShadowMode,
 } from "@/types/editor";
@@ -36,6 +39,7 @@ type TextOverlayProps = {
   badgeSize: number;
   badgeText: string;
   className?: string;
+  customTextLayers: CustomTextLayer[];
   activeLayerId?: TextLayerId | null;
   headlineOffsetX: number;
   headlineOffsetY: number;
@@ -49,6 +53,7 @@ type TextOverlayProps = {
     layerId: TextLayerId,
     event: MouseEvent<HTMLDivElement>,
   ) => void;
+  onLayerEditStart?: (layerId: TextLayerId) => void;
   onLayerPointerCancel?: (
     layerId: TextLayerId,
     event: PointerEvent<HTMLDivElement>,
@@ -107,6 +112,7 @@ type TextOverlayProps = {
   textColor: string;
   textFontId: TextFontId;
   textFontWeight: TextFontWeight;
+  textLayerStyles: Record<DefaultTextLayerId, TextLayerStyle>;
   textItalic: boolean;
   textLetterSpacing: number;
   textLineHeight: number;
@@ -152,6 +158,18 @@ function getTextAlignClass(textAlign: TextAlign) {
   return "items-start text-left";
 }
 
+function getTextContentAlignClass(textAlign: TextAlign) {
+  if (textAlign === "center") {
+    return "text-center";
+  }
+
+  if (textAlign === "right") {
+    return "text-right";
+  }
+
+  return "text-left";
+}
+
 function getTextWidthClass(textPosition: TextPosition) {
   if (textPosition === "left" || textPosition === "right") {
     return "max-w-[34%]";
@@ -181,6 +199,43 @@ function getTextFontWeightValue(textFontWeight: TextFontWeight) {
   }
 
   return TEXT_FONT_WEIGHT_VALUES[textFontWeight];
+}
+
+function createLayerTextStyle(
+  layerStyle: TextLayerStyle,
+  fontSize: number,
+) {
+  const selectedTextFont = getTextFontOption(layerStyle.textFontId);
+  const selectedFontWeight = getTextFontWeightValue(layerStyle.textFontWeight);
+
+  return {
+    className: selectedTextFont.className,
+    style: {
+      color: layerStyle.textColor,
+      fontFamily: selectedTextFont.fontFamily,
+      fontSize: `${fontSize}px`,
+      fontStyle: layerStyle.textItalic ? "italic" : undefined,
+      fontWeight: selectedFontWeight,
+      letterSpacing:
+        layerStyle.textLetterSpacing === 0
+          ? undefined
+          : `${layerStyle.textLetterSpacing}px`,
+      lineHeight:
+        layerStyle.textLineHeight > 0 ? layerStyle.textLineHeight : undefined,
+      opacity: layerStyle.textOpacity,
+      textDecorationLine: layerStyle.textUnderline ? "underline" : undefined,
+      textShadow: createTextShadowCss({
+        textShadowBlur: layerStyle.textShadowBlur,
+        textShadowColor: layerStyle.textShadowColor,
+        textShadowDepth: layerStyle.textShadowDepth,
+        textShadowEnabled: layerStyle.textShadowEnabled,
+        textShadowMode: layerStyle.textShadowMode,
+        textShadowOffsetX: layerStyle.textShadowOffsetX,
+        textShadowOffsetY: layerStyle.textShadowOffsetY,
+        textShadowOpacity: layerStyle.textShadowOpacity,
+      }),
+    } satisfies CSSProperties,
+  };
 }
 
 function getTextResizeHandleTargetClass(handleId: TextResizeHandleId) {
@@ -311,6 +366,7 @@ type EditableTextProps = {
   className?: string;
   isEditable: boolean;
   onCommit: (value: string) => void;
+  onEditStart?: () => void;
   placeholder?: string;
   style?: CSSProperties;
   tag: "h2" | "p" | "span";
@@ -321,6 +377,7 @@ function EditableText({
   className,
   isEditable,
   onCommit,
+  onEditStart,
   placeholder,
   style,
   tag: Tag,
@@ -356,15 +413,14 @@ function EditableText({
     setIsEditing(false);
   }, [onCommit]);
 
-  function handleClick(event: MouseEvent<HTMLElement>) {
+  function startEditing() {
     if (!isEditable) {
       return;
     }
 
-    event.stopPropagation();
+    onEditStart?.();
     setIsEditing(true);
 
-    // Focus and select the text after a tick
     requestAnimationFrame(() => {
       const el = ref.current;
 
@@ -374,7 +430,6 @@ function EditableText({
 
       el.focus();
 
-      // Select all text
       const selection = window.getSelection();
       const range = document.createRange();
 
@@ -382,6 +437,23 @@ function EditableText({
       selection?.removeAllRanges();
       selection?.addRange(range);
     });
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLElement>) {
+    if (!isEditable) {
+      return;
+    }
+
+    event.stopPropagation();
+  }
+
+  function handleClick(event: MouseEvent<HTMLElement>) {
+    if (!isEditable) {
+      return;
+    }
+
+    event.stopPropagation();
+    startEditing();
   }
 
   function handleBlur() {
@@ -425,6 +497,7 @@ function EditableText({
       contentEditable={isEditable && isEditing}
       suppressContentEditableWarning
       data-placeholder={placeholder}
+      onPointerDown={handlePointerDown}
       onClick={handleClick}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
@@ -437,62 +510,69 @@ function EditableText({
 
 const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   function TextOverlay({
-  activeLayerId = null,
-  badgeEnabled,
-  badgeOffsetX,
-  badgeOffsetY,
-  badgeRotation,
-  badgeSize,
-  badgeText,
-  className,
-  headlineOffsetX,
-  headlineOffsetY,
-  headlineRotation,
-  headlineSize,
-  headlineText,
-  isEditable = false,
-  isExportMode = false,
-  isMovable = false,
-  onLayerClickCapture,
-  onLayerPointerCancel,
-  onLayerPointerDown,
-  onLayerPointerMove,
-  onLayerPointerUp,
-  onLayerResizePointerCancel,
-  onLayerResizePointerDown,
-  onLayerResizePointerMove,
-  onLayerResizePointerUp,
-  onLayerRotatePointerCancel,
-  onLayerRotatePointerDown,
-  onLayerRotatePointerMove,
-  onLayerRotatePointerUp,
-  subtitleOffsetX,
-  subtitleOffsetY,
-  subtitleRotation,
-  subtitleSize,
-  subtitleText,
-  textAlign,
-  textColor,
-  textFontId,
-  textFontWeight,
-  textItalic,
-  textLetterSpacing,
-  textLineHeight,
-  textOpacity,
-  textPosition,
-  textShadowBlur,
-  textShadowColor,
-  textShadowDepth,
-  textShadowEnabled,
-  textShadowMode,
-  textShadowOffsetX,
-  textShadowOffsetY,
-  textShadowOpacity,
-  textUnderline,
-}, forwardedRef) {
+    activeLayerId = null,
+    badgeEnabled,
+    badgeOffsetX,
+    badgeOffsetY,
+    badgeRotation,
+    badgeSize,
+    badgeText,
+    className,
+    customTextLayers,
+    headlineOffsetX,
+    headlineOffsetY,
+    headlineRotation,
+    headlineSize,
+    headlineText,
+    isEditable = false,
+    isExportMode = false,
+    isMovable = false,
+    onLayerClickCapture,
+    onLayerEditStart,
+    onLayerPointerCancel,
+    onLayerPointerDown,
+    onLayerPointerMove,
+    onLayerPointerUp,
+    onLayerResizePointerCancel,
+    onLayerResizePointerDown,
+    onLayerResizePointerMove,
+    onLayerResizePointerUp,
+    onLayerRotatePointerCancel,
+    onLayerRotatePointerDown,
+    onLayerRotatePointerMove,
+    onLayerRotatePointerUp,
+    subtitleOffsetX,
+    subtitleOffsetY,
+    subtitleRotation,
+    subtitleSize,
+    subtitleText,
+    textAlign,
+    textColor,
+    textFontId,
+    textFontWeight,
+    textLayerStyles,
+    textItalic,
+    textLetterSpacing,
+    textLineHeight,
+    textOpacity,
+    textPosition,
+    textShadowBlur,
+    textShadowColor,
+    textShadowDepth,
+    textShadowEnabled,
+    textShadowMode,
+    textShadowOffsetX,
+    textShadowOffsetY,
+    textShadowOpacity,
+    textUnderline,
+  }, forwardedRef) {
   const setHeadlineText = useEditorStore((state) => state.setHeadlineText);
   const setSubtitleText = useEditorStore((state) => state.setSubtitleText);
   const setBadgeText = useEditorStore((state) => state.setBadgeText);
+  const setCustomTextLayerText = useEditorStore(
+    (state) => state.setCustomTextLayerText,
+  );
+  const removeTextLayer = useEditorStore((state) => state.removeTextLayer);
   const normalizedBadgeText = badgeText.trim();
   const normalizedHeadlineText = headlineText.trim();
   const normalizedSubtitleText = subtitleText.trim();
@@ -500,49 +580,47 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   const hasText =
     shouldShowBadge ||
     normalizedHeadlineText.length > 0 ||
-    normalizedSubtitleText.length > 0;
+    normalizedSubtitleText.length > 0 ||
+    customTextLayers.some((layer) => layer.text.trim().length > 0);
 
   if (!hasText) {
     return null;
   }
 
-  const selectedTextFont = getTextFontOption(textFontId);
-  const selectedFontWeight = getTextFontWeightValue(textFontWeight);
-  const textStyle = {
-    color: textColor,
-    fontFamily: selectedTextFont.fontFamily,
-    fontStyle: textItalic ? "italic" : undefined,
-    opacity: textOpacity,
-    textDecorationLine: textUnderline ? "underline" : undefined,
-    textShadow: createTextShadowCss({
-      textShadowBlur,
-      textShadowColor,
-      textShadowDepth,
-      textShadowEnabled,
-      textShadowMode,
-      textShadowOffsetX,
-      textShadowOffsetY,
-      textShadowOpacity,
-    }),
-  } satisfies CSSProperties;
-  const sharedTextStyle = {
-    fontWeight: selectedFontWeight,
-    letterSpacing:
-      textLetterSpacing === 0 ? undefined : `${textLetterSpacing}px`,
-    lineHeight: textLineHeight > 0 ? textLineHeight : undefined,
-  } satisfies CSSProperties;
-  const headlineStyle = {
-    fontSize: `${headlineSize}px`,
-    ...sharedTextStyle,
-  } satisfies CSSProperties;
-  const subtitleStyle = {
-    fontSize: `${subtitleSize}px`,
-    ...sharedTextStyle,
-  } satisfies CSSProperties;
-  const badgeStyle = {
-    fontSize: `${badgeSize}px`,
-    ...sharedTextStyle,
-  } satisfies CSSProperties;
+  const fallbackTextLayerStyle = {
+    textAlign,
+    textColor,
+    textFontId,
+    textFontWeight,
+    textItalic,
+    textUnderline,
+    textLetterSpacing,
+    textLineHeight,
+    textOpacity,
+    textShadowEnabled,
+    textShadowMode,
+    textShadowPresetId: "custom",
+    textShadowColor,
+    textShadowBlur,
+    textShadowOffsetX,
+    textShadowOffsetY,
+    textShadowOpacity,
+    textShadowDepth,
+  } satisfies TextLayerStyle;
+  const badgeLayerStyle = textLayerStyles.badge ?? fallbackTextLayerStyle;
+  const headlineLayerStyle =
+    textLayerStyles.headline ?? fallbackTextLayerStyle;
+  const subtitleLayerStyle =
+    textLayerStyles.subtitle ?? fallbackTextLayerStyle;
+  const badgeTextStyle = createLayerTextStyle(badgeLayerStyle, badgeSize);
+  const headlineTextStyle = createLayerTextStyle(
+    headlineLayerStyle,
+    headlineSize,
+  );
+  const subtitleTextStyle = createLayerTextStyle(
+    subtitleLayerStyle,
+    subtitleSize,
+  );
   const badgePlacementStyle = createLayerPlacementStyle(
     badgeOffsetX,
     badgeOffsetY,
@@ -583,13 +661,11 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     <div
       className={cn(
         "relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
-        selectedTextFont.className,
         getTextAlignClass(textAlign),
         getTextWidthClass(textPosition),
         className,
       )}
       ref={forwardedRef}
-      style={textStyle}
     >
       {shouldShowBadge && (
         <div
@@ -604,15 +680,18 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           <div
             className={cn(
               "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 font-bold uppercase leading-tight tracking-normal shadow-sm",
+              badgeTextStyle.className,
+              getTextContentAlignClass(badgeLayerStyle.textAlign),
               !isExportMode && "backdrop-blur-md",
             )}
-            style={badgeStyle}
+            style={badgeTextStyle.style}
           >
             <EditableText
               tag="span"
               value={normalizedBadgeText}
               isEditable={isEditable}
               onCommit={setBadgeText}
+              onEditStart={() => onLayerEditStart?.("badge")}
               placeholder="BADGE"
               className="block max-w-full whitespace-normal break-words [overflow-wrap:anywhere]"
             />
@@ -648,9 +727,14 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             value={normalizedHeadlineText}
             isEditable={isEditable}
             onCommit={setHeadlineText}
+            onEditStart={() => onLayerEditStart?.("headline")}
             placeholder="Headline text"
-            className="max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]"
-            style={headlineStyle}
+            className={cn(
+              "max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]",
+              headlineTextStyle.className,
+              getTextContentAlignClass(headlineLayerStyle.textAlign),
+            )}
+            style={headlineTextStyle.style}
           />
           {!isExportMode && activeLayerId === "headline" && (
             <TextLayerResizeControls
@@ -683,9 +767,14 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             value={normalizedSubtitleText}
             isEditable={isEditable}
             onCommit={setSubtitleText}
+            onEditStart={() => onLayerEditStart?.("subtitle")}
             placeholder="Subtitle text"
-            className="max-w-full text-pretty break-words font-medium leading-snug opacity-90 [overflow-wrap:anywhere]"
-            style={subtitleStyle}
+            className={cn(
+              "max-w-full text-pretty break-words font-medium leading-snug opacity-90 [overflow-wrap:anywhere]",
+              subtitleTextStyle.className,
+              getTextContentAlignClass(subtitleLayerStyle.textAlign),
+            )}
+            style={subtitleTextStyle.style}
           />
           {!isExportMode && activeLayerId === "subtitle" && (
             <TextLayerResizeControls
@@ -702,6 +791,69 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           )}
         </div>
       )}
+
+      {customTextLayers.map((layer) => {
+        const normalizedCustomText = layer.text.trim();
+
+        if (!normalizedCustomText) {
+          return null;
+        }
+
+        const customTextStyle = createLayerTextStyle(layer.style, layer.size);
+        const customPlacementStyle = createLayerPlacementStyle(
+          layer.offsetX,
+          layer.offsetY,
+          layer.rotation,
+        );
+
+        return (
+          <div
+            key={layer.id}
+            {...createLayerInteractionProps(layer.id)}
+            data-text-layer-id={layer.id}
+            className={cn(
+              "relative max-w-full touch-none",
+              isMovable && "cursor-move select-none",
+            )}
+            style={customPlacementStyle}
+          >
+            <EditableText
+              tag="h2"
+              value={normalizedCustomText}
+              isEditable={isEditable}
+              onCommit={(value) => {
+                if (value.trim()) {
+                  setCustomTextLayerText(layer.id, value);
+                  return;
+                }
+
+                removeTextLayer(layer.id);
+              }}
+              onEditStart={() => onLayerEditStart?.(layer.id)}
+              placeholder="New text"
+              className={cn(
+                "max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]",
+                customTextStyle.className,
+                getTextContentAlignClass(layer.style.textAlign),
+              )}
+              style={customTextStyle.style}
+            />
+            {!isExportMode && activeLayerId === layer.id && (
+              <TextLayerResizeControls
+                layerId={layer.id}
+                onPointerCancel={onLayerResizePointerCancel}
+                onPointerDown={onLayerResizePointerDown}
+                onPointerMove={onLayerResizePointerMove}
+                onPointerUp={onLayerResizePointerUp}
+                onRotatePointerCancel={onLayerRotatePointerCancel}
+                onRotatePointerDown={onLayerRotatePointerDown}
+                onRotatePointerMove={onLayerRotatePointerMove}
+                onRotatePointerUp={onLayerRotatePointerUp}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
   },

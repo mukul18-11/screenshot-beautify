@@ -6,6 +6,7 @@ import type {
   ExportSettings,
   ImageCrop,
   ImageShadow,
+  TextLayerStyle,
   TextOverlaySettings,
   TiltSettings,
 } from "@/types/editor";
@@ -61,11 +62,44 @@ export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
   browserFrameShowUrl: false,
 };
 
+const DEFAULT_TEXT_LAYER_STYLE: TextLayerStyle = {
+  textAlign: "center",
+  textColor: "#ffffff",
+  textFontId: "inter",
+  textFontWeight: "auto",
+  textItalic: false,
+  textUnderline: false,
+  textLetterSpacing: 0,
+  textLineHeight: 0,
+  textOpacity: 1,
+  textShadowEnabled: true,
+  textShadowMode: "drop",
+  textShadowPresetId: "soft-depth",
+  textShadowColor: "#0f172a",
+  textShadowBlur: 48,
+  textShadowOffsetX: 0,
+  textShadowOffsetY: 18,
+  textShadowOpacity: 0.28,
+  textShadowDepth: 1,
+};
+
 export const DEFAULT_TEXT_OVERLAY_SETTINGS: TextOverlaySettings = {
   textOverlayEnabled: false,
   headlineText: "Launch-ready in seconds",
   subtitleText: "Turn a plain screenshot into a polished product visual.",
   badgeText: "New launch",
+  customTextLayers: [],
+  textLayerStyles: {
+    badge: {
+      ...DEFAULT_TEXT_LAYER_STYLE,
+    },
+    headline: {
+      ...DEFAULT_TEXT_LAYER_STYLE,
+    },
+    subtitle: {
+      ...DEFAULT_TEXT_LAYER_STYLE,
+    },
+  },
   textPosition: "top",
   textAlign: "center",
   textColor: "#ffffff",

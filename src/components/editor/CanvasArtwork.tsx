@@ -49,6 +49,7 @@ import {
   type UploadedImage,
 } from "@/store/editor-store";
 import type {
+  DefaultTextLayerId,
   EditorDesignSettings,
   ImageCrop,
   TextLayerId,
@@ -593,6 +594,10 @@ function calculateTextResizeRatio(
 }
 
 function getTextLayerSizeLimits(layerId: TextLayerId) {
+  if (layerId.startsWith("custom-")) {
+    return BEAUTIFY_SETTING_LIMITS.headlineSize;
+  }
+
   if (layerId === "headline") {
     return BEAUTIFY_SETTING_LIMITS.headlineSize;
   }
@@ -640,8 +645,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const [screenshotSlotWidth, setScreenshotSlotWidth] = useState<
       number | null
     >(null);
-    const [activeTextLayerId, setActiveTextLayerId] =
-      useState<TextLayerId | null>(null);
+    const activeTextLayerId = useEditorStore((state) => state.activeTextLayerId);
+    const setActiveTextLayerId = useEditorStore(
+      (state) => state.setActiveTextLayerId,
+    );
+    const removeTextLayer = useEditorStore((state) => state.removeTextLayer);
     const [textDragGuide, setTextDragGuide] = useState<TextDragGuide>({
       horizontal: null,
       vertical: null,
@@ -696,6 +704,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const textOverlayEnabled = useEditorStore(
       (state) => state.textOverlayEnabled,
     );
+    const customTextLayers = useEditorStore((state) => state.customTextLayers);
+    const textLayerStyles = useEditorStore((state) => state.textLayerStyles);
     const headlineText = useEditorStore((state) => state.headlineText);
     const subtitleText = useEditorStore((state) => state.subtitleText);
     const badgeText = useEditorStore((state) => state.badgeText);
@@ -1137,6 +1147,37 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       removeScreenshotFromCanvas,
     ]);
 
+    useEffect(() => {
+      if (isExportMode || !activeTextLayerId) {
+        return;
+      }
+
+      const selectedTextLayerId = activeTextLayerId;
+
+      function handleKeyDown(event: globalThis.KeyboardEvent) {
+        if (event.key !== "Delete" && event.key !== "Backspace") {
+          return;
+        }
+
+        if (isEditableKeyboardTarget(event.target)) {
+          return;
+        }
+
+        event.preventDefault();
+        removeTextLayer(selectedTextLayerId);
+      }
+
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [
+      activeTextLayerId,
+      isExportMode,
+      removeTextLayer,
+    ]);
+
     function handleCanvasPointerMove(event: PointerEvent<HTMLDivElement>) {
       if (
         !canParallaxBackground ||
@@ -1234,17 +1275,63 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       badge: { x: badgeOffsetX, y: badgeOffsetY },
       headline: { x: headlineOffsetX, y: headlineOffsetY },
       subtitle: { x: subtitleOffsetX, y: subtitleOffsetY },
-    } satisfies Record<TextLayerId, { x: number; y: number }>;
+    } satisfies Record<DefaultTextLayerId, { x: number; y: number }>;
     const textLayerSizes = {
       badge: badgeSize,
       headline: headlineSize,
       subtitle: subtitleSize,
-    } satisfies Record<TextLayerId, number>;
+    } satisfies Record<DefaultTextLayerId, number>;
     const textLayerRotations = {
       badge: badgeRotation,
       headline: headlineRotation,
       subtitle: subtitleRotation,
-    } satisfies Record<TextLayerId, number>;
+    } satisfies Record<DefaultTextLayerId, number>;
+
+    function getTextLayerOffset(layerId: TextLayerId) {
+      if (
+        layerId === "badge" ||
+        layerId === "headline" ||
+        layerId === "subtitle"
+      ) {
+        return textLayerOffsets[layerId];
+      }
+
+      const customLayer = customTextLayers.find((layer) => layer.id === layerId);
+
+      return {
+        x: customLayer?.offsetX ?? 0,
+        y: customLayer?.offsetY ?? 0,
+      };
+    }
+
+    function getTextLayerSize(layerId: TextLayerId) {
+      if (
+        layerId === "badge" ||
+        layerId === "headline" ||
+        layerId === "subtitle"
+      ) {
+        return textLayerSizes[layerId];
+      }
+
+      return (
+        customTextLayers.find((layer) => layer.id === layerId)?.size ??
+        headlineSize
+      );
+    }
+
+    function getTextLayerRotation(layerId: TextLayerId) {
+      if (
+        layerId === "badge" ||
+        layerId === "headline" ||
+        layerId === "subtitle"
+      ) {
+        return textLayerRotations[layerId];
+      }
+
+      return (
+        customTextLayers.find((layer) => layer.id === layerId)?.rotation ?? 0
+      );
+    }
 
     function handleTextLayerPointerDown(
       layerId: TextLayerId,
@@ -1274,7 +1361,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       textDragActiveRef.current = false;
       cancelTextDragUpdate();
-      const layerOffset = textLayerOffsets[layerId];
+      const layerOffset = getTextLayerOffset(layerId);
 
       textDragActiveRef.current = true;
       textDragStateRef.current = {
@@ -1466,7 +1553,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
-        startSize: textLayerSizes[layerId],
+        startSize: getTextLayerSize(layerId),
       };
 
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -1574,7 +1661,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
-        startRotation: textLayerRotations[layerId],
+        startRotation: getTextLayerRotation(layerId),
       };
 
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -2380,6 +2467,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         badgeRotation={badgeRotation}
         badgeSize={badgeSize}
         badgeText={badgeText}
+        customTextLayers={customTextLayers}
+        textLayerStyles={textLayerStyles}
         headlineOffsetX={headlineOffsetX}
         headlineOffsetY={headlineOffsetY}
         headlineRotation={headlineRotation}
@@ -2389,6 +2478,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         isExportMode={isExportMode}
         isMovable={!isExportMode}
         onLayerClickCapture={handleTextLayerClickCapture}
+        onLayerEditStart={setActiveTextLayerId}
         onLayerPointerCancel={handleTextLayerPointerEnd}
         onLayerPointerDown={handleTextLayerPointerDown}
         onLayerPointerMove={handleTextLayerPointerMove}

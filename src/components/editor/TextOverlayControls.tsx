@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { Bold, Italic, Type, Underline } from "lucide-react";
+import { Bold, Italic, Plus, Type, Underline } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import EditorSliderRow from "@/components/editor/EditorSliderRow";
@@ -16,8 +16,10 @@ import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 import type {
   TextAlign,
+  DefaultTextLayerId,
   TextFontId,
   TextFontWeight,
+  TextLayerId,
   TextPosition,
   TextShadowMode,
 } from "@/types/editor";
@@ -50,6 +52,7 @@ type TextFieldProps = {
   id: string;
   label: string;
   onChange: (value: string) => void;
+  onFocus?: () => void;
   placeholder: string;
   value: string;
 };
@@ -143,6 +146,27 @@ const SHADOW_MODE_OPTIONS = [
     value: "fire",
   },
 ] as const satisfies readonly SegmentOption<TextShadowMode>[];
+
+const TEXT_LAYER_OPTIONS = [
+  {
+    label: "Badge",
+    value: "badge",
+  },
+  {
+    label: "Headline",
+    value: "headline",
+  },
+  {
+    label: "Subtitle",
+    value: "subtitle",
+  },
+] as const satisfies readonly SegmentOption<DefaultTextLayerId>[];
+
+type SliderLimit = {
+  max: number;
+  min: number;
+  step: number;
+};
 
 function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`;
@@ -253,6 +277,7 @@ function TextField({
   id,
   label,
   onChange,
+  onFocus,
   placeholder,
   value,
 }: TextFieldProps) {
@@ -271,6 +296,7 @@ function TextField({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
+        onFocus={onFocus}
         className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
       />
     </div>
@@ -355,37 +381,10 @@ export default function TextOverlayControls() {
   const badgeEnabled = useEditorStore((state) => state.badgeEnabled);
   const headlineText = useEditorStore((state) => state.headlineText);
   const subtitleText = useEditorStore((state) => state.subtitleText);
+  const activeTextLayerId = useEditorStore((state) => state.activeTextLayerId);
+  const customTextLayers = useEditorStore((state) => state.customTextLayers);
+  const textLayerStyles = useEditorStore((state) => state.textLayerStyles);
   const textPosition = useEditorStore((state) => state.textPosition);
-  const textAlign = useEditorStore((state) => state.textAlign);
-  const textColor = useEditorStore((state) => state.textColor);
-  const textFontId = useEditorStore((state) => state.textFontId);
-  const textFontWeight = useEditorStore((state) => state.textFontWeight);
-  const textItalic = useEditorStore((state) => state.textItalic);
-  const textUnderline = useEditorStore((state) => state.textUnderline);
-  const textLetterSpacing = useEditorStore(
-    (state) => state.textLetterSpacing,
-  );
-  const textLineHeight = useEditorStore((state) => state.textLineHeight);
-  const textOpacity = useEditorStore((state) => state.textOpacity);
-  const textShadowEnabled = useEditorStore(
-    (state) => state.textShadowEnabled,
-  );
-  const textShadowMode = useEditorStore((state) => state.textShadowMode);
-  const textShadowPresetId = useEditorStore(
-    (state) => state.textShadowPresetId,
-  );
-  const textShadowColor = useEditorStore((state) => state.textShadowColor);
-  const textShadowBlur = useEditorStore((state) => state.textShadowBlur);
-  const textShadowOffsetX = useEditorStore(
-    (state) => state.textShadowOffsetX,
-  );
-  const textShadowOffsetY = useEditorStore(
-    (state) => state.textShadowOffsetY,
-  );
-  const textShadowOpacity = useEditorStore(
-    (state) => state.textShadowOpacity,
-  );
-  const textShadowDepth = useEditorStore((state) => state.textShadowDepth);
   const headlineSize = useEditorStore((state) => state.headlineSize);
   const subtitleSize = useEditorStore((state) => state.subtitleSize);
   const badgeSize = useEditorStore((state) => state.badgeSize);
@@ -397,6 +396,13 @@ export default function TextOverlayControls() {
   const toggleBadge = useEditorStore((state) => state.toggleBadge);
   const setHeadlineText = useEditorStore((state) => state.setHeadlineText);
   const setSubtitleText = useEditorStore((state) => state.setSubtitleText);
+  const addCustomTextLayer = useEditorStore((state) => state.addCustomTextLayer);
+  const setCustomTextLayerText = useEditorStore(
+    (state) => state.setCustomTextLayerText,
+  );
+  const setActiveTextLayerId = useEditorStore(
+    (state) => state.setActiveTextLayerId,
+  );
   const setTextPosition = useEditorStore((state) => state.setTextPosition);
   const setTextAlign = useEditorStore((state) => state.setTextAlign);
   const setTextColor = useEditorStore((state) => state.setTextColor);
@@ -439,16 +445,76 @@ export default function TextOverlayControls() {
   const setTextShadowDepth = useEditorStore(
     (state) => state.setTextShadowDepth,
   );
-  const setHeadlineSize = useEditorStore((state) => state.setHeadlineSize);
-  const setSubtitleSize = useEditorStore((state) => state.setSubtitleSize);
-  const setBadgeSize = useEditorStore((state) => state.setBadgeSize);
-  const setBadgeRotation = useEditorStore((state) => state.setBadgeRotation);
-  const setHeadlineRotation = useEditorStore(
-    (state) => state.setHeadlineRotation,
+  const setTextLayerSize = useEditorStore((state) => state.setTextLayerSize);
+  const setTextLayerRotation = useEditorStore(
+    (state) => state.setTextLayerRotation,
   );
-  const setSubtitleRotation = useEditorStore(
-    (state) => state.setSubtitleRotation,
+  const selectedLayerId = activeTextLayerId ?? "headline";
+  const selectedCustomTextLayer = customTextLayers.find(
+    (layer) => layer.id === selectedLayerId,
   );
+  const selectedDefaultLayerId: DefaultTextLayerId =
+    selectedLayerId === "badge" ||
+    selectedLayerId === "headline" ||
+    selectedLayerId === "subtitle"
+      ? selectedLayerId
+      : "headline";
+  const selectedLayerStyle =
+    selectedCustomTextLayer?.style ?? textLayerStyles[selectedDefaultLayerId];
+  const textAlign = selectedLayerStyle.textAlign;
+  const textColor = selectedLayerStyle.textColor;
+  const textFontId = selectedLayerStyle.textFontId;
+  const textFontWeight = selectedLayerStyle.textFontWeight;
+  const textItalic = selectedLayerStyle.textItalic;
+  const textUnderline = selectedLayerStyle.textUnderline;
+  const textLetterSpacing = selectedLayerStyle.textLetterSpacing;
+  const textLineHeight = selectedLayerStyle.textLineHeight;
+  const textOpacity = selectedLayerStyle.textOpacity;
+  const textShadowEnabled = selectedLayerStyle.textShadowEnabled;
+  const textShadowMode = selectedLayerStyle.textShadowMode;
+  const textShadowPresetId = selectedLayerStyle.textShadowPresetId;
+  const textShadowColor = selectedLayerStyle.textShadowColor;
+  const textShadowBlur = selectedLayerStyle.textShadowBlur;
+  const textShadowOffsetX = selectedLayerStyle.textShadowOffsetX;
+  const textShadowOffsetY = selectedLayerStyle.textShadowOffsetY;
+  const textShadowOpacity = selectedLayerStyle.textShadowOpacity;
+  const textShadowDepth = selectedLayerStyle.textShadowDepth;
+  const selectedLayerLabel =
+    selectedCustomTextLayer?.text.trim() ||
+    TEXT_LAYER_OPTIONS.find((option) => option.value === selectedLayerId)
+      ?.label ||
+    "Headline";
+  const textLayerOptions = [
+    ...TEXT_LAYER_OPTIONS,
+    ...customTextLayers.map((layer, index) => ({
+      label: layer.text.trim() || `Text ${index + 1}`,
+      value: layer.id,
+    })),
+  ] satisfies SegmentOption<TextLayerId>[];
+  const selectedLayerSize = {
+    badge: badgeSize,
+    headline: headlineSize,
+    subtitle: subtitleSize,
+  } satisfies Record<DefaultTextLayerId, number>;
+  const selectedLayerRotation = {
+    badge: badgeRotation,
+    headline: headlineRotation,
+    subtitle: subtitleRotation,
+  } satisfies Record<DefaultTextLayerId, number>;
+  const selectedLayerSizeLimit = {
+    badge: BEAUTIFY_SETTING_LIMITS.badgeSize,
+    headline: BEAUTIFY_SETTING_LIMITS.headlineSize,
+    subtitle: BEAUTIFY_SETTING_LIMITS.subtitleSize,
+  } satisfies Record<DefaultTextLayerId, SliderLimit>;
+  const selectedSize =
+    selectedCustomTextLayer?.size ?? selectedLayerSize[selectedDefaultLayerId];
+  const selectedRotation =
+    selectedCustomTextLayer?.rotation ??
+    selectedLayerRotation[selectedDefaultLayerId];
+  const selectedSizeLimit =
+    selectedCustomTextLayer
+      ? BEAUTIFY_SETTING_LIMITS.headlineSize
+      : selectedLayerSizeLimit[selectedDefaultLayerId];
   const lineHeightSliderValue = textLineHeight > 0 ? textLineHeight : 1.1;
 
   return (
@@ -495,6 +561,24 @@ export default function TextOverlayControls() {
                 Click text to edit. Drag corners to resize, top handle left or right to tilt.
               </p>
 
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={addCustomTextLayer}
+                className="h-9 w-full justify-center rounded-lg border-slate-200/80 bg-white/70 text-[13px] font-semibold text-slate-700 hover:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100 dark:hover:bg-white/10"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                New text
+              </Button>
+
+              <SegmentedControl
+                label="Editing"
+                value={selectedLayerId}
+                options={textLayerOptions}
+                onChange={setActiveTextLayerId}
+              />
+
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <TextField
@@ -504,6 +588,7 @@ export default function TextOverlayControls() {
                     disabled={false}
                     placeholder="NEW LAUNCH"
                     onChange={setBadgeText}
+                    onFocus={() => setActiveTextLayerId("badge")}
                   />
                 </div>
                 <div className="flex items-center gap-2 pt-5">
@@ -523,7 +608,24 @@ export default function TextOverlayControls() {
                 disabled={false}
                 placeholder="Turn screenshots into launch-ready visuals"
                 onChange={setHeadlineText}
+                onFocus={() => setActiveTextLayerId("headline")}
               />
+
+              {selectedCustomTextLayer && (
+                <TextField
+                  id="custom-text"
+                  label="Selected text"
+                  value={selectedCustomTextLayer.text}
+                  disabled={false}
+                  placeholder="New text"
+                  onChange={(value) =>
+                    setCustomTextLayerText(selectedCustomTextLayer.id, value)
+                  }
+                  onFocus={() =>
+                    setActiveTextLayerId(selectedCustomTextLayer.id)
+                  }
+                />
+              )}
 
               <div className="space-y-1.5">
                 <Label
@@ -537,6 +639,7 @@ export default function TextOverlayControls() {
                   value={subtitleText}
                   placeholder="Make your product updates look premium in seconds."
                   onChange={(event) => setSubtitleText(event.target.value)}
+                  onFocus={() => setActiveTextLayerId("subtitle")}
                   rows={2}
                   className="min-h-16 w-full resize-none rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
                 />
@@ -671,73 +774,29 @@ export default function TextOverlayControls() {
               </ControlGroup>
 
               <ControlGroup title="Size and tilt">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <EditorSliderRow
-                    label="Badge"
-                    min={BEAUTIFY_SETTING_LIMITS.badgeSize.min}
-                    max={BEAUTIFY_SETTING_LIMITS.badgeSize.max}
-                    step={BEAUTIFY_SETTING_LIMITS.badgeSize.step}
-                    value={badgeSize}
+                    label={`${selectedLayerLabel} size`}
+                    min={selectedSizeLimit.min}
+                    max={selectedSizeLimit.max}
+                    step={selectedSizeLimit.step}
+                    value={selectedSize}
                     suffix="px"
-                    disabled={!badgeEnabled}
-                    onChange={setBadgeSize}
+                    disabled={selectedLayerId === "badge" && !badgeEnabled}
+                    onChange={(size) => setTextLayerSize(selectedLayerId, size)}
                   />
 
                   <EditorSliderRow
-                    label="Headline"
-                    min={BEAUTIFY_SETTING_LIMITS.headlineSize.min}
-                    max={BEAUTIFY_SETTING_LIMITS.headlineSize.max}
-                    step={BEAUTIFY_SETTING_LIMITS.headlineSize.step}
-                    value={headlineSize}
-                    suffix="px"
-                    disabled={false}
-                    onChange={setHeadlineSize}
-                  />
-
-                  <EditorSliderRow
-                    label="Subtitle"
-                    min={BEAUTIFY_SETTING_LIMITS.subtitleSize.min}
-                    max={BEAUTIFY_SETTING_LIMITS.subtitleSize.max}
-                    step={BEAUTIFY_SETTING_LIMITS.subtitleSize.step}
-                    value={subtitleSize}
-                    suffix="px"
-                    disabled={false}
-                    onChange={setSubtitleSize}
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <EditorSliderRow
-                    label="Badge tilt"
+                    label={`${selectedLayerLabel} tilt`}
                     min={BEAUTIFY_SETTING_LIMITS.textRotation.min}
                     max={BEAUTIFY_SETTING_LIMITS.textRotation.max}
                     step={BEAUTIFY_SETTING_LIMITS.textRotation.step}
-                    value={badgeRotation}
+                    value={selectedRotation}
                     suffix="deg"
-                    disabled={!badgeEnabled}
-                    onChange={setBadgeRotation}
-                  />
-
-                  <EditorSliderRow
-                    label="Headline tilt"
-                    min={BEAUTIFY_SETTING_LIMITS.textRotation.min}
-                    max={BEAUTIFY_SETTING_LIMITS.textRotation.max}
-                    step={BEAUTIFY_SETTING_LIMITS.textRotation.step}
-                    value={headlineRotation}
-                    suffix="deg"
-                    disabled={false}
-                    onChange={setHeadlineRotation}
-                  />
-
-                  <EditorSliderRow
-                    label="Subtitle tilt"
-                    min={BEAUTIFY_SETTING_LIMITS.textRotation.min}
-                    max={BEAUTIFY_SETTING_LIMITS.textRotation.max}
-                    step={BEAUTIFY_SETTING_LIMITS.textRotation.step}
-                    value={subtitleRotation}
-                    suffix="deg"
-                    disabled={false}
-                    onChange={setSubtitleRotation}
+                    disabled={selectedLayerId === "badge" && !badgeEnabled}
+                    onChange={(rotation) =>
+                      setTextLayerRotation(selectedLayerId, rotation)
+                    }
                   />
                 </div>
               </ControlGroup>
