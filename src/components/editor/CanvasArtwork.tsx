@@ -1194,7 +1194,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (
         eventTarget instanceof HTMLElement &&
-        !eventTarget.closest("[data-screenshot-layer-id]")
+        !eventTarget.closest("[data-screenshot-mockup-visual]")
       ) {
         setIsMockupSelected(false);
       }
@@ -1665,12 +1665,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      event.stopPropagation();
-
       const canvasShell = canvasShellRef.current;
-      const targetLayerElement =
-        getScreenshotLayerElementAtPoint(event.clientX, event.clientY) ??
-        event.currentTarget;
+      const targetLayerElement = getScreenshotLayerElementAtPoint(
+        event.clientX,
+        event.clientY,
+      );
+
+      if (!targetLayerElement) {
+        return;
+      }
+
       const targetScreenshotId =
         targetLayerElement.dataset.screenshotLayerId ?? screenshotId;
       const mockupVisual = targetLayerElement.querySelector<HTMLElement>(
@@ -1682,6 +1686,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
 
       event.preventDefault();
+      event.stopPropagation();
       if (targetScreenshotId !== activeScreenshotId) {
         selectScreenshot(targetScreenshotId);
       }
