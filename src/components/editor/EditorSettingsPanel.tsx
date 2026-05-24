@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import {
+  AppWindow,
+  Box,
+  Download,
   FileImage,
   RefreshCw,
   ShieldCheck,
   Sparkles,
   Trash2,
+  Type,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
@@ -33,12 +38,144 @@ type ImageInfoSectionProps = {
   uploadedImage: UploadedImage;
 };
 
+const SETTINGS_SECTIONS = [
+  {
+    id: "style",
+    label: "Style",
+    icon: Sparkles,
+  },
+  {
+    id: "frame",
+    label: "Frame",
+    icon: AppWindow,
+  },
+  {
+    id: "text",
+    label: "Text",
+    icon: Type,
+  },
+  {
+    id: "tilt",
+    label: "3D",
+    icon: Box,
+  },
+  {
+    id: "export",
+    label: "Export",
+    icon: Download,
+  },
+] as const;
+
+type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]["id"];
+
 function getReadableFileType(type: string) {
   if (type === "image/jpeg") {
     return "JPEG";
   }
 
   return type.replace("image/", "").toUpperCase();
+}
+
+function getSettingsSection(sectionId: SettingsSectionId) {
+  return (
+    SETTINGS_SECTIONS.find((section) => section.id === sectionId) ??
+    SETTINGS_SECTIONS[0]
+  );
+}
+
+type SettingsSectionNavProps = {
+  activeSection: SettingsSectionId;
+  onSectionChange: (sectionId: SettingsSectionId) => void;
+};
+
+function SettingsSectionNav({
+  activeSection,
+  onSectionChange,
+}: SettingsSectionNavProps) {
+  return (
+    <nav
+      aria-label="Settings sections"
+      className="shrink-0 border-b border-[var(--editor-border)] bg-white/95 px-3 py-2 backdrop-blur-sm lg:order-last lg:h-full lg:border-b-0 lg:border-l lg:px-2 lg:py-3"
+    >
+      <div
+        role="tablist"
+        aria-label="Settings sections"
+        className="flex gap-2 overflow-x-auto pb-1 lg:h-full lg:flex-col lg:overflow-y-auto lg:pb-0"
+      >
+        {SETTINGS_SECTIONS.map((section) => {
+          const Icon = section.icon;
+          const isActive = activeSection === section.id;
+
+          return (
+            <button
+              key={section.id}
+              type="button"
+              id={`settings-tab-${section.id}`}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`settings-panel-${section.id}`}
+              title={section.label}
+              onClick={() => onSectionChange(section.id)}
+              className={cn(
+                "flex h-14 min-w-[74px] flex-col items-center justify-center gap-1 rounded-xl border px-2 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 lg:h-[68px] lg:min-w-0",
+                isActive
+                  ? "border-slate-950 bg-slate-950 text-white shadow-sm"
+                  : "border-transparent text-[var(--editor-muted)] hover:bg-[var(--editor-panel-muted)] hover:text-[var(--editor-ink)]",
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="max-w-full truncate">{section.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+type SettingsSectionContentProps = {
+  sectionId: SettingsSectionId;
+  uploadedImage: UploadedImage;
+};
+
+function SettingsSectionContent({
+  sectionId,
+  uploadedImage,
+}: SettingsSectionContentProps) {
+  if (sectionId === "style") {
+    return (
+      <>
+        <BeautifyPresetBar />
+        <CanvasPresetSelector />
+        <BackgroundControls />
+        <ImageStyleControls mode="style" />
+      </>
+    );
+  }
+
+  if (sectionId === "frame") {
+    return (
+      <>
+        <ImageStyleControls mode="effects" />
+        <BrowserFrameControls />
+      </>
+    );
+  }
+
+  if (sectionId === "text") {
+    return <TextOverlayControls />;
+  }
+
+  if (sectionId === "tilt") {
+    return <TiltControls />;
+  }
+
+  return (
+    <>
+      <ExportControls uploadedImage={uploadedImage} />
+      <ResetControls />
+    </>
+  );
 }
 
 function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
@@ -188,6 +325,11 @@ function EmptySettingsContent() {
 export default function EditorSettingsPanel({
   uploadedImage,
 }: EditorSettingsPanelProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const [activeSection, setActiveSection] =
+    useState<SettingsSectionId>("style");
+  const activeSectionConfig = getSettingsSection(activeSection);
+
   return (
     <motion.aside
       initial={{ opacity: 1, x: 0 }}
@@ -204,7 +346,7 @@ export default function EditorSettingsPanel({
           Settings
         </h2>
         <span className="rounded-full bg-[var(--editor-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-normal text-[var(--editor-accent)]">
-          Design
+          {uploadedImage ? activeSectionConfig.label : "Design"}
         </span>
       </div>
 
@@ -216,18 +358,32 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="h-[calc(100%-3rem)] overflow-y-auto overscroll-contain px-5 py-4"
+            className="flex min-h-0 flex-col lg:h-[calc(100%-3rem)] lg:grid lg:grid-cols-[minmax(0,1fr)_5.25rem]"
           >
-            <ImageInfoSection uploadedImage={uploadedImage} />
-            <BeautifyPresetBar />
-            <CanvasPresetSelector />
-            <BackgroundControls />
-            <ImageStyleControls />
-            <BrowserFrameControls />
-            <TextOverlayControls />
-            <TiltControls />
-            <ExportControls uploadedImage={uploadedImage} />
-            <ResetControls />
+            <SettingsSectionNav
+              activeSection={activeSection}
+              onSectionChange={setActiveSection}
+            />
+            <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 lg:order-first">
+              <ImageInfoSection uploadedImage={uploadedImage} />
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                  key={activeSection}
+                  id={`settings-panel-${activeSection}`}
+                  role="tabpanel"
+                  aria-labelledby={`settings-tab-${activeSection}`}
+                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -6 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                >
+                  <SettingsSectionContent
+                    sectionId={activeSection}
+                    uploadedImage={uploadedImage}
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </motion.div>
         ) : (
           <EmptySettingsContent />
