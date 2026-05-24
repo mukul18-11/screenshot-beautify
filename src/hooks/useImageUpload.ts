@@ -18,6 +18,7 @@ import {
   useEditorStore,
   type UploadedImage,
 } from "@/store/editor-store";
+import { MAX_SCREENSHOT_LAYOUT_COUNT } from "@/lib/screenshot-layouts";
 
 type UploadMode = "add" | "replace";
 
@@ -102,6 +103,14 @@ function createSkippedMessage({
   }
 
   return parts.join(" ");
+}
+
+function createLayoutLimitMessage(totalCount: number) {
+  if (totalCount <= MAX_SCREENSHOT_LAYOUT_COUNT) {
+    return "";
+  }
+
+  return `Auto layouts support up to ${MAX_SCREENSHOT_LAYOUT_COUNT} screenshots. The rest are kept in the tray for manual placement.`;
 }
 
 export function useImageUpload({ mode = "add" }: UseImageUploadOptions = {}) {
@@ -244,6 +253,8 @@ export function useImageUpload({ mode = "add" }: UseImageUploadOptions = {}) {
           return;
         }
 
+        const previousScreenshotCount = state.screenshots.length;
+
         if (mode === "replace") {
           const [image] = uploadedImages;
 
@@ -254,6 +265,12 @@ export function useImageUpload({ mode = "add" }: UseImageUploadOptions = {}) {
           addUploadedImages(uploadedImages);
         }
 
+        const layoutLimitMessage =
+          mode === "add"
+            ? createLayoutLimitMessage(
+                previousScreenshotCount + uploadedImages.length,
+              )
+            : "";
         const skippedMessage = createSkippedMessage({
           addedCount: mode === "add" ? uploadedImages.length : 0,
           failedCount: failedCount + unreadableCount,
@@ -264,6 +281,10 @@ export function useImageUpload({ mode = "add" }: UseImageUploadOptions = {}) {
 
         if (skippedMessage && (failedCount > 0 || unreadableCount > 0 || limitSkippedCount > 0)) {
           showError(skippedMessage);
+        }
+
+        if (layoutLimitMessage) {
+          toast.info(layoutLimitMessage);
         }
       } finally {
         if (

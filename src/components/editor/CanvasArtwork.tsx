@@ -1114,7 +1114,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      setImageTransform({ crop: nextCrop });
+      setImageTransform({ crop: nextCrop, markLayoutManual: false });
     }, [
       activeLayerImage,
       imageCrop,

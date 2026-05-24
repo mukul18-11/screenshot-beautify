@@ -104,6 +104,15 @@ export type TiltPresetId =
   | "subtle-lift"
   | "dramatic-launch";
 
+export type ScreenshotLayoutPresetId =
+  | "manual"
+  | "deck"
+  | "spotlight"
+  | "bento"
+  | "compare"
+  | "staggered-rows"
+  | "grid";
+
 export type ExportScale = 1 | 2 | 4;
 
 export type UploadedImage = {

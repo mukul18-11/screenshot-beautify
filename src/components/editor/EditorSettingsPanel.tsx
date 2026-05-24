@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AppWindow,
   Box,
   Download,
   FileImage,
+  LayoutDashboard,
   RefreshCw,
   ShieldCheck,
   Sparkles,
@@ -22,13 +23,14 @@ import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import ExportControls from "@/components/editor/ExportControls";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
+import ScreenshotLayoutControls from "@/components/editor/ScreenshotLayoutControls";
 import TextOverlayControls from "@/components/editor/TextOverlayControls";
 import TiltControls from "@/components/editor/TiltControls";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/format-file-size";
 import { cn } from "@/lib/utils";
 import { useImageUpload } from "@/hooks/useImageUpload";
-import type { UploadedImage } from "@/store/editor-store";
+import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 
 type EditorSettingsPanelProps = {
   uploadedImage: UploadedImage | null;
@@ -43,6 +45,11 @@ const SETTINGS_SECTIONS = [
     id: "style",
     label: "Style",
     icon: Sparkles,
+  },
+  {
+    id: "layout",
+    label: "Layout",
+    icon: LayoutDashboard,
   },
   {
     id: "frame",
@@ -151,6 +158,10 @@ function SettingsSectionContent({
         <ImageStyleControls mode="style" />
       </>
     );
+  }
+
+  if (sectionId === "layout") {
+    return <ScreenshotLayoutControls />;
   }
 
   if (sectionId === "frame") {
@@ -332,9 +343,17 @@ export default function EditorSettingsPanel({
   uploadedImage,
 }: EditorSettingsPanelProps) {
   const shouldReduceMotion = useReducedMotion();
+  const settingsScrollRef = useRef<HTMLDivElement | null>(null);
   const [activeSection, setActiveSection] =
     useState<SettingsSectionId>("style");
+  const activeScreenshotId = useEditorStore(
+    (state) => state.activeScreenshotId,
+  );
   const activeSectionConfig = getSettingsSection(activeSection);
+
+  useEffect(() => {
+    settingsScrollRef.current?.scrollTo({ top: 0 });
+  }, [activeSection, activeScreenshotId]);
 
   return (
     <motion.aside
@@ -370,9 +389,12 @@ export default function EditorSettingsPanel({
               activeSection={activeSection}
               onSectionChange={setActiveSection}
             />
-            <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 lg:order-first">
+            <div
+              ref={settingsScrollRef}
+              className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 lg:order-first"
+            >
               <ImageInfoSection uploadedImage={uploadedImage} />
-              <AnimatePresence initial={false} mode="wait">
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={activeSection}
                   id={`settings-panel-${activeSection}`}

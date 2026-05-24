@@ -20,6 +20,10 @@ import {
   clampUnitOffset,
 } from "@/lib/editor-geometry";
 import { sanitizeFileName } from "@/lib/export-utils";
+import {
+  canApplyScreenshotLayout,
+  createScreenshotLayoutPatches,
+} from "@/lib/screenshot-layouts";
 import { createTextShadowPresetSettings } from "@/lib/text-effect-presets";
 import { createTiltPresetSettings } from "@/lib/tilt-presets";
 import type {
@@ -36,6 +40,7 @@ import type {
   ExportSettings,
   ImageCrop,
   ImageShadow,
+  ScreenshotLayoutPresetId,
   ScreenshotDesign,
   TextAlign,
   TextFontId,
@@ -111,7 +116,9 @@ type HistoryGlobalSettings = Pick<
   | "backgroundParallaxStrength"
   | "exportScale"
   | "exportFileName"
->;
+> & {
+  screenshotLayoutPresetId: ScreenshotLayoutPresetId;
+};
 
 type EditorHistorySnapshot = {
   activeScreenshotId: string | null;
@@ -170,6 +177,7 @@ const HISTORY_GLOBAL_SETTING_KEYS = [
   "backgroundParallaxStrength",
   "exportScale",
   "exportFileName",
+  "screenshotLayoutPresetId",
 ] as const satisfies readonly (keyof HistoryGlobalSettings)[];
 
 type EditorStore = EditorDesignSettings & {
@@ -178,10 +186,12 @@ type EditorStore = EditorDesignSettings & {
     screenshots: ScreenshotDesign[];
     activeScreenshotId: string | null;
     activeTextLayerId: TextLayerId | null;
+    screenshotLayoutPresetId: ScreenshotLayoutPresetId;
     uploadedImage: UploadedImage | null;
     undo: () => void;
     redo: () => void;
     clearHistory: () => void;
+    applyScreenshotLayout: (presetId: ScreenshotLayoutPresetId) => void;
     selectScreenshot: (screenshotId: string) => void;
     placeScreenshot: (
       screenshotId: string,
@@ -215,6 +225,7 @@ type EditorStore = EditorDesignSettings & {
     setImageCrop: (crop: ImageCrop) => void;
     setImageTransform: (transform: {
       crop?: ImageCrop;
+      markLayoutManual?: boolean;
       offsetX?: number;
       offsetY?: number;
       scale?: number;
@@ -588,6 +599,7 @@ function getHistoryGlobalSettingsFromState(
     backgroundParallaxStrength: state.backgroundParallaxStrength,
     exportScale: state.exportScale,
     exportFileName: state.exportFileName,
+    screenshotLayoutPresetId: state.screenshotLayoutPresetId,
   };
 }
 
@@ -623,36 +635,22 @@ function createScreenshotDesign(
   };
 }
 
-function createLayerLayout(index: number, total: number) {
-  if (total <= 1) {
-    return { imageOffsetX: 0, imageOffsetY: 0, imageScale: 92 };
-  }
-
-  const columns = Math.ceil(Math.sqrt(total));
-  const rows = Math.ceil(total / columns);
-  const column = index % columns;
-  const row = Math.floor(index / columns);
-  const xSpread = total <= 2 ? 0.72 : total <= 4 ? 0.9 : 1.04;
-  const ySpread = total <= 2 ? 0.28 : total <= 4 ? 0.72 : 0.86;
-  const imageScale =
-    total <= 2 ? 58 : total <= 4 ? 45 : total <= 6 ? 36 : total <= 9 ? 30 : 25;
-
-  return {
-    imageOffsetX:
-      columns <= 1 ? 0 : (column / (columns - 1) - 0.5) * xSpread,
-    imageOffsetY: rows <= 1 ? 0 : (row / (rows - 1) - 0.5) * ySpread,
-    imageScale,
-  };
-}
-
-function arrangeScreenshotLayers(screenshots: ScreenshotDesign[]) {
-  if (!screenshots.length) {
-    return screenshots;
-  }
-
+function applyScreenshotLayoutToPlacedScreenshots(
+  screenshots: ScreenshotDesign[],
+  presetId: ScreenshotLayoutPresetId,
+) {
   const placedScreenshots = screenshots.filter(
     (screenshot) => screenshot.isPlaced,
   );
+  const layoutPatches = createScreenshotLayoutPatches(
+    presetId,
+    placedScreenshots.length,
+  );
+
+  if (!layoutPatches.length) {
+    return screenshots;
+  }
+
   let placedIndex = 0;
 
   return screenshots.map((screenshot) => {
@@ -660,17 +658,37 @@ function arrangeScreenshotLayers(screenshots: ScreenshotDesign[]) {
       return screenshot;
     }
 
-    const layout = createLayerLayout(placedIndex, placedScreenshots.length);
+    const layoutPatch = layoutPatches[placedIndex];
     placedIndex += 1;
+
+    if (!layoutPatch) {
+      return screenshot;
+    }
 
     return {
       ...screenshot,
       settings: {
         ...cloneEditorDesignSettings(screenshot.settings),
-        ...layout,
+        ...layoutPatch,
+        imageShadow: {
+          ...layoutPatch.imageShadow,
+        },
       },
     };
   });
+}
+
+function createNextManualPlacement(
+  placedCount: number,
+): Pick<EditorDesignSettings, "imageOffsetX" | "imageOffsetY" | "imageScale"> {
+  const angle = placedCount * 1.8;
+  const radius = placedCount === 0 ? 0 : Math.min(0.28, 0.12 + placedCount * 0.04);
+
+  return {
+    imageOffsetX: clampUnitOffset(Math.cos(angle) * radius),
+    imageOffsetY: clampUnitOffset(Math.sin(angle) * radius),
+    imageScale: placedCount === 0 ? 92 : 58,
+  };
 }
 
 function getActiveScreenshot(state: EditorStore) {
@@ -704,6 +722,28 @@ function clampFitScale(scale: number) {
   }
 
   return Math.max(1, Math.min(180, Math.floor(scale * 100) / 100));
+}
+
+function didImageCropChange(previousCrop: ImageCrop, nextCrop: ImageCrop) {
+  return (
+    previousCrop.top !== nextCrop.top ||
+    previousCrop.right !== nextCrop.right ||
+    previousCrop.bottom !== nextCrop.bottom ||
+    previousCrop.left !== nextCrop.left
+  );
+}
+
+function createManualLayoutPatch(
+  state: EditorStore,
+  shouldMarkManual: boolean,
+) {
+  if (!shouldMarkManual || state.screenshotLayoutPresetId === "manual") {
+    return {};
+  }
+
+  return {
+    screenshotLayoutPresetId: "manual" as const,
+  };
 }
 
 function isDefaultTextLayerId(
@@ -970,7 +1010,12 @@ function createStateFromHistorySnapshot(
   snapshot: EditorHistorySnapshot,
   currentState: EditorStore,
 ): Partial<EditorStore> {
-  const currentGeometry = getCurrentScreenshotGeometry(currentState);
+  const shouldPreserveCurrentGeometry =
+    snapshot.globalSettings.screenshotLayoutPresetId === "manual" &&
+    currentState.screenshotLayoutPresetId === "manual";
+  const currentGeometry = shouldPreserveCurrentGeometry
+    ? getCurrentScreenshotGeometry(currentState)
+    : new Map();
   const screenshots = cloneScreenshotDesigns(snapshot.screenshots).map(
     (screenshot) => {
       const currentGeometryForScreenshot = currentGeometry.get(screenshot.id);
@@ -1265,6 +1310,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   screenshots: [],
   activeScreenshotId: null,
   activeTextLayerId: null,
+  screenshotLayoutPresetId: "manual",
   uploadedImage: null,
   ...createDefaultEditorDesignSettings(),
   undo: () => {
@@ -1332,6 +1378,48 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       isApplyingHistoryStateChange = false;
     }
   },
+  applyScreenshotLayout: (presetId) => {
+    const state = get();
+    const placedScreenshots = state.screenshots.filter(
+      (screenshot) => screenshot.isPlaced,
+    );
+
+    if (presetId === "manual") {
+      set({ screenshotLayoutPresetId: "manual" });
+      return;
+    }
+
+    if (!canApplyScreenshotLayout(placedScreenshots.length)) {
+      return;
+    }
+
+    const nextScreenshots = applyScreenshotLayoutToPlacedScreenshots(
+      state.screenshots,
+      presetId,
+    );
+    const activeScreenshot =
+      placedScreenshots.find(
+        (screenshot) => screenshot.id === state.activeScreenshotId,
+      ) ??
+      placedScreenshots[placedScreenshots.length - 1] ??
+      null;
+
+    set({
+      screenshots: nextScreenshots,
+      screenshotLayoutPresetId: presetId,
+      ...(activeScreenshot
+        ? {
+            activeScreenshotId: activeScreenshot.id,
+            uploadedImage: activeScreenshot.uploadedImage,
+            ...getLayerSettingsPatch(
+              nextScreenshots.find(
+                (screenshot) => screenshot.id === activeScreenshot.id,
+              )?.settings ?? activeScreenshot.settings,
+            ),
+          }
+        : {}),
+    });
+  },
   selectScreenshot: (screenshotId) => {
     const screenshot = get().screenshots.find(
       (item) => item.id === screenshotId,
@@ -1366,7 +1454,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     ).length;
     const layout =
       !screenshot.isPlaced && !placement
-        ? createLayerLayout(placedCount, placedCount + 1)
+        ? createNextManualPlacement(placedCount)
         : null;
     const settings = cloneEditorDesignSettings(
       screenshot.id === state.activeScreenshotId && screenshot.isPlaced
@@ -1399,6 +1487,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           : item,
       ),
       activeScreenshotId: screenshot.id,
+      screenshotLayoutPresetId: "manual",
       uploadedImage: screenshot.uploadedImage,
       ...getLayerSettingsPatch(nextSettings),
     });
@@ -1439,6 +1528,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({
         screenshots: nextScreenshots,
         activeScreenshotId: null,
+        screenshotLayoutPresetId: "manual",
         uploadedImage: null,
       });
       return;
@@ -1447,6 +1537,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       screenshots: nextScreenshots,
       activeScreenshotId: activeScreenshot.id,
+      screenshotLayoutPresetId: "manual",
       uploadedImage: activeScreenshot.uploadedImage,
       ...getLayerSettingsPatch(activeScreenshot.settings),
     });
@@ -1470,26 +1561,33 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       return;
     }
 
+    const shouldAutoLayout =
+      state.screenshots.length === 0 && canApplyScreenshotLayout(imagesToAdd.length);
     const shouldPlaceFirstImage =
       state.screenshots.length === 0 && imagesToAdd.length === 1;
+    const shouldPlaceUploadedImages = shouldAutoLayout || shouldPlaceFirstImage;
     const sourceSettings = getEditorDesignSettingsFromState(state);
     const nextScreenshots = imagesToAdd.map((uploadedImage, index) =>
       createScreenshotDesign(
         uploadedImage,
         createSettingsForUploadedImage(uploadedImage, sourceSettings),
-        shouldPlaceFirstImage && index === 0,
+        shouldPlaceUploadedImages && (shouldAutoLayout || index === 0),
       ),
     );
     const mergedScreenshots = [
       ...state.screenshots,
       ...nextScreenshots,
     ];
-    const arrangedScreenshots = shouldPlaceFirstImage
-      ? arrangeScreenshotLayers(mergedScreenshots)
+    const layoutPresetId: ScreenshotLayoutPresetId = shouldAutoLayout
+      ? "deck"
+      : "manual";
+    const arrangedScreenshots = shouldAutoLayout
+      ? applyScreenshotLayoutToPlacedScreenshots(mergedScreenshots, layoutPresetId)
       : mergedScreenshots;
-    const activeScreenshot = shouldPlaceFirstImage
+    const activeScreenshot = shouldPlaceUploadedImages
       ? arrangedScreenshots.find(
-          (screenshot) => screenshot.id === nextScreenshots[0]?.id,
+          (screenshot) =>
+            screenshot.id === nextScreenshots[nextScreenshots.length - 1]?.id,
         )
       : getActiveScreenshot({
           ...state,
@@ -1499,6 +1597,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     if (!activeScreenshot) {
       set({
         screenshots: arrangedScreenshots,
+        screenshotLayoutPresetId: layoutPresetId,
       });
       return;
     }
@@ -1506,6 +1605,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       screenshots: arrangedScreenshots,
       activeScreenshotId: activeScreenshot.id,
+      screenshotLayoutPresetId: layoutPresetId,
       uploadedImage: activeScreenshot.uploadedImage,
       ...getLayerSettingsPatch(activeScreenshot.settings),
     });
@@ -1535,6 +1635,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({
         screenshots: remainingScreenshots,
         activeScreenshotId: null,
+        screenshotLayoutPresetId: "manual",
         uploadedImage: null,
         ...createDefaultEditorDesignSettings(),
       });
@@ -1545,6 +1646,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({
         screenshots: remainingScreenshots,
         activeScreenshotId: null,
+        screenshotLayoutPresetId: "manual",
         uploadedImage: null,
       });
       return;
@@ -1553,6 +1655,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       screenshots: remainingScreenshots,
       activeScreenshotId: activeScreenshot.id,
+      screenshotLayoutPresetId: "manual",
       uploadedImage: activeScreenshot.uploadedImage,
       ...getLayerSettingsPatch(activeScreenshot.settings),
     });
@@ -1594,6 +1697,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       screenshots: [],
       activeScreenshotId: null,
       uploadedImage: null,
+      screenshotLayoutPresetId: "manual",
       ...createDefaultEditorDesignSettings(),
     });
   },
@@ -1626,6 +1730,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       ...createBeautifyPresetSettings(presetId),
       lastBeautifyPresetId: presetId,
+      screenshotLayoutPresetId: "manual",
     });
   },
   setCanvasPreset: (presetId) => {
@@ -1683,33 +1788,70 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ imageRadius: value });
   },
   setImageScale: (value) => {
-    set({ imageScale: value });
+    set((state) => ({
+      imageScale: value,
+      ...createManualLayoutPatch(state, value !== state.imageScale),
+    }));
   },
   setImagePosition: (offsetX, offsetY) => {
-    set({
-      imageOffsetX: clampUnitOffset(offsetX),
-      imageOffsetY: clampUnitOffset(offsetY),
+    set((state) => {
+      const nextOffsetX = clampUnitOffset(offsetX);
+      const nextOffsetY = clampUnitOffset(offsetY);
+
+      return {
+        imageOffsetX: nextOffsetX,
+        imageOffsetY: nextOffsetY,
+        ...createManualLayoutPatch(
+          state,
+          nextOffsetX !== state.imageOffsetX ||
+            nextOffsetY !== state.imageOffsetY,
+        ),
+      };
     });
   },
   setImageCrop: (crop) => {
-    set({
-      imageCrop: clampImageCrop(crop),
+    set((state) => {
+      const nextCrop = clampImageCrop(crop);
+
+      return {
+        imageCrop: nextCrop,
+        ...createManualLayoutPatch(
+          state,
+          didImageCropChange(state.imageCrop, nextCrop),
+        ),
+      };
     });
   },
-  setImageTransform: ({ crop, offsetX, offsetY, scale }) => {
-    set((state) => ({
-      imageScale:
-        typeof scale === "number" ? Math.round(scale) : state.imageScale,
-      imageOffsetX:
+  setImageTransform: ({ crop, markLayoutManual = true, offsetX, offsetY, scale }) => {
+    set((state) => {
+      const nextScale =
+        typeof scale === "number" ? Math.round(scale) : state.imageScale;
+      const nextOffsetX =
         typeof offsetX === "number"
           ? clampUnitOffset(offsetX)
-          : state.imageOffsetX,
-      imageOffsetY:
+          : state.imageOffsetX;
+      const nextOffsetY =
         typeof offsetY === "number"
           ? clampUnitOffset(offsetY)
-          : state.imageOffsetY,
-      imageCrop: crop ? clampImageCrop(crop) : state.imageCrop,
-    }));
+          : state.imageOffsetY;
+      const nextCrop = crop ? clampImageCrop(crop) : state.imageCrop;
+      const didTransformChange =
+        nextScale !== state.imageScale ||
+        nextOffsetX !== state.imageOffsetX ||
+        nextOffsetY !== state.imageOffsetY ||
+        didImageCropChange(state.imageCrop, nextCrop);
+
+      return {
+        imageScale: nextScale,
+        imageOffsetX: nextOffsetX,
+        imageOffsetY: nextOffsetY,
+        imageCrop: nextCrop,
+        ...createManualLayoutPatch(
+          state,
+          markLayoutManual && didTransformChange,
+        ),
+      };
+    });
   },
   fitUploadedImage: (scale) => {
     set({
@@ -1725,6 +1867,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       imageZoom: 100,
       imageZoomOffsetX: 0,
       imageZoomOffsetY: 0,
+      screenshotLayoutPresetId: "manual",
     });
   },
   resetImagePosition: () => {
@@ -1740,6 +1883,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       imageZoom: 100,
       imageZoomOffsetX: 0,
       imageZoomOffsetY: 0,
+      screenshotLayoutPresetId: "manual",
     });
   },
   setImageShadow: (partialShadow) => {
@@ -1761,15 +1905,40 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setImageZoom: (value) => {
     const clamped = Math.max(100, Math.min(400, Math.round(value)));
     if (clamped <= 100) {
-      set({ imageZoom: 100, imageZoomOffsetX: 0, imageZoomOffsetY: 0 });
+      set((state) => ({
+        imageZoom: 100,
+        imageZoomOffsetX: 0,
+        imageZoomOffsetY: 0,
+        ...createManualLayoutPatch(
+          state,
+          state.imageZoom !== 100 ||
+            state.imageZoomOffsetX !== 0 ||
+            state.imageZoomOffsetY !== 0,
+        ),
+      }));
     } else {
       set((state) => {
         // Clamp offsets so the image stays within bounds at new zoom
         const maxOff = 1 - 1 / (clamped / 100);
+        const nextZoomOffsetX = Math.max(
+          -maxOff,
+          Math.min(maxOff, state.imageZoomOffsetX),
+        );
+        const nextZoomOffsetY = Math.max(
+          -maxOff,
+          Math.min(maxOff, state.imageZoomOffsetY),
+        );
+
         return {
           imageZoom: clamped,
-          imageZoomOffsetX: Math.max(-maxOff, Math.min(maxOff, state.imageZoomOffsetX)),
-          imageZoomOffsetY: Math.max(-maxOff, Math.min(maxOff, state.imageZoomOffsetY)),
+          imageZoomOffsetX: nextZoomOffsetX,
+          imageZoomOffsetY: nextZoomOffsetY,
+          ...createManualLayoutPatch(
+            state,
+            clamped !== state.imageZoom ||
+              nextZoomOffsetX !== state.imageZoomOffsetX ||
+              nextZoomOffsetY !== state.imageZoomOffsetY,
+          ),
         };
       });
     }
@@ -1779,19 +1948,38 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       const zoom = state.imageZoom / 100;
       if (zoom <= 1) return {};
       const maxOff = 1 - 1 / zoom;
+      const nextZoomOffsetX = Math.max(-maxOff, Math.min(maxOff, offsetX));
+      const nextZoomOffsetY = Math.max(-maxOff, Math.min(maxOff, offsetY));
+
       return {
-        imageZoomOffsetX: Math.max(-maxOff, Math.min(maxOff, offsetX)),
-        imageZoomOffsetY: Math.max(-maxOff, Math.min(maxOff, offsetY)),
+        imageZoomOffsetX: nextZoomOffsetX,
+        imageZoomOffsetY: nextZoomOffsetY,
+        ...createManualLayoutPatch(
+          state,
+          nextZoomOffsetX !== state.imageZoomOffsetX ||
+            nextZoomOffsetY !== state.imageZoomOffsetY,
+        ),
       };
     });
   },
   resetImageZoom: () => {
-    set({ imageZoom: 100, imageZoomOffsetX: 0, imageZoomOffsetY: 0 });
+    set((state) => ({
+      imageZoom: 100,
+      imageZoomOffsetX: 0,
+      imageZoomOffsetY: 0,
+      ...createManualLayoutPatch(
+        state,
+        state.imageZoom !== 100 ||
+          state.imageZoomOffsetX !== 0 ||
+          state.imageZoomOffsetY !== 0,
+      ),
+    }));
   },
   resetBeautifySettings: () => {
     set({
       ...createDefaultBeautifySettings(),
       lastBeautifyPresetId: null,
+      screenshotLayoutPresetId: "manual",
     });
   },
   toggleBrowserFrame: () => {
@@ -2167,46 +2355,78 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   toggleTilt: () => {
     set((state) => ({
       tiltEnabled: !state.tiltEnabled,
+      screenshotLayoutPresetId: "manual",
     }));
   },
   setTiltEnabled: (value) => {
-    set({ tiltEnabled: value });
+    set({ tiltEnabled: value, screenshotLayoutPresetId: "manual" });
   },
   setTiltPreset: (presetId) => {
-    set(createTiltPresetSettings(presetId));
+    set({
+      ...createTiltPresetSettings(presetId),
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setPerspective: (value) => {
-    set({ perspective: value, tiltEnabled: true, tiltPresetId: "custom" });
+    set({
+      perspective: value,
+      tiltEnabled: true,
+      tiltPresetId: "custom",
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setRotateX: (value) => {
-    set({ rotateX: value, tiltEnabled: true, tiltPresetId: "custom" });
+    set({
+      rotateX: value,
+      tiltEnabled: true,
+      tiltPresetId: "custom",
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setRotateY: (value) => {
-    set({ rotateY: value, tiltEnabled: true, tiltPresetId: "custom" });
+    set({
+      rotateY: value,
+      tiltEnabled: true,
+      tiltPresetId: "custom",
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setRotateZ: (value) => {
-    set({ rotateZ: value, tiltEnabled: true, tiltPresetId: "custom" });
+    set({
+      rotateZ: value,
+      tiltEnabled: true,
+      tiltPresetId: "custom",
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setTranslateY: (value) => {
-    set({ translateY: value, tiltEnabled: true, tiltPresetId: "custom" });
+    set({
+      translateY: value,
+      tiltEnabled: true,
+      tiltPresetId: "custom",
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setTiltShadowMultiplier: (value) => {
     set({
       tiltShadowMultiplier: value,
       tiltEnabled: true,
       tiltPresetId: "custom",
+      screenshotLayoutPresetId: "manual",
     });
   },
   toggleHoverTilt: () => {
     set((state) => ({
       hoverTiltEnabled: !state.hoverTiltEnabled,
       tiltEnabled: !state.hoverTiltEnabled ? true : state.tiltEnabled,
+      screenshotLayoutPresetId: "manual",
     }));
   },
   setHoverTiltEnabled: (value) => {
     set({
       hoverTiltEnabled: value,
       tiltEnabled: value ? true : get().tiltEnabled,
+      screenshotLayoutPresetId: "manual",
     });
   },
   setHoverTiltSensitivity: (value) => {
@@ -2214,6 +2434,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       hoverTiltSensitivity: value,
       hoverTiltEnabled: true,
       tiltEnabled: true,
+      screenshotLayoutPresetId: "manual",
     });
   },
   toggleBackgroundParallax: () => {
@@ -2231,7 +2452,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
   resetTiltSettings: () => {
-    set(createDefaultTiltSettings());
+    set({
+      ...createDefaultTiltSettings(),
+      screenshotLayoutPresetId: "manual",
+    });
   },
   setExportScale: (scale) => {
     set({ exportScale: scale });
@@ -2256,6 +2480,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ...createDefaultTiltSettings(),
       activeTextLayerId: null,
       lastBeautifyPresetId: null,
+      screenshotLayoutPresetId: "manual",
     });
   },
 }));
