@@ -23,12 +23,10 @@ const DEFAULT_CUSTOM_COLOR_C = "#334155";
 type CustomPatternId =
   | "arc-ribbons"
   | "contours"
-  | "glass-ridge"
   | "grid-glow"
   | "linear"
   | "liquid-chrome"
   | "radial"
-  | "silk-waves"
   | "spotlight"
   | "velvet-storm";
 
@@ -56,13 +54,6 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorC: "#020617",
     angle: 135,
   },
-  "electric-contours": {
-    patternId: "contours",
-    colorA: "#22d3ee",
-    colorB: "#6366f1",
-    colorC: "#020617",
-    angle: 135,
-  },
   "neon-grid-glow": {
     patternId: "grid-glow",
     colorA: "#38bdf8",
@@ -77,25 +68,11 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorC: "#030712",
     angle: 135,
   },
-  "obsidian-silk": {
-    patternId: "silk-waves",
-    colorA: "#f8fafc",
-    colorB: "#38bdf8",
-    colorC: "#020617",
-    angle: 135,
-  },
   "liquid-chrome": {
     patternId: "liquid-chrome",
     colorA: "#f8fafc",
     colorB: "#60a5fa",
     colorC: "#111827",
-    angle: 135,
-  },
-  "glass-ridge": {
-    patternId: "glass-ridge",
-    colorA: "#bae6fd",
-    colorB: "#0ea5e9",
-    colorC: "#020617",
     angle: 135,
   },
   "velvet-storm": {
@@ -112,13 +89,6 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorC: "#020617",
     angle: 135,
   },
-  "sunset-glow": {
-    patternId: "radial",
-    colorA: "#fb7185",
-    colorB: "#f43f5e",
-    colorC: "#3b0a16",
-    angle: 135,
-  },
   "product-hunt-orange": {
     patternId: "radial",
     colorA: "#fb923c",
@@ -126,25 +96,11 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorC: "#fff7ed",
     angle: 135,
   },
-  "classic-midnight-purple": {
-    patternId: "linear",
-    colorA: "#160f2e",
-    colorB: "#c084fc",
-    colorC: "#4c1d95",
-    angle: 135,
-  },
   "classic-ocean-blue": {
     patternId: "linear",
     colorA: "#082f49",
     colorB: "#bae6fd",
     colorC: "#0284c7",
-    angle: 135,
-  },
-  "classic-sunset-glow": {
-    patternId: "linear",
-    colorA: "#7c2d12",
-    colorB: "#fde68a",
-    colorC: "#fb7185",
     angle: 135,
   },
   "classic-mint-glass": {
@@ -166,13 +122,6 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorA: "#bef264",
     colorB: "#22d3ee",
     colorC: "#052e16",
-    angle: 135,
-  },
-  "classic-clean-gray": {
-    patternId: "linear",
-    colorA: "#f8fafc",
-    colorB: "#e2e8f0",
-    colorC: "#f1f5f9",
     angle: 135,
   },
   "classic-deep-space": {
@@ -295,40 +244,6 @@ function createCustomGradient({
     ].join(", ");
   }
 
-  if (patternId === "silk-waves") {
-    return [
-      `radial-gradient(90% 52% at 22% 8%, ${mixHexColors(
-        colorA,
-        "#ffffff",
-        0.18,
-      )} 0%, transparent 48%)`,
-      `radial-gradient(88% 46% at 86% 18%, ${colorB} 0%, transparent 46%)`,
-      `linear-gradient(158deg, transparent 0 18%, ${mixHexColors(
-        colorA,
-        colorC,
-        0.44,
-      )} 25%, transparent 36%, ${mixHexColors(
-        colorC,
-        "#ffffff",
-        0.08,
-      )} 46%, ${mixHexColors(
-        colorA,
-        colorB,
-        0.24,
-      )} 54%, transparent 68%)`,
-      `radial-gradient(130% 62% at 48% 110%, transparent 0%, ${mixHexColors(
-        colorC,
-        "#ffffff",
-        0.08,
-      )} 52%, ${colorC} 100%)`,
-      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
-        colorC,
-        "#ffffff",
-        0.08,
-      )} 52%, ${mixHexColors(colorC, "#000000", 0.74)} 100%)`,
-    ].join(", ");
-  }
-
   if (patternId === "liquid-chrome") {
     return [
       `radial-gradient(90% 44% at 12% 22%, ${colorA} 0%, transparent 44%)`,
@@ -351,23 +266,6 @@ function createCustomGradient({
         "#000000",
         0.72,
       )} 0%, ${colorC} 54%, ${mixHexColors(colorC, "#000000", 0.78)} 100%)`,
-    ].join(", ");
-  }
-
-  if (patternId === "glass-ridge") {
-    return [
-      `repeating-linear-gradient(164deg, transparent 0 38px, ${mixHexColors(
-        colorA,
-        colorC,
-        0.18,
-      )} 39px 41px, transparent 42px 92px)`,
-      `radial-gradient(86% 48% at 18% 18%, ${colorA} 0%, transparent 46%)`,
-      `radial-gradient(72% 42% at 84% 80%, ${colorB} 0%, transparent 48%)`,
-      `linear-gradient(135deg, ${colorC} 0%, ${mixHexColors(
-        colorC,
-        colorB,
-        0.24,
-      )} 48%, ${mixHexColors(colorC, "#000000", 0.7)} 100%)`,
     ].join(", ");
   }
 

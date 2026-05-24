@@ -11,7 +11,7 @@ import type {
 } from "@/types/editor";
 
 const DEFAULT_CANVAS_PRESET_ID = "wide-hero";
-const DEFAULT_BACKGROUND_PRESET_ID = "classic-midnight-purple";
+const DEFAULT_BACKGROUND_PRESET_ID = "blue-arc-ribbons";
 
 const defaultCanvasPreset = getCanvasPreset(DEFAULT_CANVAS_PRESET_ID);
 const defaultBackgroundPreset = getBackgroundPreset(DEFAULT_BACKGROUND_PRESET_ID);
