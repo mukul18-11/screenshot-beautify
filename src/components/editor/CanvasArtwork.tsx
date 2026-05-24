@@ -1350,6 +1350,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const eventTarget = event.target;
 
       if (
+        event.detail >= 2 &&
+        eventTarget instanceof HTMLElement &&
+        eventTarget.closest("[data-editor-editable-text='true']")
+      ) {
+        return;
+      }
+
+      if (
         eventTarget instanceof HTMLElement &&
         eventTarget.closest("[contenteditable='true']")
       ) {

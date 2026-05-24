@@ -452,11 +452,30 @@ function EditableText({
   }
 
   function handlePointerDown(event: PointerEvent<HTMLElement>) {
-    if (!isEditable || !isEditing) {
+    if (!isEditable) {
       return;
     }
 
+    if (event.detail >= 2) {
+      event.preventDefault();
+      event.stopPropagation();
+      startEditing();
+      return;
+    }
+
+    if (isEditing) {
+      event.stopPropagation();
+    }
+  }
+
+  function handleMouseDown(event: MouseEvent<HTMLElement>) {
+    if (!isEditable || event.detail < 2) {
+      return;
+    }
+
+    event.preventDefault();
     event.stopPropagation();
+    startEditing();
   }
 
   function handleClick(event: MouseEvent<HTMLElement>) {
@@ -464,6 +483,15 @@ function EditableText({
       return;
     }
 
+    event.stopPropagation();
+  }
+
+  function handleDoubleClick(event: MouseEvent<HTMLElement>) {
+    if (!isEditable) {
+      return;
+    }
+
+    event.preventDefault();
     event.stopPropagation();
     startEditing();
   }
@@ -508,9 +536,12 @@ function EditableText({
       )}
       contentEditable={isEditable && isEditing}
       suppressContentEditableWarning
+      data-editor-editable-text="true"
       data-placeholder={placeholder}
       onPointerDown={handlePointerDown}
+      onMouseDown={handleMouseDown}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       style={style}

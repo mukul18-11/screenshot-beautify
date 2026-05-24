@@ -588,7 +588,7 @@ export default function TextOverlayControls() {
           >
             <div className="space-y-3 pt-1">
               <p className="text-[11px] text-slate-400">
-                Click text to edit. Drag corners to resize, top handle left or right to tilt.
+                Double-click text to edit. Drag corners to resize, top handle left or right to tilt.
               </p>
 
               <Button
