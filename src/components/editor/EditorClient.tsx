@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, Lock, Sparkles, Sun, Moon } from "lucide-react";
 
 import EditorSettingsPanel from "@/components/editor/EditorSettingsPanel";
 import { ExportProvider } from "@/components/editor/ExportProvider";
@@ -10,12 +11,40 @@ import { useEditorStore } from "@/store/editor-store";
 
 export default function EditorClient() {
   const uploadedImage = useEditorStore((state) => state.uploadedImage);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+ 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("app-theme") as "light" | "dark" | null;
+    const initialTheme = savedTheme || "dark";
+    if (initialTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    
+    const timer = setTimeout(() => {
+      setTheme(initialTheme);
+    }, 0);
+    
+    return () => clearTimeout(timer);
+  }, []);
+ 
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("app-theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   return (
     <ExportProvider>
       <main className="relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)]">
         <div className="relative z-10 flex min-h-screen flex-col">
-          <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-white/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
             <div className="flex items-center gap-3">
               <Link
                 href="/"
@@ -25,7 +54,7 @@ export default function EditorClient() {
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </Link>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--editor-ink)] text-white shadow-lg shadow-slate-950/15">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-950 shadow-lg shadow-slate-950/15">
                   <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                 </div>
                 <div>
@@ -38,19 +67,34 @@ export default function EditorClient() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-[var(--editor-border)] bg-white/70 px-3 py-1.5 text-[11px] font-bold text-[var(--editor-muted)] shadow-sm">
-              <Lock className="h-3 w-3" aria-hidden="true" />
-              Local only · Private
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)]"
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4.5 w-4.5 text-amber-500 animate-[spin_60s_linear_infinite]" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-4.5 w-4.5 text-indigo-500" aria-hidden="true" />
+                )}
+              </button>
+              <div className="flex items-center gap-1.5 rounded-full border border-[var(--editor-border)] bg-white/5 px-3 py-1.5 text-[11px] font-bold text-[var(--editor-muted)] shadow-sm">
+                <Lock className="h-3 w-3" aria-hidden="true" />
+                Local only · Private
+              </div>
             </div>
           </header>
 
           <section className="grid min-h-0 w-full flex-1 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_440px]">
-            <div className="relative flex min-h-[calc(100svh-4rem)] min-w-0 items-stretch overflow-hidden bg-white">
+            <div className="relative flex min-h-[calc(100svh-4rem)] min-w-0 items-stretch overflow-hidden bg-[var(--editor-bg-strong)]">
               <div
                 className="pointer-events-none absolute inset-0 opacity-70"
                 style={{
                   backgroundImage:
-                    "linear-gradient(rgba(9, 9, 11, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(9, 9, 11, 0.07) 1px, transparent 1px)",
+                    "linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px)",
                   backgroundSize: "34px 34px",
                 }}
                 aria-hidden="true"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Footer from "@/components/landing/Footer";
 import ExampleShowcase from "@/components/landing/ExampleShowcase";
 import FAQSection, { FAQS } from "@/components/landing/FAQSection";
@@ -89,6 +90,10 @@ function StructuredData() {
 }
 
 export default function Home() {
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
+
   return (
     <>
       <StructuredData />

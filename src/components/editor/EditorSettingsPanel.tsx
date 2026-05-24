@@ -95,7 +95,7 @@ function SettingsSectionNav({
   return (
     <nav
       aria-label="Settings sections"
-      className="shrink-0 border-b border-[var(--editor-border)] bg-white/95 px-3 py-2 backdrop-blur-sm lg:order-last lg:h-full lg:border-b-0 lg:border-l lg:px-2 lg:py-3"
+      className="shrink-0 border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/95 px-3 py-2 backdrop-blur-sm lg:order-last lg:h-full lg:border-b-0 lg:border-l lg:px-2 lg:py-3"
     >
       <div
         role="tablist"
@@ -119,7 +119,7 @@ function SettingsSectionNav({
               className={cn(
                 "flex h-14 min-w-[74px] flex-col items-center justify-center gap-1 rounded-xl border px-2 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 lg:h-[68px] lg:min-w-0",
                 isActive
-                  ? "border-slate-950 bg-slate-950 text-white shadow-sm"
+                  ? "border-white bg-white text-slate-950 shadow-sm dark:border-white dark:bg-white dark:text-slate-950"
                   : "border-transparent text-[var(--editor-muted)] hover:bg-[var(--editor-panel-muted)] hover:text-[var(--editor-ink)]",
               )}
             >
@@ -280,16 +280,22 @@ function EmptySettingsContent() {
       transition={{ duration: 0.24, ease: "easeOut" }}
       className="flex min-h-[260px] items-start px-5 py-5 lg:h-[calc(100%-3rem)] lg:min-h-0"
     >
-      <div className="w-full overflow-hidden rounded-2xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] shadow-sm">
+      <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm dark:border-white/10 dark:bg-black dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+        {/* Shimmer shining reflection layer */}
         <div
-          className="border-b border-white/80 px-4 py-4"
+          className="pointer-events-none absolute inset-0 opacity-0 dark:opacity-100"
           style={{
             background:
-              "linear-gradient(135deg, rgba(255,255,255,0.94), rgba(228,235,255,0.72) 55%, rgba(230,248,245,0.78))",
+              "linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 100%)",
           }}
+          aria-hidden="true"
+        />
+
+        <div
+          className="relative border-b border-slate-200/80 bg-gradient-to-br from-slate-50 via-cyan-50/20 to-indigo-50/20 px-4 py-4 dark:border-zinc-800/80 dark:from-zinc-950/60 dark:via-black/40 dark:to-zinc-950/60"
         >
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 dark:bg-white dark:text-slate-950">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
             </div>
             <div>
@@ -298,18 +304,18 @@ function EmptySettingsContent() {
               </h3>
               <p className="mt-1 text-xs font-medium leading-5 text-[var(--editor-muted)]">
                 Your design controls appear here as soon as an image lands on
-                the canvas.
+                 the canvas.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-2.5 p-3 text-xs font-semibold text-[var(--editor-muted)]">
-          <div className="flex items-center gap-2 rounded-xl border border-white/70 bg-white/75 px-3 py-2.5">
+        <div className="relative grid gap-2.5 p-3 text-xs font-semibold text-[var(--editor-muted)]">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200/60 bg-white/60 px-3 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:text-zinc-300">
             <FileImage className="h-4 w-4" aria-hidden="true" />
             PNG, JPG, or WebP up to 10 MB
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-white/70 bg-white/75 px-3 py-2.5">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200/60 bg-white/60 px-3 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:text-zinc-300">
             <ShieldCheck
               className="h-4 w-4 text-[var(--editor-teal)]"
               aria-hidden="true"
@@ -341,7 +347,7 @@ export default function EditorSettingsPanel({
       )}
     >
       {/* Minimal header */}
-      <div className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-[var(--editor-border)] bg-white/95 px-5 backdrop-blur-sm">
+      <div className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/95 px-5 backdrop-blur-sm">
         <h2 className="text-[13px] font-semibold text-[var(--editor-ink)]">
           Settings
         </h2>

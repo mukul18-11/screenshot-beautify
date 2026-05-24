@@ -20,11 +20,11 @@ export default function ExampleShowcase() {
         transition={{ duration: 0.5 }}
         className="mx-auto max-w-xl text-center"
       >
-        <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">Examples</p>
-        <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight">
+        <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider dark:text-cyan-400">Examples</p>
+        <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight dark:text-white">
           Beautify <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-teal-500 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_1px_5px_rgba(249,115,22,0.1)]">any picture or screenshot</span>
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+        <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
           From developer snips and creator analytics dashboards to full-bleed travel posters, style layouts in seconds.
         </p>
       </motion.div>
@@ -61,7 +61,7 @@ export default function ExampleShowcase() {
         <Button
           asChild
           size="lg"
-          className="bg-slate-950 font-semibold px-6 py-5 text-center text-white shadow-xl shadow-slate-950/15 hover:bg-slate-800 transition"
+          className="bg-slate-950 font-semibold px-6 py-5 text-center text-white shadow-xl shadow-slate-950/15 hover:bg-slate-800 transition dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:shadow-slate-950/30"
         >
           <Link href="/editor">
             Create your own visual

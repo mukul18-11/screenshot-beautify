@@ -48,7 +48,7 @@ export default function ScreenshotTray({
   const isBusy = isUploading || isExporting;
 
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/75 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl">
+    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/75 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 dark:shadow-slate-950/20">
       <div className="min-w-0 flex-1 overflow-x-auto">
         <div
           role="list"
@@ -104,12 +104,12 @@ export default function ScreenshotTray({
                     scale: shouldReduceMotion || isBusy ? 1 : 0.98,
                   }}
                   className={cn(
-                    "group relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border bg-slate-100 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-slate-950/20",
+                    "group relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border bg-slate-100 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:bg-slate-900",
                     isSelected
-                      ? "border-slate-950 ring-2 ring-slate-950/12"
+                      ? "border-slate-950 ring-2 ring-slate-950/10 dark:border-white dark:ring-white/10"
                       : isPlaced
-                        ? "border-white/80 hover:border-slate-300"
-                        : "border-dashed border-slate-300 hover:border-slate-500",
+                        ? "border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/30"
+                        : "border-dashed border-slate-300 hover:border-slate-500 dark:border-dashed dark:border-white/10 dark:hover:border-white/30",
                   )}
                 >
                   <span
@@ -131,14 +131,14 @@ export default function ScreenshotTray({
                     className={cn(
                       "absolute left-1.5 top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold shadow-sm",
                       isSelected
-                        ? "bg-slate-950 text-white"
-                        : "bg-white/85 text-slate-600",
+                        ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                        : "bg-white/85 text-slate-600 dark:bg-slate-950/85 dark:text-slate-300",
                     )}
                   >
                     {index + 1}
                   </span>
                   {isSelected && (
-                    <span className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-inset ring-slate-950" />
+                    <span className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-inset ring-slate-950 dark:ring-white" />
                   )}
                   {isPlaced && (
                     <span className="absolute bottom-1.5 right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
@@ -177,7 +177,7 @@ export default function ScreenshotTray({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 border-l border-slate-200/70 pl-2">
+      <div className="flex shrink-0 items-center gap-1 border-l border-slate-200/70 pl-2 dark:border-white/10">
         <Button
           type="button"
           size="icon"
@@ -189,7 +189,7 @@ export default function ScreenshotTray({
             event.stopPropagation();
             undo();
           }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950"
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
         >
           <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
@@ -204,11 +204,11 @@ export default function ScreenshotTray({
             event.stopPropagation();
             redo();
           }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950"
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
         >
           <Redo2 className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
-        <span className="hidden min-w-10 text-center text-[11px] font-bold text-slate-500 sm:inline">
+        <span className="hidden min-w-10 text-center text-[11px] font-bold text-slate-500 sm:inline dark:text-slate-400">
           {screenshots.length}/{MAX_SCREENSHOT_UPLOADS}
         </span>
         <Button
@@ -222,7 +222,7 @@ export default function ScreenshotTray({
             event.stopPropagation();
             onAdd?.();
           }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950"
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
@@ -237,7 +237,7 @@ export default function ScreenshotTray({
             event.stopPropagation();
             onReplace?.();
           }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950"
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
         >
           <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
@@ -252,7 +252,7 @@ export default function ScreenshotTray({
             event.stopPropagation();
             onRemove?.();
           }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-400 shadow-sm hover:bg-white hover:text-rose-600"
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-400 shadow-sm hover:bg-white hover:text-rose-600 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-rose-450"
         >
           {activeScreenshotId ? (
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />

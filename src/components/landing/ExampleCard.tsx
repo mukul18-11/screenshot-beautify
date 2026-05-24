@@ -152,7 +152,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
         delay: shouldReduceMotion ? 0 : index * 0.04,
         ease: "easeOut",
       }}
-      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 p-2 shadow-soft backdrop-blur-xl transition hover:border-slate-350 hover:shadow-md h-full justify-between"
+      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 p-2 shadow-soft backdrop-blur-xl transition hover:border-slate-350 hover:shadow-md h-full justify-between dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:shadow-slate-950/20"
     >
       <div
         className="relative flex flex-1 flex-col justify-between overflow-hidden rounded-xl p-4 sm:p-5"
@@ -166,7 +166,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
               "mb-2.5 w-fit rounded-full border px-2.5 py-0.5 text-[9px] font-bold tracking-wider uppercase select-none",
               isLightText
                 ? "border-white/20 bg-white/10 text-white"
-                : "border-slate-950/10 bg-white/45 text-slate-800",
+                : "border-slate-950/10 bg-white/45 text-slate-800 dark:border-white/10 dark:bg-white/10 dark:text-white",
             )}
           >
             {example.badge}
@@ -174,7 +174,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
           <h3
             className={cn(
               "text-lg font-extrabold font-display tracking-tight leading-snug",
-              isLightText ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]" : "text-slate-950",
+              isLightText ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]" : "text-slate-950 dark:text-white",
             )}
           >
             {example.title}
@@ -182,7 +182,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
           <p
             className={cn(
               "mt-1.5 max-w-[20rem] text-xs leading-relaxed",
-              isLightText ? "text-white/80" : "text-slate-650",
+              isLightText ? "text-white/80" : "text-slate-650 dark:text-slate-300",
             )}
           >
             {example.description}

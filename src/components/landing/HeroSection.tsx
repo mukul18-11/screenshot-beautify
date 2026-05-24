@@ -134,21 +134,21 @@ function HeroMockup() {
                 duration: 0.3,
                 ease: "easeOut",
               }}
-              className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 text-slate-950 shadow-md flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-300"
+              className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 text-slate-950 shadow-md flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-50 dark:hover:border-slate-700"
             >
-              <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-slate-900" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-950">Raw Screenshot</span>
+                  <span className="h-2 w-2 rounded-full bg-slate-900 dark:bg-slate-100" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-950 dark:text-slate-100">Raw Screenshot</span>
                 </div>
-                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-900">
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">
                   Before
                 </span>
               </div>
               
-              <div className="relative flex-1 rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-col justify-center items-center overflow-hidden">
+              <div className="relative flex-1 rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-col justify-center items-center overflow-hidden dark:border-slate-800 dark:bg-slate-950">
                 {/* A plain, straight screenshot image with crisp borders, fully visible, no faded overlay */}
-                <div className="w-full rounded-lg border border-slate-300 bg-white overflow-hidden shadow-sm aspect-[16/10]">
+                <div className="w-full rounded-lg border border-slate-300 bg-white overflow-hidden shadow-sm aspect-[16/10] dark:border-slate-800 dark:bg-slate-900">
                   <img 
                     src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" 
                     alt="Raw SaaS Dashboard" 
@@ -168,7 +168,7 @@ function HeroMockup() {
               className="h-full"
             >
               <LandingHoverTilt
-                className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 text-slate-950 shadow-md flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-300"
+                className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 text-slate-950 shadow-md flex flex-col justify-between min-h-[380px] transition-all duration-300 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-50 dark:hover:border-slate-700"
                 settings={{
                   perspective: 1200,
                   rotateX: 0,
@@ -177,12 +177,12 @@ function HeroMockup() {
                   sensitivity: 10,
                 }}
               >
-                <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-teal-600 animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-950">Polished Output</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-950 dark:text-slate-100">Polished Output</span>
                   </div>
-                  <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[10px] font-bold text-teal-700">
+                  <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[10px] font-bold text-teal-700 dark:bg-teal-950/50 dark:border-teal-800 dark:text-teal-400">
                     After
                   </span>
                 </div>
@@ -203,15 +203,15 @@ function HeroMockup() {
                   </div>
 
                   {/* Elegant macOS Browser Mockup - Larger, filling container */}
-                  <div className="relative z-10 w-full rounded-lg border border-white/10 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.22)] overflow-hidden flex flex-col transform translate-y-2 group-hover:translate-y-0.5 transition-transform duration-500 [transform-style:preserve-3d] mt-3">
+                  <div className="relative z-10 w-full rounded-lg border border-white/10 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.22)] overflow-hidden flex flex-col transform translate-y-2 group-hover:translate-y-0.5 transition-transform duration-500 [transform-style:preserve-3d] mt-3 dark:bg-slate-950 dark:border-slate-800">
                     {/* Browser Bar */}
-                    <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-2.5 py-2">
+                    <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-2.5 py-2 dark:border-slate-800 dark:bg-slate-900/80">
                       <div className="flex gap-1.5">
                         <span className="h-2 w-2 rounded-full bg-[#ff5f56]" />
                         <span className="h-2 w-2 rounded-full bg-[#ffbd2e]" />
                         <span className="h-2 w-2 rounded-full bg-[#27c93f]" />
                       </div>
-                      <div className="h-4 w-28 rounded bg-slate-200/50 border border-slate-200/30 flex items-center justify-center text-[7.5px] font-medium text-slate-500">
+                      <div className="h-4 w-28 rounded bg-slate-200/50 border border-slate-200/30 flex items-center justify-center text-[7.5px] font-medium text-slate-500 dark:bg-slate-800/50 dark:border-slate-700/30 dark:text-slate-400">
                         analytics.acme.com
                       </div>
                       <div className="w-6" />
@@ -250,7 +250,7 @@ export default function HeroSection() {
         >
           <motion.div 
             variants={textItemVariants}
-            className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-white/70 bg-white/65 px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur-xl lg:mx-0"
+            className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-white/70 bg-white/65 px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur-xl lg:mx-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300"
           >
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span className="truncate">Your screenshots never leave your browser.</span>
@@ -258,14 +258,14 @@ export default function HeroSection() {
           
           <motion.h1 
             variants={textItemVariants}
-            className="text-balance font-display text-4xl font-extrabold leading-[1.03] tracking-tight text-slate-950 sm:text-5xl lg:text-[4.25rem]"
+            className="text-balance font-display text-4xl font-extrabold leading-[1.03] tracking-tight text-slate-950 sm:text-5xl lg:text-[4.25rem] dark:text-white"
           >
             Screenshot Beautifier turns raw screenshots into <span className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(6,182,212,0.1)]">launch-ready visuals</span>
           </motion.h1>
           
           <motion.p 
             variants={textItemVariants}
-            className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0"
+            className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0 dark:text-slate-400"
           >
             Paste a product screenshot, choose a quick style, add browser
             frames, text, and tasteful depth, then export a sharp PNG for X,
@@ -298,7 +298,7 @@ export default function HeroSection() {
                 <Button
                   asChild
                   size="lg"
-                  className="relative z-10 bg-slate-950 text-white hover:bg-slate-900 border-none flex items-center gap-2 group rounded-xl shadow-none"
+                  className="relative z-10 bg-slate-950 text-white hover:bg-slate-900 border-none flex items-center gap-2 group rounded-xl shadow-none dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
                 >
                   <Link href="/editor">
                     Start beautifying
@@ -324,7 +324,7 @@ export default function HeroSection() {
                 asChild
                 size="lg"
                 variant="secondary"
-                className="border border-white/70 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950"
+                className="border border-white/70 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/15 dark:hover:text-white"
               >
                 <Link href="#examples">View examples</Link>
               </Button>
@@ -333,7 +333,7 @@ export default function HeroSection() {
 
           <motion.div 
             variants={textItemVariants}
-            className="mt-6 grid gap-3 text-left text-sm font-medium text-slate-600 sm:grid-cols-3"
+            className="mt-6 grid gap-3 text-left text-sm font-medium text-slate-600 sm:grid-cols-3 dark:text-slate-300"
           >
             {["No account", "No upload server", "PNG export"].map((item) => (
               <motion.div 
@@ -341,7 +341,7 @@ export default function HeroSection() {
                 className="flex items-center gap-2"
                 variants={itemVariants}
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
                 {item}

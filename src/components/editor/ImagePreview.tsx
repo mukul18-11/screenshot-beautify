@@ -74,7 +74,7 @@ export default function ImagePreview({
                     event.stopPropagation();
                     onReplace?.();
                   }}
-                  className="h-8 gap-1.5 rounded-lg bg-white/70 px-2.5 text-xs text-[var(--editor-muted)] shadow-sm hover:bg-white hover:text-[var(--editor-ink)]"
+                  className="h-8 gap-1.5 rounded-lg bg-white/70 px-2.5 text-xs text-[var(--editor-muted)] shadow-sm hover:bg-white hover:text-[var(--editor-ink)] dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-400 dark:hover:text-white"
                 >
                   <RefreshCw className="h-3 w-3" aria-hidden="true" />
                   Replace
@@ -96,7 +96,7 @@ export default function ImagePreview({
                     onRemove?.();
                   }}
                   disabled={isUploading}
-                  className="h-8 gap-1.5 rounded-lg bg-white/70 px-2.5 text-xs text-[var(--editor-soft)] shadow-sm hover:bg-white hover:text-rose-600"
+                  className="h-8 gap-1.5 rounded-lg bg-white/70 px-2.5 text-xs text-[var(--editor-soft)] shadow-sm hover:bg-white hover:text-rose-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-400 dark:hover:text-rose-400"
                 >
                   <Trash2 className="h-3 w-3" aria-hidden="true" />
                   Remove
@@ -122,14 +122,14 @@ export default function ImagePreview({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[rgba(238,243,248,0.82)] backdrop-blur-sm"
+              className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[rgba(238,243,248,0.82)] backdrop-blur-sm dark:bg-slate-950/80"
             >
               <div className="flex flex-col items-center gap-2">
                 <Loader2
-                  className="h-5 w-5 animate-spin text-slate-400"
+                  className="h-5 w-5 animate-spin text-slate-400 dark:text-slate-500"
                   aria-hidden="true"
                 />
-                <span className="text-xs font-medium text-slate-400">Loading…</span>
+                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">Loading…</span>
               </div>
             </motion.div>
           )}

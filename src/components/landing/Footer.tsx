@@ -7,7 +7,7 @@ export default function Footer() {
   const CURRENT_YEAR = new Date().getFullYear();
 
   return (
-    <footer className="w-full border-t border-slate-100 bg-white text-slate-600">
+    <footer className="w-full border-t border-slate-100 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-400">
       {/* Primary Footer Directory */}
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3 lg:grid-cols-5">
@@ -16,22 +16,22 @@ export default function Footer() {
           <div className="flex flex-col gap-4 md:col-span-3 lg:col-span-1">
             <Link
               href="/"
-              className="flex items-center gap-2.5 text-slate-950"
+              className="flex items-center gap-2.5 text-slate-950 dark:text-slate-100"
               aria-label="Screenshot Beautifier home"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-md">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-md dark:bg-white dark:text-slate-950">
                 <Sparkles className="h-4.5 w-4.5" aria-hidden="true" />
               </span>
-              <span className="text-sm font-display font-bold tracking-tight text-slate-950">
+              <span className="text-sm font-display font-bold tracking-tight text-slate-950 dark:text-white">
                 Screenshot Beautifier
               </span>
             </Link>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
               The premium, local-first utility for turning raw screenshots into high-impact launch creatives in one click.
             </p>
             
             {/* Privacy Trust Badge */}
-            <div className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/50 p-2 text-[10px] font-semibold text-slate-500">
+            <div className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/50 p-2 text-[10px] font-semibold text-slate-500 dark:border-white/5 dark:bg-white/5 dark:text-slate-400">
               <Shield className="h-3.5 w-3.5 text-emerald-600" />
               <span>100% Client-side. Privacy guaranteed.</span>
             </div>
@@ -42,7 +42,7 @@ export default function Footer() {
                 href="https://x.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition hover:text-slate-900"
+                className="transition hover:text-slate-900 dark:hover:text-white"
                 aria-label="Follow on X (Twitter)"
               >
                 <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -53,7 +53,7 @@ export default function Footer() {
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition hover:text-slate-900"
+                className="transition hover:text-slate-900 dark:hover:text-white"
                 aria-label="Connect on LinkedIn"
               >
                 <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -62,7 +62,7 @@ export default function Footer() {
               </a>
               <a
                 href="mailto:support@screenshotbeautifier.com"
-                className="transition hover:text-slate-900"
+                className="transition hover:text-slate-900 dark:hover:text-white"
                 aria-label="Send an Email"
               >
                 <svg className="h-4 w-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -75,37 +75,37 @@ export default function Footer() {
 
           {/* Column 2: Capabilities & High-Intent Navigation */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
               Product
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5 text-xs font-medium">
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Browser Frames
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   3D Perspective Tilt
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Canvas Presets
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Text Annotations
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   High-Res PNG Export
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Clipboard Copy
                 </Link>
               </li>
@@ -114,32 +114,32 @@ export default function Footer() {
 
           {/* Column 3: Use Cases / Segments */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
               Use Cases
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5 text-xs font-medium">
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   SaaS Product Launches
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Social Media Marketing
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Mobile App Mockups
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Pitch Decks & Demos
                 </Link>
               </li>
               <li>
-                <Link href="/editor" className="transition hover:text-slate-950">
+                <Link href="/editor" className="transition hover:text-slate-950 dark:hover:text-white">
                   Indie Hacking Builders
                 </Link>
               </li>
@@ -148,33 +148,33 @@ export default function Footer() {
 
           {/* Column 4: Resources & Guides (Natural Blog SEO Anchors) */}
           <div>
-            <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
               <BookOpen className="h-3.5 w-3.5 text-slate-500" />
               Resources
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5 text-xs font-medium">
               <li>
-                <Link href="/#faq" className="transition hover:text-slate-950 hover:underline">
+                <Link href="/#faq" className="transition hover:text-slate-950 hover:underline dark:hover:text-white">
                   Product Hunt Launch Kit
                 </Link>
               </li>
               <li>
-                <Link href="/#examples" className="transition hover:text-slate-950 hover:underline">
+                <Link href="/#examples" className="transition hover:text-slate-950 hover:underline dark:hover:text-white">
                   Optimal Twitter Image Sizes
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950 hover:underline">
+                <Link href="/#features" className="transition hover:text-slate-950 hover:underline dark:hover:text-white">
                   Designing for Conversion
                 </Link>
               </li>
               <li>
-                <Link href="/#faq" className="transition hover:text-slate-950 hover:underline">
+                <Link href="/#faq" className="transition hover:text-slate-950 hover:underline dark:hover:text-white">
                   Client-side Privacy Guide
                 </Link>
               </li>
               <li>
-                <Link href="/#workflow" className="transition hover:text-slate-950 hover:underline">
+                <Link href="/#workflow" className="transition hover:text-slate-950 hover:underline dark:hover:text-white">
                   SaaS Screenshot Mockup Tips
                 </Link>
               </li>
@@ -183,32 +183,32 @@ export default function Footer() {
 
           {/* Column 5: Comparisons (Organic Comparative Search Targets) */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
               Compare
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5 text-xs font-medium">
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950">
+                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Figma Mockups
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950">
+                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Canva Templates
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950">
+                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Cloud Generators
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950">
+                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Manual Crop Tools
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950">
+                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Browser DevTools
                 </Link>
               </li>
@@ -218,37 +218,37 @@ export default function Footer() {
         </div>
 
         {/* Natural Geo-adaptivity Section */}
-        <div className="mt-12 border-t border-slate-100 pt-8">
+        <div className="mt-12 border-t border-slate-100 pt-8 dark:border-white/10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              <Globe className="h-3.5 w-3.5 text-slate-300" />
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <Globe className="h-3.5 w-3.5 text-slate-300 dark:text-slate-650" />
               <span>Designed for Builders Worldwide</span>
             </div>
-            <p className="max-w-2xl text-[11px] leading-relaxed text-slate-400 font-medium">
+            <p className="max-w-2xl text-[11px] leading-relaxed text-slate-400 font-medium dark:text-slate-500">
               Empowering remote startup founders, software builders, and designers globally — from tech hubs in Silicon Valley, London, and Austin, to developers in Bangalore, Tokyo, Berlin, Paris, Singapore, Toronto, and Sydney.
             </p>
           </div>
         </div>
 
         {/* Footer Base Legal & Credits */}
-        <div className="mt-8 border-t border-slate-100 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px] font-medium text-slate-400">
+        <div className="mt-8 border-t border-slate-100 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px] font-medium text-slate-400 dark:border-white/10 dark:text-slate-500">
           <div>
             <span>© {CURRENT_YEAR} Screenshot Beautifier. All rights reserved.</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-            <Link href="/#faq" className="transition hover:text-slate-900">
+            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
               Privacy Policy
             </Link>
             <span>•</span>
-            <Link href="/#faq" className="transition hover:text-slate-900">
+            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
               Terms of Service
             </Link>
             <span>•</span>
-            <Link href="/#faq" className="transition hover:text-slate-900">
+            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
               Security
             </Link>
             <span>•</span>
-            <Link href="/#faq" className="transition hover:text-slate-900">
+            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
               GDPR Compliance
             </Link>
           </div>

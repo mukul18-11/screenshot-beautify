@@ -115,9 +115,9 @@ export default function UploadZone() {
           !hasScreenshots
             ? "border-transparent bg-transparent p-4 sm:p-6 lg:p-8"
             : "border-transparent bg-transparent",
-          isDragActive && "border-blue-500/60 bg-blue-50/50",
-          isDragAccept && "border-emerald-500/60 bg-emerald-50/50",
-          isDragReject && "border-rose-500/60 bg-rose-50/50",
+          isDragActive && "border-blue-500/60 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-500/30",
+          isDragAccept && "border-emerald-500/60 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-500/30",
+          isDragReject && "border-rose-500/60 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-500/30",
         )}
       >
         <input
@@ -150,8 +150,8 @@ export default function UploadZone() {
                 className={cn(
                   "absolute left-0 right-0 top-4 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-full px-4 py-2 text-center text-sm font-semibold shadow-lg backdrop-blur-xl",
                   dragState === "reject"
-                    ? "bg-rose-50/90 text-rose-700"
-                    : "bg-white/90 text-emerald-700",
+                    ? "bg-rose-50/90 text-rose-700 dark:bg-rose-950/90 dark:text-rose-200"
+                    : "bg-white/90 text-emerald-700 dark:bg-slate-900/90 dark:text-emerald-400",
                 )}
               >
                 {dragStateCopy}
@@ -204,7 +204,7 @@ export default function UploadZone() {
                 id="upload-error"
                 role="alert"
                 aria-live="assertive"
-                className="inline-flex max-w-md items-center gap-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-600"
+                className="inline-flex max-w-md items-center gap-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-600 dark:bg-rose-950/80 dark:text-rose-200"
               >
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>
