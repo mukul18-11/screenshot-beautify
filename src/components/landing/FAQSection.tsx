@@ -97,9 +97,8 @@ export default function FAQSection() {
         {/* Left Column: Sticky Section Title */}
         <motion.div
           variants={shouldReduceMotion ? undefined : headerVariants}
-          initial={shouldReduceMotion ? undefined : "hidden"}
-          whileInView={shouldReduceMotion ? undefined : "show"}
-          viewport={{ once: true, margin: "-120px" }}
+          initial={false}
+          animate={shouldReduceMotion ? undefined : "show"}
           className="lg:col-span-5 lg:sticky lg:top-32 h-fit space-y-5 relative"
         >
           {/* Subtle localized glow behind text */}
@@ -124,9 +123,8 @@ export default function FAQSection() {
         {/* Right Column: Staggered Expandable Accordion List */}
         <motion.div
           variants={shouldReduceMotion ? undefined : containerVariants}
-          initial={shouldReduceMotion ? undefined : "hidden"}
-          whileInView={shouldReduceMotion ? undefined : "show"}
-          viewport={{ once: true, margin: "-120px" }}
+          initial={false}
+          animate={shouldReduceMotion ? undefined : "show"}
           className="lg:col-span-7 space-y-4"
         >
           {FAQS.map((faq, index) => {

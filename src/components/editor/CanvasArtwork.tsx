@@ -2281,66 +2281,68 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
               className="flex w-full"
               settings={tiltSettings}
             >
-              {layerSettings.browserFrameEnabled ? (
-                <div
-                  className="w-full overflow-hidden"
-                  style={mockupDecorationStyle}
-                >
-                  <BrowserFrame
-                    radius={0}
-                    showUrl={layerSettings.browserFrameShowUrl}
-                    theme={layerSettings.browserFrameTheme}
-                    url={layerSettings.browserFrameUrl}
-                    variant={layerSettings.browserFrameStyle}
+              <div className="relative flex w-full">
+                {layerSettings.browserFrameEnabled ? (
+                  <div
+                    className="w-full overflow-hidden"
+                    style={mockupDecorationStyle}
                   >
-                    <motion.div
-                      ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
-                      className="relative overflow-hidden"
-                      style={{
-                        ...screenshotCropStyle,
-                        touchAction: "pan-y",
-                      }}
+                    <BrowserFrame
+                      radius={0}
+                      showUrl={layerSettings.browserFrameShowUrl}
+                      theme={layerSettings.browserFrameTheme}
+                      url={layerSettings.browserFrameUrl}
+                      variant={layerSettings.browserFrameStyle}
                     >
-                      <div style={cropContentStyle}>
-                        <AnimatePresence mode="wait">
-                          {screenshotPreview}
-                        </AnimatePresence>
-                      </div>
-                    </motion.div>
-                  </BrowserFrame>
-                </div>
-              ) : (
-                <motion.div
-                  ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
-                  className="relative overflow-hidden"
-                  style={{
-                    ...screenshotCropStyle,
-                    ...mockupDecorationStyle,
-                    touchAction: "pan-y",
-                  }}
-                >
-                  <div style={cropContentStyle}>
-                    <AnimatePresence mode="wait">
-                      {screenshotPreview}
-                    </AnimatePresence>
+                      <motion.div
+                        ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
+                        className="relative overflow-hidden"
+                        style={{
+                          ...screenshotCropStyle,
+                          touchAction: "pan-y",
+                        }}
+                      >
+                        <div style={cropContentStyle}>
+                          <AnimatePresence mode="wait">
+                            {screenshotPreview}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    </BrowserFrame>
                   </div>
-                </motion.div>
-              )}
-            </TiltedMockupWrapper>
+                ) : (
+                  <motion.div
+                    ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
+                    className="relative overflow-hidden"
+                    style={{
+                      ...screenshotCropStyle,
+                      ...mockupDecorationStyle,
+                      touchAction: "pan-y",
+                    }}
+                  >
+                    <div style={cropContentStyle}>
+                      <AnimatePresence mode="wait">
+                        {screenshotPreview}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                )}
 
-            {showMockupControls && (
-              <MockupTransformControls
-                imageRadius={layerSettings.imageRadius}
-                onRemoveFromCanvas={() => {
-                  removeScreenshotFromCanvas(screenshot.id);
-                  setIsMockupSelected(false);
-                }}
-                onResizePointerCancel={handleResizePointerEnd}
-                onResizePointerDown={handleResizePointerDown}
-                onResizePointerMove={handleResizePointerMove}
-                onResizePointerUp={handleResizePointerEnd}
-              />
-            )}
+                {showMockupControls && (
+                  <MockupTransformControls
+                    imageRadius={layerSettings.imageRadius}
+                    onRemoveFromCanvas={() => {
+                      removeScreenshotFromCanvas(screenshot.id);
+                      setIsMockupSelected(false);
+                    }}
+                    onResizePointerCancel={handleResizePointerEnd}
+                    onResizePointerDown={handleResizePointerDown}
+                    onResizePointerMove={handleResizePointerMove}
+                    onResizePointerUp={handleResizePointerEnd}
+                  />
+                )}
+              </div>
+            </TiltedMockupWrapper>
           </div>
         </div>
       );
