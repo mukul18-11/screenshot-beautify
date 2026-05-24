@@ -166,6 +166,18 @@ function getContentLayoutClasses(textPosition: TextPosition) {
   return "flex-col gap-4 sm:gap-6";
 }
 
+function getFlowTextOverlaySlotClasses(textPosition: TextPosition) {
+  if (textPosition === "left" || textPosition === "right") {
+    return "w-[34%] basis-[34%] max-w-[34%] justify-center";
+  }
+
+  if (textPosition === "center") {
+    return "max-w-[72%]";
+  }
+
+  return "h-[20%] basis-[20%] max-h-[20%] justify-center";
+}
+
 function getScreenshotSlotClasses(
   textOverlayEnabled: boolean,
   textPosition: TextPosition,
@@ -2174,24 +2186,26 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       },
       transition: { duration: isExportMode ? 0 : 0.26, ease: "easeOut" },
     } as const;
-    const hasTextOverlay =
+    const hasFlowTextOverlay =
       textOverlayEnabled &&
       ((badgeEnabled && badgeText.trim().length > 0) ||
         headlineText.trim().length > 0 ||
-        subtitleText.trim().length > 0 ||
-        customTextLayers.some((layer) => layer.text.trim().length > 0));
+        subtitleText.trim().length > 0);
+    const hasCustomTextOverlay =
+      textOverlayEnabled &&
+      customTextLayers.some((layer) => layer.text.trim().length > 0);
     const screenshotSlotClasses = getScreenshotSlotClasses(
-      hasTextOverlay,
+      hasFlowTextOverlay,
       textPosition,
     );
     const screenshotShellClasses = getScreenshotShellClasses(
-      hasTextOverlay,
+      hasFlowTextOverlay,
       textPosition,
     );
     const fallbackScreenshotSlotWidth = getFallbackScreenshotSlotWidth({
       canvasWidth,
       imagePadding,
-      textOverlayEnabled: hasTextOverlay,
+      textOverlayEnabled: hasFlowTextOverlay,
       textPosition,
     });
     const resolvedScreenshotSlotWidth =
@@ -2263,7 +2277,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         screenshot.uploadedImage.height * layerCropRatios.height;
       const maxScreenshotWidth =
         resolvedScreenshotSlotWidth *
-        getScreenshotMaxWidthRatio(hasTextOverlay, textPosition);
+        getScreenshotMaxWidthRatio(hasFlowTextOverlay, textPosition);
       const screenshotCropWidth =
         Math.max(
           1,
@@ -2466,7 +2480,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         </div>
       );
     }
-    const textOverlay = hasTextOverlay ? (
+    const textOverlay = hasFlowTextOverlay ? (
       <TextOverlay
         activeLayerId={activeTextLayerId}
         badgeEnabled={badgeEnabled}
@@ -2485,6 +2499,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         isEditable={!isExportMode}
         isExportMode={isExportMode}
         isMovable={!isExportMode}
+        layerScope="default"
         onLayerClickCapture={handleTextLayerClickCapture}
         onLayerEditStart={setActiveTextLayerId}
         onLayerPointerCancel={handleTextLayerPointerEnd}
@@ -2522,7 +2537,75 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         textShadowOffsetY={textShadowOffsetY}
         textShadowOpacity={textShadowOpacity}
         textUnderline={textUnderline}
-        className={cn(textPosition === "center" && "max-w-[72%]")}
+        className={getFlowTextOverlaySlotClasses(textPosition)}
+        placementBounds={
+          isExportMode
+            ? {
+                height: canvasHeight,
+                width: canvasWidth,
+              }
+            : undefined
+        }
+      />
+    ) : null;
+    const customTextOverlay = hasCustomTextOverlay ? (
+      <TextOverlay
+        activeLayerId={activeTextLayerId}
+        badgeEnabled={badgeEnabled}
+        badgeOffsetX={badgeOffsetX}
+        badgeOffsetY={badgeOffsetY}
+        badgeRotation={badgeRotation}
+        badgeSize={badgeSize}
+        badgeText={badgeText}
+        customTextLayers={customTextLayers}
+        textLayerStyles={textLayerStyles}
+        headlineOffsetX={headlineOffsetX}
+        headlineOffsetY={headlineOffsetY}
+        headlineRotation={headlineRotation}
+        headlineSize={headlineSize}
+        headlineText={headlineText}
+        isCanvasOverlay
+        isEditable={!isExportMode}
+        isExportMode={isExportMode}
+        isMovable={!isExportMode}
+        layerScope="custom"
+        onLayerClickCapture={handleTextLayerClickCapture}
+        onLayerEditStart={setActiveTextLayerId}
+        onLayerPointerCancel={handleTextLayerPointerEnd}
+        onLayerPointerDown={handleTextLayerPointerDown}
+        onLayerPointerMove={handleTextLayerPointerMove}
+        onLayerPointerUp={handleTextLayerPointerEnd}
+        onLayerResizePointerCancel={handleTextResizePointerEnd}
+        onLayerResizePointerDown={handleTextResizePointerDown}
+        onLayerResizePointerMove={handleTextResizePointerMove}
+        onLayerResizePointerUp={handleTextResizePointerEnd}
+        onLayerRotatePointerCancel={handleTextRotatePointerEnd}
+        onLayerRotatePointerDown={handleTextRotatePointerDown}
+        onLayerRotatePointerMove={handleTextRotatePointerMove}
+        onLayerRotatePointerUp={handleTextRotatePointerEnd}
+        subtitleOffsetX={subtitleOffsetX}
+        subtitleOffsetY={subtitleOffsetY}
+        subtitleRotation={subtitleRotation}
+        subtitleSize={subtitleSize}
+        subtitleText={subtitleText}
+        textAlign={textAlign}
+        textColor={textColor}
+        textFontId={textFontId}
+        textFontWeight={textFontWeight}
+        textItalic={textItalic}
+        textLetterSpacing={textLetterSpacing}
+        textLineHeight={textLineHeight}
+        textOpacity={textOpacity}
+        textPosition={textPosition}
+        textShadowBlur={textShadowBlur}
+        textShadowColor={textShadowColor}
+        textShadowDepth={textShadowDepth}
+        textShadowEnabled={textShadowEnabled}
+        textShadowMode={textShadowMode}
+        textShadowOffsetX={textShadowOffsetX}
+        textShadowOffsetY={textShadowOffsetY}
+        textShadowOpacity={textShadowOpacity}
+        textUnderline={textUnderline}
         placementBounds={
           isExportMode
             ? {
@@ -2626,12 +2709,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         <div
           className={cn(
             "relative flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
-            hasTextOverlay && getContentLayoutClasses(textPosition),
+            hasFlowTextOverlay && getContentLayoutClasses(textPosition),
           )}
           style={{ padding: canvasPadding }}
         >
-          {hasTextOverlay && textPosition === "top" && textOverlay}
-          {hasTextOverlay && textPosition === "left" && textOverlay}
+          {hasFlowTextOverlay && textPosition === "top" && textOverlay}
+          {hasFlowTextOverlay && textPosition === "left" && textOverlay}
 
           <div
             ref={screenshotSlotRef}
@@ -2640,14 +2723,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             {sortedScreenshotLayers.map(renderScreenshotLayer)}
           </div>
 
-          {hasTextOverlay && textPosition === "center" && (
+          {hasFlowTextOverlay && textPosition === "center" && (
             <div className="pointer-events-none relative z-10 flex h-full w-full items-center justify-center">
               {textOverlay}
             </div>
           )}
-          {hasTextOverlay && textPosition === "right" && textOverlay}
-          {hasTextOverlay && textPosition === "bottom" && textOverlay}
+          {hasFlowTextOverlay && textPosition === "right" && textOverlay}
+          {hasFlowTextOverlay && textPosition === "bottom" && textOverlay}
         </div>
+        {customTextOverlay}
       </div>
     );
   },

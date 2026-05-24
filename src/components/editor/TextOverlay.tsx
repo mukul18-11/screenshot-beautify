@@ -47,8 +47,10 @@ type TextOverlayProps = {
   headlineSize: number;
   headlineText: string;
   isEditable?: boolean;
+  isCanvasOverlay?: boolean;
   isExportMode?: boolean;
   isMovable?: boolean;
+  layerScope?: "all" | "default" | "custom";
   placementBounds?: {
     height: number;
     width: number;
@@ -190,6 +192,7 @@ function createLayerPlacementStyle(
   offsetX: number,
   offsetY: number,
   rotation: number,
+  anchorToCenter = false,
   placementBounds?: { height: number; width: number },
 ) {
   const translateX = placementBounds
@@ -200,7 +203,9 @@ function createLayerPlacementStyle(
     : `calc(${offsetY} * 50cqh)`;
 
   return {
-    transform: `translate(${translateX}, ${translateY}) rotate(${rotation}deg)`,
+    transform: `${
+      anchorToCenter ? "translate(-50%, -50%) " : ""
+    }translate(${translateX}, ${translateY}) rotate(${rotation}deg)`,
     transformOrigin: "center",
   } satisfies CSSProperties;
 }
@@ -568,8 +573,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     headlineSize,
     headlineText,
     isEditable = false,
+    isCanvasOverlay = false,
     isExportMode = false,
     isMovable = false,
+    layerScope = "all",
     placementBounds,
     onLayerClickCapture,
     onLayerEditStart,
@@ -621,11 +628,18 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   const normalizedHeadlineText = headlineText.trim();
   const normalizedSubtitleText = subtitleText.trim();
   const shouldShowBadge = badgeEnabled && normalizedBadgeText.length > 0;
-  const hasText =
-    shouldShowBadge ||
-    normalizedHeadlineText.length > 0 ||
-    normalizedSubtitleText.length > 0 ||
+  const shouldRenderDefaultLayers = layerScope !== "custom";
+  const shouldRenderCustomLayers = layerScope !== "default";
+  const hasDefaultText =
+    shouldRenderDefaultLayers &&
+    (shouldShowBadge ||
+      normalizedHeadlineText.length > 0 ||
+      normalizedSubtitleText.length > 0);
+  const hasCustomText =
+    shouldRenderCustomLayers &&
     customTextLayers.some((layer) => layer.text.trim().length > 0);
+  const hasText =
+    hasDefaultText || hasCustomText;
 
   if (!hasText) {
     return null;
@@ -669,18 +683,21 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     badgeOffsetX,
     badgeOffsetY,
     badgeRotation,
+    false,
     placementBounds,
   );
   const headlinePlacementStyle = createLayerPlacementStyle(
     headlineOffsetX,
     headlineOffsetY,
     headlineRotation,
+    false,
     placementBounds,
   );
   const subtitlePlacementStyle = createLayerPlacementStyle(
     subtitleOffsetX,
     subtitleOffsetY,
     subtitleRotation,
+    false,
     placementBounds,
   );
 
@@ -707,14 +724,16 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   return (
     <div
       className={cn(
-        "pointer-events-none relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
-        getTextAlignClass(textAlign),
-        getTextWidthClass(textPosition),
+        isCanvasOverlay
+          ? "pointer-events-none absolute inset-0 z-10 overflow-visible"
+          : "pointer-events-none relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
+        !isCanvasOverlay && getTextAlignClass(textAlign),
+        !isCanvasOverlay && getTextWidthClass(textPosition),
         className,
       )}
       ref={forwardedRef}
     >
-      {shouldShowBadge && (
+      {shouldRenderDefaultLayers && shouldShowBadge && (
         <div
           {...createLayerInteractionProps("badge")}
           data-text-layer-id="badge"
@@ -759,7 +778,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
         </div>
       )}
 
-      {normalizedHeadlineText && (
+      {shouldRenderDefaultLayers && normalizedHeadlineText && (
         <div
           {...createLayerInteractionProps("headline")}
           data-text-layer-id="headline"
@@ -799,7 +818,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
         </div>
       )}
 
-      {normalizedSubtitleText && (
+      {shouldRenderDefaultLayers && normalizedSubtitleText && (
         <div
           {...createLayerInteractionProps("subtitle")}
           data-text-layer-id="subtitle"
@@ -839,7 +858,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
         </div>
       )}
 
-      {customTextLayers.map((layer) => {
+      {shouldRenderCustomLayers && customTextLayers.map((layer) => {
         const normalizedCustomText = layer.text.trim();
 
         if (!normalizedCustomText) {
@@ -851,6 +870,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           layer.offsetX,
           layer.offsetY,
           layer.rotation,
+          isCanvasOverlay,
           placementBounds,
         );
 
@@ -860,7 +880,9 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             {...createLayerInteractionProps(layer.id)}
             data-text-layer-id={layer.id}
             className={cn(
-              "pointer-events-auto relative max-w-full touch-none",
+              isCanvasOverlay
+                ? "pointer-events-auto absolute left-1/2 top-1/2 max-w-[76%] touch-none"
+                : "pointer-events-auto relative max-w-full touch-none",
               isMovable && "cursor-move select-none",
             )}
             style={customPlacementStyle}
