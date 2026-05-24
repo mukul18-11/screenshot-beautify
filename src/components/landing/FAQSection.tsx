@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { HelpCircle, ChevronDown } from "lucide-react";
 
 export const FAQS = [
@@ -38,51 +38,11 @@ export const FAQS = [
 ] as const;
 
 export default function FAQSection() {
-  const shouldReduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const toggleIndex = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
-
-  // Variants for parent container to stagger children entrance
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  // Variants for individual FAQ cards
-  const cardVariants = {
-    hidden: { opacity: 0, y: 35 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 90,
-        damping: 14,
-      },
-    },
-  } as const;
-
-  // Variants for the sticky left header
-  const headerVariants = {
-    hidden: { opacity: 0, x: -30 },
-    show: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        type: "spring",
-        stiffness: 70,
-        damping: 15,
-      },
-    },
-  } as const;
 
   return (
     <section
@@ -95,12 +55,7 @@ export default function FAQSection() {
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
         {/* Left Column: Sticky Section Title */}
-        <motion.div
-          variants={shouldReduceMotion ? undefined : headerVariants}
-          initial={false}
-          animate={shouldReduceMotion ? undefined : "show"}
-          className="lg:col-span-5 lg:sticky lg:top-32 h-fit space-y-5 relative"
-        >
+        <div className="lg:col-span-5 lg:sticky lg:top-32 h-fit space-y-5 relative">
           {/* Subtle localized glow behind text */}
           <div className="absolute -left-16 -top-16 -z-10 h-64 w-64 rounded-full bg-gradient-to-br from-violet-400/10 to-fuchsia-400/10 opacity-70 blur-[70px] pointer-events-none" />
           
@@ -118,21 +73,15 @@ export default function FAQSection() {
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-md font-sans font-normal">
             Got questions about Screenshot Beautifier? Find answers here. Keep in mind that all image processing is 100% local inside your browser—keeping your files fully secure.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Right Column: Staggered Expandable Accordion List */}
-        <motion.div
-          variants={shouldReduceMotion ? undefined : containerVariants}
-          initial={false}
-          animate={shouldReduceMotion ? undefined : "show"}
-          className="lg:col-span-7 space-y-4"
-        >
+        {/* Right Column: Expandable Accordion List */}
+        <div className="lg:col-span-7 space-y-4">
           {FAQS.map((faq, index) => {
             const isOpen = activeIndex === index;
             return (
-              <motion.div
+              <div
                 key={faq.question}
-                variants={shouldReduceMotion ? undefined : cardVariants}
                 className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${
                   isOpen
                     ? "border-violet-500/30 bg-gradient-to-br from-white/95 via-violet-50/25 to-fuchsia-50/20 shadow-[0_12px_40px_rgba(139,92,246,0.06)]"
@@ -184,10 +133,10 @@ export default function FAQSection() {
                     </p>
                   </div>
                 </motion.div>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
