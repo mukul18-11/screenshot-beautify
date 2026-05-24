@@ -813,11 +813,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       screenshots.find((screenshot) => screenshot.isPlaced)?.uploadedImage ??
       screenshots[0]?.uploadedImage ??
       null;
-    const backgroundKey = `${backgroundType}-${backgroundValue}-${
-      backgroundType === "image-blur" && canvasBackgroundImage
-        ? canvasBackgroundImage.id
-        : "static"
-    }`;
     const backgroundPattern = getBackgroundPattern(backgroundPatternId);
     const backgroundPatternStyle = createBackgroundPatternStyle({
       color: backgroundPatternColor,
@@ -2554,57 +2549,48 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           ...style,
         }}
       >
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={backgroundKey}
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: isExportMode || shouldReduceMotion ? 1 : 0 }}
-            transition={{ duration: isExportMode ? 0 : 0.28, ease: "easeOut" }}
-            className="absolute inset-0 overflow-hidden rounded-[inherit]"
+        <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
+          <div
+            className="absolute inset-0"
+            style={{
+              transform:
+                !isExportMode && backgroundParallaxEnabled
+                  ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) scale(1.04)"
+                  : undefined,
+              transition:
+                isExportMode || shouldReduceMotion
+                  ? undefined
+                  : "transform 280ms ease-out",
+              willChange:
+                !isExportMode && backgroundParallaxEnabled
+                  ? "transform"
+                  : undefined,
+            }}
           >
-            <div
-              className="absolute inset-0"
-              style={{
-                transform:
-                  !isExportMode && backgroundParallaxEnabled
-                    ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) scale(1.04)"
-                    : undefined,
-                transition:
-                  isExportMode || shouldReduceMotion
-                    ? undefined
-                    : "transform 280ms ease-out",
-                willChange:
-                  !isExportMode && backgroundParallaxEnabled
-                    ? "transform"
-                    : undefined,
-              }}
-            >
-              {backgroundType === "image-blur" && canvasBackgroundImage ? (
-                <>
-                  <div
-                    className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
-                    style={{
-                      backgroundImage: `url(${canvasBackgroundImage.objectUrl})`,
-                      backgroundPosition: "center",
-                      backgroundSize: "cover",
-                    }}
-                    aria-hidden="true"
-                  />
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: backgroundValue }}
-                  />
-                </>
-              ) : (
+            {backgroundType === "image-blur" && canvasBackgroundImage ? (
+              <>
+                <div
+                  className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
+                  style={{
+                    backgroundImage: `url(${canvasBackgroundImage.objectUrl})`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                  }}
+                  aria-hidden="true"
+                />
                 <div
                   className="absolute inset-0"
                   style={{ background: backgroundValue }}
                 />
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+              </>
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{ background: backgroundValue }}
+              />
+            )}
+          </div>
+        </div>
 
         {backgroundPattern.id !== "none" && (
           <div

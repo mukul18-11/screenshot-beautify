@@ -115,6 +115,39 @@ export const BACKGROUND_PRESETS = [
     type: "mesh",
     cssValue: "url('/backgrounds/cyber-grid-horizon.png') center / cover no-repeat",
   },
+  /* ──────────────────────────────────────────────────────────
+   * Premium Apple-Inspired Wallpapers (Generated HD)
+   * ────────────────────────────────────────────────────────── */
+  {
+    id: "apple-sonoma-wave",
+    name: "Apple Sonoma Wave",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-sonoma-wave.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-chroma-liquid",
+    name: "Apple Chroma Liquid",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-chroma-liquid.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-neon-ribbons",
+    name: "Apple Neon Ribbons",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-neon-ribbons.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-layered-organic",
+    name: "Apple Layered Organic",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-layered-organic.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-glass-aurora",
+    name: "Apple Glass Aurora",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-glass-aurora.png') center / cover no-repeat",
+  },
   {
     id: "blur-from-screenshot",
     name: "Blur from screenshot",

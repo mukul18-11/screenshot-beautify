@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Image as ImageIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -337,6 +337,19 @@ function getCustomPatternOptions(patternId: CustomPatternId) {
 export default function BackgroundControls() {
   const shouldReduceMotion = useReducedMotion();
   const [isCustomOpen, setIsCustomOpen] = useState(false);
+
+  // Preload all premium image backgrounds to ensure instant loading when clicked
+  useEffect(() => {
+    BACKGROUND_PRESETS.forEach((preset) => {
+      if (preset.cssValue.includes("url(")) {
+        const match = preset.cssValue.match(/url\(['"]?([^'"]+)['"]?\)/);
+        if (match && match[1]) {
+          const img = new Image();
+          img.src = match[1];
+        }
+      }
+    });
+  }, []);
   const [customConfig, setCustomConfig] = useState<CustomBackgroundConfig>(
     DEFAULT_CUSTOM_CONFIG,
   );
