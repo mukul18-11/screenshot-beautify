@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useExportImage } from "@/components/editor/ExportProvider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { EXPORT_LAYOUT_ERROR_MESSAGE } from "@/lib/export-image";
 import { getExportPixelSize } from "@/lib/export-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
@@ -32,6 +33,7 @@ const CLEAN_ERROR_MESSAGES = new Set([
   "Could not copy image. Try downloading instead.",
   "Export already in progress.",
   "Export dimensions did not match the selected scale.",
+  EXPORT_LAYOUT_ERROR_MESSAGE,
   "Export dimensions must be greater than zero.",
   "Export did not produce a PNG image.",
   "No artwork is ready to export.",

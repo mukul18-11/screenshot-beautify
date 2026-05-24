@@ -49,6 +49,10 @@ type TextOverlayProps = {
   isEditable?: boolean;
   isExportMode?: boolean;
   isMovable?: boolean;
+  placementBounds?: {
+    height: number;
+    width: number;
+  };
   onLayerClickCapture?: (
     layerId: TextLayerId,
     event: MouseEvent<HTMLDivElement>,
@@ -186,9 +190,17 @@ function createLayerPlacementStyle(
   offsetX: number,
   offsetY: number,
   rotation: number,
+  placementBounds?: { height: number; width: number },
 ) {
+  const translateX = placementBounds
+    ? `${offsetX * placementBounds.width * 0.5}px`
+    : `calc(${offsetX} * 50cqw)`;
+  const translateY = placementBounds
+    ? `${offsetY * placementBounds.height * 0.5}px`
+    : `calc(${offsetY} * 50cqh)`;
+
   return {
-    transform: `translate(calc(${offsetX} * 50cqw), calc(${offsetY} * 50cqh)) rotate(${rotation}deg)`,
+    transform: `translate(${translateX}, ${translateY}) rotate(${rotation}deg)`,
     transformOrigin: "center",
   } satisfies CSSProperties;
 }
@@ -527,6 +539,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     isEditable = false,
     isExportMode = false,
     isMovable = false,
+    placementBounds,
     onLayerClickCapture,
     onLayerEditStart,
     onLayerPointerCancel,
@@ -625,16 +638,19 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     badgeOffsetX,
     badgeOffsetY,
     badgeRotation,
+    placementBounds,
   );
   const headlinePlacementStyle = createLayerPlacementStyle(
     headlineOffsetX,
     headlineOffsetY,
     headlineRotation,
+    placementBounds,
   );
   const subtitlePlacementStyle = createLayerPlacementStyle(
     subtitleOffsetX,
     subtitleOffsetY,
     subtitleRotation,
+    placementBounds,
   );
 
   function createLayerInteractionProps(layerId: TextLayerId) {
@@ -804,6 +820,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           layer.offsetX,
           layer.offsetY,
           layer.rotation,
+          placementBounds,
         );
 
         return (

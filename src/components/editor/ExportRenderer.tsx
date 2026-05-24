@@ -3,7 +3,7 @@
 import { forwardRef } from "react";
 
 import CanvasArtwork from "@/components/editor/CanvasArtwork";
-import type { UploadedImage } from "@/store/editor-store";
+import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 
 type ExportRendererProps = {
   uploadedImage: UploadedImage;
@@ -11,10 +11,17 @@ type ExportRendererProps = {
 
 const ExportRenderer = forwardRef<HTMLDivElement, ExportRendererProps>(
   function ExportRenderer({ uploadedImage }, ref) {
+    const canvasWidth = useEditorStore((state) => state.canvasWidth);
+    const canvasHeight = useEditorStore((state) => state.canvasHeight);
+
     return (
       <div
         aria-hidden="true"
         className="pointer-events-none fixed left-[-100000px] top-0 z-[-1] overflow-hidden opacity-0"
+        style={{
+          height: `${canvasHeight}px`,
+          width: `${canvasWidth}px`,
+        }}
       >
         <CanvasArtwork
           ref={ref}

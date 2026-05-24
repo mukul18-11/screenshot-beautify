@@ -798,7 +798,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       (state) => state.backgroundParallaxStrength,
     );
     const isExportMode = mode === "export";
-    const canvasPadding = `${(imagePadding / canvasWidth) * 100}cqw`;
+    const canvasPadding = isExportMode
+      ? `${imagePadding}px`
+      : `${(imagePadding / canvasWidth) * 100}cqw`;
     const screenshotScale = imageScale / 100;
     const activeScreenshot = screenshots.find(
       (screenshot) =>
@@ -2327,11 +2329,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             : layerSettings.hoverTiltEnabled,
         hoverTiltSensitivity: layerSettings.hoverTiltSensitivity,
       };
+      const imageOffsetTranslate = isExportMode
+        ? `translate(${layerSettings.imageOffsetX * canvasWidth * 0.5}px, ${
+            layerSettings.imageOffsetY * canvasHeight * 0.5
+          }px)`
+        : `translate(calc(${layerSettings.imageOffsetX} * 50cqw), calc(${layerSettings.imageOffsetY} * 50cqh))`;
       const imagePlacementStyle = {
         left: "50%",
         top: "50%",
-        transform: `translate(-50%, -50%) translate(calc(${layerSettings.imageOffsetX} * 50cqw), calc(${layerSettings.imageOffsetY} * 50cqh))`,
-        willChange: "transform",
+        transform: `translate(-50%, -50%) ${imageOffsetTranslate}`,
+        willChange: isExportMode ? undefined : "transform",
         zIndex: layerIndex + 1,
       } satisfies CSSProperties;
       const mockupScaleStyle = {
@@ -2516,6 +2523,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         textShadowOpacity={textShadowOpacity}
         textUnderline={textUnderline}
         className={cn(textPosition === "center" && "max-w-[72%]")}
+        placementBounds={
+          isExportMode
+            ? {
+                height: canvasHeight,
+                width: canvasWidth,
+              }
+            : undefined
+        }
       />
     ) : null;
     return (

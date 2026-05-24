@@ -12,6 +12,9 @@ export const CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE =
 export const CLIPBOARD_IMAGE_WRITE_FAILED_MESSAGE =
   "Could not copy image. Try downloading instead.";
 const IMAGE_LOAD_ERROR_MESSAGE = "An image could not be loaded for export.";
+export const EXPORT_LAYOUT_ERROR_MESSAGE =
+  "Export renderer did not match the selected canvas size.";
+const EXPORT_LAYOUT_TOLERANCE_PX = 1;
 
 type ExportPngOptions = {
   cacheBust?: boolean;
@@ -36,6 +39,27 @@ function waitForNextPaint() {
       requestAnimationFrame(() => resolve());
     });
   });
+}
+
+async function waitForExportLayout(
+  node: HTMLElement,
+  expectedSize: { height: number; width: number },
+) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await waitForNextPaint();
+
+    const rect = node.getBoundingClientRect();
+    const widthMatches =
+      Math.abs(rect.width - expectedSize.width) <= EXPORT_LAYOUT_TOLERANCE_PX;
+    const heightMatches =
+      Math.abs(rect.height - expectedSize.height) <= EXPORT_LAYOUT_TOLERANCE_PX;
+
+    if (widthMatches && heightMatches) {
+      return;
+    }
+  }
+
+  throw new Error(EXPORT_LAYOUT_ERROR_MESSAGE);
 }
 
 async function waitForImageElement(image: HTMLImageElement) {
@@ -182,7 +206,7 @@ export async function createExportPngBlob({
   await waitForFonts();
   await waitForImages(node);
   await waitForBackgroundImages(node);
-  await waitForNextPaint();
+  await waitForExportLayout(node, { height, width });
 
   const blob = await toBlob(node, {
     cacheBust,
@@ -193,7 +217,6 @@ export async function createExportPngBlob({
     onImageErrorHandler: handleExportImageError,
     pixelRatio: scale,
     skipAutoScale: true,
-    skipFonts: true,
     width,
     style: {
       height: `${height}px`,
