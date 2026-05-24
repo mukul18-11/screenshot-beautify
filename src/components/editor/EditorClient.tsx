@@ -11,11 +11,11 @@ import { useEditorStore } from "@/store/editor-store";
 
 export default function EditorClient() {
   const uploadedImage = useEditorStore((state) => state.uploadedImage);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
  
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") as "light" | "dark" | null;
-    const initialTheme = savedTheme || "dark";
+    const initialTheme = savedTheme || "light";
     if (initialTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
