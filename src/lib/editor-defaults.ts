@@ -37,6 +37,9 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   backgroundType: defaultBackgroundPreset.type,
   backgroundValue: defaultBackgroundPreset.cssValue,
   backgroundPresetId: defaultBackgroundPreset.id,
+  backgroundPatternId: "none",
+  backgroundPatternColor: "#ffffff",
+  backgroundPatternIntensity: 25,
   imagePadding: 96,
   imageRadius: 24,
   imageScale: 92,
@@ -138,6 +141,11 @@ export const BEAUTIFY_SETTING_LIMITS = {
   imageZoom: {
     min: 100,
     max: 400,
+    step: 1,
+  },
+  backgroundPatternIntensity: {
+    min: 0,
+    max: 80,
     step: 1,
   },
   imageShadowBlur: {

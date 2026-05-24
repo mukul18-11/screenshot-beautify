@@ -1,5 +1,12 @@
 export type BackgroundType = "gradient" | "solid" | "mesh" | "image-blur";
 
+export type BackgroundPatternId =
+  | "none"
+  | "soft-grid"
+  | "dot-grid"
+  | "diagonal-lines"
+  | "micro-grain";
+
 export type BrowserFrameTheme = "light" | "dark";
 
 export type BrowserFrameStyle = "macos" | "minimal";
@@ -111,6 +118,9 @@ export type BeautifySettings = {
   backgroundType: BackgroundType;
   backgroundValue: string;
   backgroundPresetId: string;
+  backgroundPatternId: BackgroundPatternId;
+  backgroundPatternColor: string;
+  backgroundPatternIntensity: number;
   imagePadding: number;
   imageRadius: number;
   imageScale: number;

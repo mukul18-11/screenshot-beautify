@@ -24,6 +24,10 @@ import TextOverlay, {
   type TextResizeHandleId,
 } from "@/components/editor/TextOverlay";
 import TiltedMockupWrapper from "@/components/editor/TiltedMockupWrapper";
+import {
+  createBackgroundPatternStyle,
+  getBackgroundPattern,
+} from "@/lib/background-patterns";
 import { SCREENSHOT_TRAY_DRAG_TYPE } from "@/lib/editor-drag";
 import {
   BEAUTIFY_SETTING_LIMITS,
@@ -650,6 +654,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     );
     const backgroundType = useEditorStore((state) => state.backgroundType);
     const backgroundValue = useEditorStore((state) => state.backgroundValue);
+    const backgroundPatternId = useEditorStore(
+      (state) => state.backgroundPatternId,
+    );
+    const backgroundPatternColor = useEditorStore(
+      (state) => state.backgroundPatternColor,
+    );
+    const backgroundPatternIntensity = useEditorStore(
+      (state) => state.backgroundPatternIntensity,
+    );
     const imagePadding = useEditorStore((state) => state.imagePadding);
     const imageRadius = useEditorStore((state) => state.imageRadius);
     const imageScale = useEditorStore((state) => state.imageScale);
@@ -793,6 +806,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         ? canvasBackgroundImage.id
         : "static"
     }`;
+    const backgroundPattern = getBackgroundPattern(backgroundPatternId);
+    const backgroundPatternStyle = createBackgroundPatternStyle({
+      color: backgroundPatternColor,
+      intensity: backgroundPatternIntensity,
+      patternId: backgroundPattern.id,
+    });
     const canParallaxBackground =
       !isExportMode &&
       backgroundParallaxEnabled &&
@@ -2481,14 +2500,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           </motion.div>
         </AnimatePresence>
 
-        <div
-          className="absolute inset-0 overflow-hidden rounded-[inherit] opacity-25 mix-blend-soft-light"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(255,255,255,0.32) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.22) 1px, transparent 1px)",
-            backgroundSize: "44px 44px",
-          }}
-        />
+        {backgroundPattern.id !== "none" && (
+          <div
+            className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] mix-blend-soft-light"
+            style={backgroundPatternStyle}
+            aria-hidden="true"
+          />
+        )}
 
         {!isExportMode && textDragGuide.vertical !== null && (
           <div

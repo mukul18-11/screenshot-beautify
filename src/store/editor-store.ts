@@ -6,6 +6,7 @@ import { getBackgroundPreset } from "@/lib/background-presets";
 import { createBeautifyPresetSettings } from "@/lib/beautify-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
 import {
+  BEAUTIFY_SETTING_LIMITS,
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
   DEFAULT_EXPORT_SETTINGS,
@@ -13,6 +14,7 @@ import {
   DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
 import {
+  clampValue,
   clampImageCrop,
   clampTextLayerOffset,
   clampUnitOffset,
@@ -58,6 +60,9 @@ type HistoryGlobalSettings = Pick<
   | "backgroundType"
   | "backgroundValue"
   | "backgroundPresetId"
+  | "backgroundPatternId"
+  | "backgroundPatternColor"
+  | "backgroundPatternIntensity"
   | "imagePadding"
   | "textOverlayEnabled"
   | "headlineText"
@@ -114,6 +119,9 @@ const HISTORY_GLOBAL_SETTING_KEYS = [
   "backgroundType",
   "backgroundValue",
   "backgroundPresetId",
+  "backgroundPatternId",
+  "backgroundPatternColor",
+  "backgroundPatternIntensity",
   "imagePadding",
   "textOverlayEnabled",
   "headlineText",
@@ -182,6 +190,11 @@ type EditorStore = EditorDesignSettings & {
     setCanvasPreset: (presetId: string) => void;
     setCanvasSize: (width: number, height: number) => void;
     setBackgroundPreset: (presetId: string) => void;
+    setBackgroundPattern: (
+      patternId: EditorDesignSettings["backgroundPatternId"],
+    ) => void;
+    setBackgroundPatternColor: (color: string) => void;
+    setBackgroundPatternIntensity: (intensity: number) => void;
     setSolidBackground: (color: string) => void;
     setGradientBackground: (
       cssValue: string,
@@ -401,6 +414,9 @@ function getEditorDesignSettingsFromState(
     backgroundType: state.backgroundType,
     backgroundValue: state.backgroundValue,
     backgroundPresetId: state.backgroundPresetId,
+    backgroundPatternId: state.backgroundPatternId,
+    backgroundPatternColor: state.backgroundPatternColor,
+    backgroundPatternIntensity: state.backgroundPatternIntensity,
     imagePadding: state.imagePadding,
     imageRadius: state.imageRadius,
     imageScale: state.imageScale,
@@ -483,6 +499,9 @@ function getHistoryGlobalSettingsFromState(
     backgroundType: state.backgroundType,
     backgroundValue: state.backgroundValue,
     backgroundPresetId: state.backgroundPresetId,
+    backgroundPatternId: state.backgroundPatternId,
+    backgroundPatternColor: state.backgroundPatternColor,
+    backgroundPatternIntensity: state.backgroundPatternIntensity,
     imagePadding: state.imagePadding,
     textOverlayEnabled: state.textOverlayEnabled,
     headlineText: state.headlineText,
@@ -1415,6 +1434,21 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   setBackgroundPreset: (presetId) => {
     set(getBackgroundState(presetId));
+  },
+  setBackgroundPattern: (patternId) => {
+    set({ backgroundPatternId: patternId });
+  },
+  setBackgroundPatternColor: (color) => {
+    set({ backgroundPatternColor: color });
+  },
+  setBackgroundPatternIntensity: (intensity) => {
+    set({
+      backgroundPatternIntensity: clampValue(
+        Math.round(intensity),
+        BEAUTIFY_SETTING_LIMITS.backgroundPatternIntensity.min,
+        BEAUTIFY_SETTING_LIMITS.backgroundPatternIntensity.max,
+      ),
+    });
   },
   setSolidBackground: (color) => {
     set({

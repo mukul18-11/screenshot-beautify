@@ -7,7 +7,12 @@ import { motion, useReducedMotion } from "motion/react";
 import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  BACKGROUND_PATTERNS,
+  createBackgroundPatternStyle,
+} from "@/lib/background-patterns";
 import { BACKGROUND_PRESETS } from "@/lib/background-presets";
+import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 
@@ -436,8 +441,26 @@ export default function BackgroundControls() {
     DEFAULT_CUSTOM_CONFIG,
   );
   const backgroundPresetId = useEditorStore((state) => state.backgroundPresetId);
+  const backgroundPatternId = useEditorStore(
+    (state) => state.backgroundPatternId,
+  );
+  const backgroundPatternColor = useEditorStore(
+    (state) => state.backgroundPatternColor,
+  );
+  const backgroundPatternIntensity = useEditorStore(
+    (state) => state.backgroundPatternIntensity,
+  );
   const setBackgroundPreset = useEditorStore(
     (state) => state.setBackgroundPreset,
+  );
+  const setBackgroundPattern = useEditorStore(
+    (state) => state.setBackgroundPattern,
+  );
+  const setBackgroundPatternColor = useEditorStore(
+    (state) => state.setBackgroundPatternColor,
+  );
+  const setBackgroundPatternIntensity = useEditorStore(
+    (state) => state.setBackgroundPatternIntensity,
   );
   const setGradientBackground = useEditorStore(
     (state) => state.setGradientBackground,
@@ -530,6 +553,95 @@ export default function BackgroundControls() {
             </motion.button>
           );
         })}
+      </div>
+
+      <div className="mt-4">
+        <Label className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+          Pattern
+        </Label>
+        <div className="mt-2 grid grid-cols-5 gap-1.5">
+          {BACKGROUND_PATTERNS.map((pattern) => {
+            const isSelected = backgroundPatternId === pattern.id;
+            const previewStyle = createBackgroundPatternStyle({
+              color: backgroundPatternColor,
+              intensity: backgroundPatternIntensity,
+              patternId: pattern.id,
+            });
+
+            return (
+              <button
+                key={pattern.id}
+                type="button"
+                aria-pressed={isSelected}
+                aria-label={`${pattern.name} background pattern`}
+                title={pattern.name}
+                onClick={() => setBackgroundPattern(pattern.id)}
+                className={cn(
+                  "group flex h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1.5 text-[11px] font-semibold transition",
+                  isSelected
+                    ? "border-slate-800 text-slate-950 ring-1 ring-slate-800/25 dark:border-white dark:text-white dark:ring-white/25"
+                    : "border-slate-200/70 text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:border-white/10 dark:text-slate-400 dark:hover:text-white",
+                )}
+              >
+                <span
+                  className={cn(
+                    "relative h-4 w-full overflow-hidden rounded-md border border-slate-950/10 shadow-inner dark:border-white/10",
+                    pattern.previewClassName,
+                  )}
+                  aria-hidden="true"
+                >
+                  {pattern.id !== "none" && (
+                    <span
+                      className="absolute inset-0 mix-blend-soft-light"
+                      style={previewStyle}
+                    />
+                  )}
+                </span>
+                <span className="max-w-full truncate">{pattern.name}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {backgroundPatternId !== "none" && (
+          <motion.div
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="mt-3 grid gap-3 rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.04]"
+          >
+            <div className="grid grid-cols-[auto_1fr] items-end gap-3">
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="background-pattern-color"
+                  className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
+                >
+                  Color
+                </Label>
+                <input
+                  id="background-pattern-color"
+                  type="color"
+                  value={backgroundPatternColor}
+                  onChange={(event) =>
+                    setBackgroundPatternColor(event.target.value)
+                  }
+                  className="h-9 w-14 cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
+                />
+              </div>
+
+              <EditorSliderRow
+                label="Intensity"
+                labelClassName="text-slate-600 dark:text-slate-300"
+                min={BEAUTIFY_SETTING_LIMITS.backgroundPatternIntensity.min}
+                max={BEAUTIFY_SETTING_LIMITS.backgroundPatternIntensity.max}
+                step={BEAUTIFY_SETTING_LIMITS.backgroundPatternIntensity.step}
+                value={backgroundPatternIntensity}
+                suffix="%"
+                onChange={setBackgroundPatternIntensity}
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
