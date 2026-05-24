@@ -1780,7 +1780,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const targetLayerElement = getScreenshotLayerElementAtPoint(
         event.clientX,
         event.clientY,
-      );
+      ) ?? event.currentTarget;
 
       if (!targetLayerElement) {
         return;
@@ -1808,10 +1808,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           screenshot.id === targetScreenshotId && screenshot.isPlaced,
       );
 
-      if (
-        !selectedScreenshot ||
-        state.activeScreenshotId !== targetScreenshotId
-      ) {
+      if (!selectedScreenshot) {
         return;
       }
 
@@ -2644,7 +2641,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           </div>
 
           {hasTextOverlay && textPosition === "center" && (
-            <div className="relative z-10 flex h-full w-full items-center justify-center">
+            <div className="pointer-events-none relative z-10 flex h-full w-full items-center justify-center">
               {textOverlay}
             </div>
           )}

@@ -707,7 +707,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
   return (
     <div
       className={cn(
-        "relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
+        "pointer-events-none relative z-10 flex min-w-0 shrink-0 flex-col gap-3 overflow-visible",
         getTextAlignClass(textAlign),
         getTextWidthClass(textPosition),
         className,
@@ -719,7 +719,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           {...createLayerInteractionProps("badge")}
           data-text-layer-id="badge"
           className={cn(
-            "relative max-w-full touch-none",
+            "pointer-events-auto relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
           )}
           style={badgePlacementStyle}
@@ -764,7 +764,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           {...createLayerInteractionProps("headline")}
           data-text-layer-id="headline"
           className={cn(
-            "relative max-w-full touch-none",
+            "pointer-events-auto relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
           )}
           style={headlinePlacementStyle}
@@ -804,7 +804,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           {...createLayerInteractionProps("subtitle")}
           data-text-layer-id="subtitle"
           className={cn(
-            "relative max-w-full touch-none",
+            "pointer-events-auto relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
           )}
           style={subtitlePlacementStyle}
@@ -860,7 +860,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             {...createLayerInteractionProps(layer.id)}
             data-text-layer-id={layer.id}
             className={cn(
-              "relative max-w-full touch-none",
+              "pointer-events-auto relative max-w-full touch-none",
               isMovable && "cursor-move select-none",
             )}
             style={customPlacementStyle}
