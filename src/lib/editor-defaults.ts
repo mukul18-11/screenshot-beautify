@@ -12,7 +12,7 @@ import type {
 } from "@/types/editor";
 
 const DEFAULT_CANVAS_PRESET_ID = "wide-hero";
-const DEFAULT_BACKGROUND_PRESET_ID = "blue-arc-ribbons";
+const DEFAULT_BACKGROUND_PRESET_ID = "apple-layered-organic";
 
 const defaultCanvasPreset = getCanvasPreset(DEFAULT_CANVAS_PRESET_ID);
 const defaultBackgroundPreset = getBackgroundPreset(DEFAULT_BACKGROUND_PRESET_ID);

@@ -47,11 +47,6 @@ const SETTINGS_SECTIONS = [
     icon: Sparkles,
   },
   {
-    id: "layout",
-    label: "Layout",
-    icon: LayoutDashboard,
-  },
-  {
     id: "frame",
     label: "Frame",
     icon: AppWindow,
@@ -65,6 +60,11 @@ const SETTINGS_SECTIONS = [
     id: "tilt",
     label: "3D",
     icon: Box,
+  },
+  {
+    id: "layout",
+    label: "Layout",
+    icon: LayoutDashboard,
   },
   {
     id: "export",
