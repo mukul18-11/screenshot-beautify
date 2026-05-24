@@ -2231,6 +2231,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             : "transform 180ms ease-out",
         willChange: "transform",
       } satisfies CSSProperties;
+      const mockupVisualStyle = {
+        ...mockupScaleStyle,
+        width: `${screenshotCropWidth}px`,
+      } satisfies CSSProperties;
       const screenshotPreview = (
         <motion.img
           key={`${screenshot.uploadedImage.id}-screenshot`}
@@ -2270,16 +2274,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           <div
             ref={isActiveLayer ? mockupVisualRef : undefined}
             data-screenshot-mockup-visual="true"
-            className={cn("relative flex", screenshotShellClasses)}
-            style={mockupScaleStyle}
+            className="relative flex"
+            style={mockupVisualStyle}
           >
             <TiltedMockupWrapper
-              className={cn("flex", screenshotShellClasses)}
+              className="flex w-full"
               settings={tiltSettings}
             >
               {layerSettings.browserFrameEnabled ? (
                 <div
-                  className={cn("overflow-hidden", screenshotShellClasses)}
+                  className="w-full overflow-hidden"
                   style={mockupDecorationStyle}
                 >
                   <BrowserFrame
@@ -2291,10 +2295,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   >
                     <motion.div
                       ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
-                      className={cn(
-                        "relative overflow-hidden",
-                        screenshotShellClasses,
-                      )}
+                      className="relative overflow-hidden"
                       style={{
                         ...screenshotCropStyle,
                         touchAction: "pan-y",
@@ -2311,10 +2312,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
               ) : (
                 <motion.div
                   ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
-                  className={cn(
-                    "relative overflow-hidden",
-                    screenshotShellClasses,
-                  )}
+                  className="relative overflow-hidden"
                   style={{
                     ...screenshotCropStyle,
                     ...mockupDecorationStyle,
