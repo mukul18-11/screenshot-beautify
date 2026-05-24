@@ -159,7 +159,7 @@ export default function UploadZone() {
             )}
           </AnimatePresence>
 
-          <AnimatePresence initial={false} mode="wait">
+          <AnimatePresence initial={false}>
             {hasScreenshots ? (
               <ImagePreview
                 key="uploaded"

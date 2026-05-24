@@ -83,7 +83,6 @@ export default function CanvasPreview({
           }}
         >
           <CanvasArtwork
-            key={uploadedImage?.id ?? "library-canvas"}
             mode="preview"
             isLoading={isLoading}
             onImageLoad={onImageLoad}

@@ -57,7 +57,7 @@ import type {
 
 export type { ScreenshotDesign, UploadedImage } from "@/types/editor";
 
-export const MAX_SCREENSHOT_UPLOADS = 12;
+export const MAX_SCREENSHOT_UPLOADS = 8;
 const MAX_EDITOR_HISTORY_ENTRIES = 50;
 const HISTORY_ENABLED_TILT_PRESET_ID = "left-angle";
 const DEFAULT_TEXT_LAYER_IDS = ["badge", "headline", "subtitle"] as const;

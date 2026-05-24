@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { CheckCircle2, Loader2, RefreshCw, Trash2 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { ReactNode } from "react";
+import { CheckCircle2, RefreshCw, Trash2 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 import CanvasPreview from "@/components/editor/CanvasPreview";
 import { Button } from "@/components/ui/button";
@@ -24,15 +24,6 @@ export default function ImagePreview({
   uploadedImage,
 }: ImagePreviewProps) {
   const shouldReduceMotion = useReducedMotion();
-  const [loadedImageId, setLoadedImageId] = useState<string | null>(null);
-  const isLoading = uploadedImage ? loadedImageId !== uploadedImage.id : false;
-  const handleImageLoad = () => {
-    if (!uploadedImage) {
-      return;
-    }
-
-    setLoadedImageId(uploadedImage.id);
-  };
 
   return (
     <motion.div
@@ -110,30 +101,9 @@ export default function ImagePreview({
       {/* Canvas directly - no wrapper card */}
       <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
         <CanvasPreview
-          isLoading={isLoading}
-          onImageLoad={handleImageLoad}
+          isLoading={false}
           uploadedImage={uploadedImage}
         />
-
-        <AnimatePresence>
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[rgba(238,243,248,0.82)] backdrop-blur-sm dark:bg-slate-950/80"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Loader2
-                  className="h-5 w-5 animate-spin text-slate-400 dark:text-slate-500"
-                  aria-hidden="true"
-                />
-                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">Loading…</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.div>
   );

@@ -41,6 +41,9 @@ export default function ScreenshotTray({
   const canRedo = useEditorStore((state) => state.historyFuture.length > 0);
   const canUndo = useEditorStore((state) => state.historyPast.length > 0);
   const placeScreenshot = useEditorStore((state) => state.placeScreenshot);
+  const removeScreenshotFromCanvas = useEditorStore(
+    (state) => state.removeScreenshotFromCanvas,
+  );
   const redo = useEditorStore((state) => state.redo);
   const selectScreenshot = useEditorStore((state) => state.selectScreenshot);
   const undo = useEditorStore((state) => state.undo);
@@ -49,11 +52,11 @@ export default function ScreenshotTray({
 
   return (
     <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/75 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 dark:shadow-slate-950/20">
-      <div className="min-w-0 flex-1 overflow-x-auto">
+      <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain">
         <div
           role="list"
           aria-label="Uploaded screenshots"
-          className="flex w-max min-w-full items-center gap-2"
+          className="flex min-w-max items-center gap-2"
         >
           {screenshots.map((screenshot, index) => {
             const isSelected = screenshot.id === activeScreenshotId;
@@ -64,7 +67,9 @@ export default function ScreenshotTray({
                 <motion.button
                   type="button"
                   aria-label={
-                    isPlaced
+                    isSelected
+                      ? `Remove screenshot ${index + 1} from canvas: ${screenshot.uploadedImage.name}`
+                      : isPlaced
                       ? `Edit screenshot ${index + 1}: ${screenshot.uploadedImage.name}`
                       : `Place screenshot ${index + 1}: ${screenshot.uploadedImage.name}`
                   }
@@ -72,10 +77,19 @@ export default function ScreenshotTray({
                   draggable={!isBusy}
                   disabled={isBusy}
                   title={
-                    isPlaced ? "Edit placed screenshot" : "Drag or click to place"
+                    isSelected
+                      ? "Click to remove from canvas"
+                      : isPlaced
+                        ? "Edit placed screenshot"
+                        : "Drag or click to place"
                   }
                   onClick={(event) => {
                     event.stopPropagation();
+                    if (isSelected) {
+                      removeScreenshotFromCanvas(screenshot.id);
+                      return;
+                    }
+
                     if (isPlaced) {
                       selectScreenshot(screenshot.id);
                       return;
