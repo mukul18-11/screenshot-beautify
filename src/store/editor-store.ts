@@ -603,6 +603,7 @@ function createSettingsForUploadedImage(
 ): EditorDesignSettings {
   return {
     ...cloneEditorDesignSettings(sourceSettings),
+    ...createDefaultTiltSettings(),
     exportFileName: createExportFileNameFromImage(uploadedImage),
     isExporting: false,
     lastExportedAt: null,

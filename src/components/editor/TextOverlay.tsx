@@ -452,7 +452,7 @@ function EditableText({
   }
 
   function handlePointerDown(event: PointerEvent<HTMLElement>) {
-    if (!isEditable) {
+    if (!isEditable || !isEditing) {
       return;
     }
 

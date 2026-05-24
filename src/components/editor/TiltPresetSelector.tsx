@@ -12,7 +12,7 @@ export default function TiltPresetSelector() {
   const setTiltPreset = useEditorStore((state) => state.setTiltPreset);
 
   function handlePresetClick(presetId: string) {
-    setTiltEnabled(true);
+    setTiltEnabled(presetId !== "flat");
     setTiltPreset(presetId);
   }
 

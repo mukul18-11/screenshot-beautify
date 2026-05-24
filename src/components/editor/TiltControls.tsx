@@ -6,13 +6,10 @@ import { motion, useReducedMotion } from "motion/react";
 import TiltPad from "@/components/editor/TiltPad";
 import TiltPresetSelector from "@/components/editor/TiltPresetSelector";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useEditorStore } from "@/store/editor-store";
 
 export default function TiltControls() {
   const shouldReduceMotion = useReducedMotion();
-  const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
-  const setTiltEnabled = useEditorStore((state) => state.setTiltEnabled);
   const resetTiltSettings = useEditorStore((state) => state.resetTiltSettings);
 
   return (
@@ -41,18 +38,12 @@ export default function TiltControls() {
             <RotateCcw className="h-3 w-3" aria-hidden="true" />
             Reset
           </Button>
-          <Switch
-            id="tilt-toggle"
-            checked={tiltEnabled}
-            onCheckedChange={setTiltEnabled}
-            aria-label="Enable 3D tilt"
-          />
         </div>
       </div>
 
       <div className="space-y-4">
         <TiltPresetSelector />
-        <TiltPad disabled={!tiltEnabled} />
+        <TiltPad />
       </div>
     </motion.section>
   );
