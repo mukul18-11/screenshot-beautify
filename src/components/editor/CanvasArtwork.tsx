@@ -2176,7 +2176,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       textOverlayEnabled &&
       ((badgeEnabled && badgeText.trim().length > 0) ||
         headlineText.trim().length > 0 ||
-        subtitleText.trim().length > 0);
+        subtitleText.trim().length > 0 ||
+        customTextLayers.some((layer) => layer.text.trim().length > 0));
     const screenshotSlotClasses = getScreenshotSlotClasses(
       hasTextOverlay,
       textPosition,

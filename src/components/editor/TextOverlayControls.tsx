@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { Bold, Italic, Plus, Type, Underline } from "lucide-react";
+import { Bold, Italic, Plus, Trash2, Type, Underline } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import EditorSliderRow from "@/components/editor/EditorSliderRow";
@@ -174,6 +174,20 @@ function formatPercent(value: number) {
 
 function formatDecimal(value: number) {
   return value.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function getCustomTextLayerLabel(text: string, index: number) {
+  const normalizedText = text.trim();
+
+  if (!normalizedText || normalizedText === "New text") {
+    return `Text ${index + 1}`;
+  }
+
+  if (normalizedText.length <= 24) {
+    return normalizedText;
+  }
+
+  return `${normalizedText.slice(0, 24).trim()}...`;
 }
 
 function ControlGroup({ children, className, title }: ControlGroupProps) {
@@ -397,6 +411,7 @@ export default function TextOverlayControls() {
   const setHeadlineText = useEditorStore((state) => state.setHeadlineText);
   const setSubtitleText = useEditorStore((state) => state.setSubtitleText);
   const addCustomTextLayer = useEditorStore((state) => state.addCustomTextLayer);
+  const removeTextLayer = useEditorStore((state) => state.removeTextLayer);
   const setCustomTextLayerText = useEditorStore(
     (state) => state.setCustomTextLayerText,
   );
@@ -449,10 +464,23 @@ export default function TextOverlayControls() {
   const setTextLayerRotation = useEditorStore(
     (state) => state.setTextLayerRotation,
   );
-  const selectedLayerId = activeTextLayerId ?? "headline";
-  const selectedCustomTextLayer = customTextLayers.find(
+  const hasActiveCustomTextLayer =
+    activeTextLayerId !== null &&
+    customTextLayers.some((layer) => layer.id === activeTextLayerId);
+  const selectedLayerId =
+    activeTextLayerId === "badge" ||
+    activeTextLayerId === "headline" ||
+    activeTextLayerId === "subtitle" ||
+    hasActiveCustomTextLayer
+      ? activeTextLayerId
+      : "headline";
+  const selectedCustomTextLayerIndex = customTextLayers.findIndex(
     (layer) => layer.id === selectedLayerId,
   );
+  const selectedCustomTextLayer =
+    selectedCustomTextLayerIndex >= 0
+      ? customTextLayers[selectedCustomTextLayerIndex]
+      : undefined;
   const selectedDefaultLayerId: DefaultTextLayerId =
     selectedLayerId === "badge" ||
     selectedLayerId === "headline" ||
@@ -479,15 +507,17 @@ export default function TextOverlayControls() {
   const textShadowOffsetY = selectedLayerStyle.textShadowOffsetY;
   const textShadowOpacity = selectedLayerStyle.textShadowOpacity;
   const textShadowDepth = selectedLayerStyle.textShadowDepth;
-  const selectedLayerLabel =
-    selectedCustomTextLayer?.text.trim() ||
-    TEXT_LAYER_OPTIONS.find((option) => option.value === selectedLayerId)
-      ?.label ||
-    "Headline";
+  const selectedLayerLabel = selectedCustomTextLayer
+    ? getCustomTextLayerLabel(
+        selectedCustomTextLayer.text,
+        selectedCustomTextLayerIndex,
+      )
+    : (TEXT_LAYER_OPTIONS.find((option) => option.value === selectedLayerId)
+        ?.label ?? "Headline");
   const textLayerOptions = [
     ...TEXT_LAYER_OPTIONS,
     ...customTextLayers.map((layer, index) => ({
-      label: layer.text.trim() || `Text ${index + 1}`,
+      label: getCustomTextLayerLabel(layer.text, index),
       value: layer.id,
     })),
   ] satisfies SegmentOption<TextLayerId>[];
@@ -572,78 +602,99 @@ export default function TextOverlayControls() {
                 New text
               </Button>
 
-              <SegmentedControl
-                label="Editing"
+              <NativeSelect
+                id="active-text-layer"
+                label="Active text"
                 value={selectedLayerId}
                 options={textLayerOptions}
                 onChange={setActiveTextLayerId}
               />
 
-              <div className="flex items-center gap-3">
-                <div className="min-w-0 flex-1">
+              <ControlGroup title="Content">
+                {selectedLayerId === "badge" && (
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <TextField
+                        id="badge-text"
+                        label="Badge"
+                        value={badgeText}
+                        disabled={false}
+                        placeholder="NEW LAUNCH"
+                        onChange={setBadgeText}
+                        onFocus={() => setActiveTextLayerId("badge")}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <Switch
+                        id="badge-toggle"
+                        checked={badgeEnabled}
+                        onCheckedChange={toggleBadge}
+                        aria-label="Toggle text overlay badge"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {selectedLayerId === "headline" && (
                   <TextField
-                    id="badge-text"
-                    label="Badge"
-                    value={badgeText}
+                    id="headline-text"
+                    label="Headline"
+                    value={headlineText}
                     disabled={false}
-                    placeholder="NEW LAUNCH"
-                    onChange={setBadgeText}
-                    onFocus={() => setActiveTextLayerId("badge")}
+                    placeholder="Turn screenshots into launch-ready visuals"
+                    onChange={setHeadlineText}
+                    onFocus={() => setActiveTextLayerId("headline")}
                   />
-                </div>
-                <div className="flex items-center gap-2 pt-5">
-                  <Switch
-                    id="badge-toggle"
-                    checked={badgeEnabled}
-                    onCheckedChange={toggleBadge}
-                    aria-label="Toggle text overlay badge"
-                  />
-                </div>
-              </div>
+                )}
 
-              <TextField
-                id="headline-text"
-                label="Headline"
-                value={headlineText}
-                disabled={false}
-                placeholder="Turn screenshots into launch-ready visuals"
-                onChange={setHeadlineText}
-                onFocus={() => setActiveTextLayerId("headline")}
-              />
+                {selectedCustomTextLayer && (
+                  <div className="grid grid-cols-[1fr_auto] items-end gap-2">
+                    <TextField
+                      id={`custom-text-${selectedCustomTextLayer.id}`}
+                      label="Text"
+                      value={selectedCustomTextLayer.text}
+                      disabled={false}
+                      placeholder="New text"
+                      onChange={(value) =>
+                        setCustomTextLayerText(selectedCustomTextLayer.id, value)
+                      }
+                      onFocus={() =>
+                        setActiveTextLayerId(selectedCustomTextLayer.id)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Remove ${selectedLayerLabel}`}
+                      onClick={() => removeTextLayer(selectedCustomTextLayer.id)}
+                      className="h-8 w-8 rounded-lg border border-slate-200/80 bg-white/65 text-slate-400 hover:bg-white hover:text-rose-500 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-rose-300"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Button>
+                  </div>
+                )}
 
-              {selectedCustomTextLayer && (
-                <TextField
-                  id="custom-text"
-                  label="Selected text"
-                  value={selectedCustomTextLayer.text}
-                  disabled={false}
-                  placeholder="New text"
-                  onChange={(value) =>
-                    setCustomTextLayerText(selectedCustomTextLayer.id, value)
-                  }
-                  onFocus={() =>
-                    setActiveTextLayerId(selectedCustomTextLayer.id)
-                  }
-                />
-              )}
-
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="subtitle-text"
-                  className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
-                >
-                  Subtitle
-                </Label>
-                <textarea
-                  id="subtitle-text"
-                  value={subtitleText}
-                  placeholder="Make your product updates look premium in seconds."
-                  onChange={(event) => setSubtitleText(event.target.value)}
-                  onFocus={() => setActiveTextLayerId("subtitle")}
-                  rows={2}
-                  className="min-h-16 w-full resize-none rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
-                />
-              </div>
+                {selectedLayerId === "subtitle" && (
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="subtitle-text"
+                      className="text-[13px] font-medium text-slate-500 dark:text-slate-400"
+                    >
+                      Subtitle
+                    </Label>
+                    <textarea
+                      id="subtitle-text"
+                      value={subtitleText}
+                      placeholder="Make your product updates look premium in seconds."
+                      onChange={(event) => setSubtitleText(event.target.value)}
+                      onFocus={() => setActiveTextLayerId("subtitle")}
+                      rows={2}
+                      className="min-h-16 w-full resize-none rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
+                    />
+                  </div>
+                )}
+              </ControlGroup>
 
               <SegmentedControl
                 label="Position"
