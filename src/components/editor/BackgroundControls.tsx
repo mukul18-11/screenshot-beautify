@@ -303,6 +303,8 @@ function createCustomGradient({
     ].join(", ");
   }
 
+
+
   return [
     `radial-gradient(at 18% 24%, ${colorA} 0%, transparent 42%)`,
     `radial-gradient(at 78% 16%, ${colorB} 0%, transparent 58%)`,

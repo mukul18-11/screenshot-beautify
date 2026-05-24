@@ -88,6 +88,33 @@ export const BACKGROUND_PRESETS = [
     type: "gradient",
     cssValue: "linear-gradient(135deg, #ff6154 0%, #ff8a3d 52%, #fff1d6 100%)",
   },
+  /* ──────────────────────────────────────────────────────────
+   * Premium Tech Backgrounds (Generated HD Images)
+   * ────────────────────────────────────────────────────────── */
+  {
+    id: "tech-cyber-circuit-glow",
+    name: "Cyber Circuit Glow",
+    type: "mesh",
+    cssValue: "url('/backgrounds/cyber-circuit-glow.png') center / cover no-repeat",
+  },
+  {
+    id: "tech-isometric-3d-circuit",
+    name: "3D Isometric Circuit",
+    type: "mesh",
+    cssValue: "url('/backgrounds/isometric-3d-circuit.png') center / cover no-repeat",
+  },
+  {
+    id: "tech-3d-geometric-wall",
+    name: "3D Geometric Wall",
+    type: "mesh",
+    cssValue: "url('/backgrounds/3d-geometric-wall.png') center / cover no-repeat",
+  },
+  {
+    id: "tech-cyber-grid-horizon",
+    name: "Cyber Grid Horizon",
+    type: "mesh",
+    cssValue: "url('/backgrounds/cyber-grid-horizon.png') center / cover no-repeat",
+  },
   {
     id: "blur-from-screenshot",
     name: "Blur from screenshot",
