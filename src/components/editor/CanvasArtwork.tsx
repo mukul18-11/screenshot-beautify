@@ -650,6 +650,18 @@ function getTextLayerSizeLimits(layerId: TextLayerId) {
   return BEAUTIFY_SETTING_LIMITS.badgeSize;
 }
 
+function getHorizontalDragRotation(
+  startRotation: number,
+  deltaX: number,
+  limits: { min: number; max: number },
+) {
+  return clampValue(
+    Math.round(startRotation + deltaX * TEXT_ROTATION_DEGREES_PER_PX),
+    limits.min,
+    limits.max,
+  );
+}
+
 const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   function CanvasArtwork(
     {
@@ -1743,13 +1755,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.preventDefault();
       event.stopPropagation();
 
-      const nextRotation = clampValue(
-        Math.round(
-          dragState.startRotation +
-            deltaX * TEXT_ROTATION_DEGREES_PER_PX,
-        ),
-        BEAUTIFY_SETTING_LIMITS.textRotation.min,
-        BEAUTIFY_SETTING_LIMITS.textRotation.max,
+      const nextRotation = getHorizontalDragRotation(
+        dragState.startRotation,
+        deltaX,
+        BEAUTIFY_SETTING_LIMITS.textRotation,
       );
 
       scheduleTextDragUpdate(() => {
@@ -2255,12 +2264,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.preventDefault();
       event.stopPropagation();
 
-      const nextRotation = clampValue(
-        Math.round(
-          dragState.startRotation + deltaX * TEXT_ROTATION_DEGREES_PER_PX,
-        ),
-        BEAUTIFY_SETTING_LIMITS.rotateZ.min,
-        BEAUTIFY_SETTING_LIMITS.rotateZ.max,
+      const nextRotation = getHorizontalDragRotation(
+        dragState.startRotation,
+        deltaX,
+        BEAUTIFY_SETTING_LIMITS.rotateZ,
       );
 
       scheduleTransformUpdate(() => {
