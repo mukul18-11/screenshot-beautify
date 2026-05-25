@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Lock, Sparkles, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Lock, RotateCcw, Sparkles, Sun, Moon } from "lucide-react";
+import { toast } from "sonner";
 
 import EditorSettingsPanel from "@/components/editor/EditorSettingsPanel";
 import { ExportProvider } from "@/components/editor/ExportProvider";
@@ -11,6 +12,10 @@ import { useEditorStore } from "@/store/editor-store";
 
 export default function EditorClient() {
   const uploadedImage = useEditorStore((state) => state.uploadedImage);
+  const isExporting = useEditorStore((state) => state.isExporting);
+  const resetActiveScreenshotDesign = useEditorStore(
+    (state) => state.resetActiveScreenshotDesign,
+  );
   const [theme, setTheme] = useState<"light" | "dark">("light");
  
   useEffect(() => {
@@ -40,6 +45,11 @@ export default function EditorClient() {
     }
   };
 
+  function handleResetDesign() {
+    resetActiveScreenshotDesign();
+    toast.success("Screenshot reset to defaults");
+  }
+
   return (
     <ExportProvider>
       <main className="relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)]">
@@ -68,6 +78,19 @@ export default function EditorClient() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {uploadedImage && (
+                <button
+                  type="button"
+                  onClick={handleResetDesign}
+                  disabled={isExporting}
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)] disabled:pointer-events-none disabled:opacity-50"
+                  aria-label="Reset screenshot to initial state"
+                  title="Reset screenshot to initial state"
+                >
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">Reset</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={toggleTheme}

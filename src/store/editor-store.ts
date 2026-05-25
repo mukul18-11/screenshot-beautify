@@ -313,6 +313,7 @@ type EditorStore = EditorDesignSettings & {
     setIsExporting: (value: boolean) => void;
     markExported: () => void;
     resetExportSettings: () => void;
+    resetActiveScreenshotDesign: () => void;
     resetEditorForNewUpload: () => void;
   };
 
@@ -2473,6 +2474,27 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   resetExportSettings: () => {
     set(createDefaultExportSettings());
+  },
+  resetActiveScreenshotDesign: () => {
+    const activeScreenshot = getActiveScreenshot(get());
+
+    if (!activeScreenshot) {
+      return;
+    }
+
+    set({
+      ...createDefaultBeautifySettings(),
+      ...createDefaultBrowserFrameSettings(),
+      ...createDefaultTextOverlaySettings(),
+      ...createDefaultTiltSettings(),
+      ...createDefaultExportSettings(),
+      activeTextLayerId: null,
+      exportFileName: createExportFileNameFromImage(
+        activeScreenshot.uploadedImage,
+      ),
+      lastBeautifyPresetId: null,
+      screenshotLayoutPresetId: "manual",
+    });
   },
   resetEditorForNewUpload: () => {
     set({

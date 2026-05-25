@@ -268,9 +268,9 @@ export const BEAUTIFY_SETTING_LIMITS = {
     step: 1,
   },
   rotateZ: {
-    min: -8,
-    max: 8,
-    step: 0.5,
+    min: -180,
+    max: 180,
+    step: 1,
   },
   translateY: {
     min: -40,

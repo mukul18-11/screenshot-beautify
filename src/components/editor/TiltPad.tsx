@@ -3,6 +3,7 @@
 import { useCallback, useRef } from "react";
 import { RotateCcw } from "lucide-react";
 
+import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import { Button } from "@/components/ui/button";
 import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
 import { buildTiltTransform } from "@/lib/tilt-utils";
@@ -65,6 +66,7 @@ export default function TiltPad({ disabled = false }: TiltPadProps) {
   const rotateZ = useEditorStore((s) => s.rotateZ);
   const setRotateX = useEditorStore((s) => s.setRotateX);
   const setRotateY = useEditorStore((s) => s.setRotateY);
+  const setRotateZ = useEditorStore((s) => s.setRotateZ);
   const backgroundValue = useEditorStore((s) => s.backgroundValue);
   const uploadedImage = useEditorStore((s) => s.uploadedImage);
   const screenshots = useEditorStore((s) => s.screenshots);
@@ -113,9 +115,10 @@ export default function TiltPad({ disabled = false }: TiltPadProps) {
   const resetRotation = useCallback(() => {
     setRotateX(0);
     setRotateY(0);
-  }, [setRotateX, setRotateY]);
+    setRotateZ(0);
+  }, [setRotateX, setRotateY, setRotateZ]);
 
-  const isFlat = rotateX === 0 && rotateY === 0;
+  const isFlat = rotateX === 0 && rotateY === 0 && rotateZ === 0;
   const fmtDeg = (v: number) => `${v > 0 ? "+" : ""}${v}°`;
 
   /* Resolve the image to display ----------------------------------- */
@@ -239,6 +242,17 @@ export default function TiltPad({ disabled = false }: TiltPadProps) {
           </span>
         </div>
       </div>
+
+      <EditorSliderRow
+        label="Screenshot rotate"
+        labelClassName="text-slate-600 dark:text-slate-300"
+        min={BEAUTIFY_SETTING_LIMITS.rotateZ.min}
+        max={BEAUTIFY_SETTING_LIMITS.rotateZ.max}
+        step={BEAUTIFY_SETTING_LIMITS.rotateZ.step}
+        value={rotateZ}
+        suffix="deg"
+        onChange={setRotateZ}
+      />
 
       {/* ---- Reset ---- */}
       <Button

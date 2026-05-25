@@ -35,6 +35,7 @@ export default function ImageStyleControls({
   const imageZoomOffsetY = useEditorStore(
     (state) => state.imageZoomOffsetY,
   );
+  const rotateZ = useEditorStore((state) => state.rotateZ);
   const setImagePadding = useEditorStore((state) => state.setImagePadding);
   const setImageRadius = useEditorStore((state) => state.setImageRadius);
   const setImageScale = useEditorStore((state) => state.setImageScale);
@@ -46,6 +47,7 @@ export default function ImageStyleControls({
   const setImageZoomOffset = useEditorStore(
     (state) => state.setImageZoomOffset,
   );
+  const setRotateZ = useEditorStore((state) => state.setRotateZ);
   const resetImageZoom = useEditorStore((state) => state.resetImageZoom);
   const shadowOpacityPercent = Math.round(imageShadow.opacity * 100);
   const isZoomed = imageZoom > 100;
@@ -102,6 +104,16 @@ export default function ImageStyleControls({
               value={imageScale}
               suffix="%"
               onChange={setImageScale}
+            />
+            <EditorSliderRow
+              label="Rotate"
+              labelClassName="text-slate-600 dark:text-slate-300"
+              min={BEAUTIFY_SETTING_LIMITS.rotateZ.min}
+              max={BEAUTIFY_SETTING_LIMITS.rotateZ.max}
+              step={BEAUTIFY_SETTING_LIMITS.rotateZ.step}
+              value={rotateZ}
+              suffix="deg"
+              onChange={setRotateZ}
             />
           </>
         )}

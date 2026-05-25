@@ -17,7 +17,7 @@ import {
 } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Trash2 } from "lucide-react";
+import { RotateCw, Trash2 } from "lucide-react";
 
 import BrowserFrame from "@/components/editor/BrowserFrame";
 import TextOverlay, {
@@ -125,9 +125,22 @@ type MockupResizeState = {
   startScale: number;
 };
 
+type MockupRotateState = {
+  moved: boolean;
+  pointerId: number;
+  screenshotId: string;
+  startClientX: number;
+  startClientY: number;
+  startRotation: number;
+};
+
 type MockupTransformControlsProps = {
   imageRadius: number;
   onRemoveFromCanvas: () => void;
+  onRotatePointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
+  onRotatePointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
+  onRotatePointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
+  onRotatePointerUp: (event: PointerEvent<HTMLButtonElement>) => void;
   onResizePointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
   onResizePointerDown: (
     handleId: ResizeHandleId,
@@ -491,6 +504,10 @@ function getResizeHandleVisualClass(handleId: ResizeHandleId) {
 function MockupTransformControls({
   imageRadius,
   onRemoveFromCanvas,
+  onRotatePointerCancel,
+  onRotatePointerDown,
+  onRotatePointerMove,
+  onRotatePointerUp,
   onResizePointerCancel,
   onResizePointerDown,
   onResizePointerMove,
@@ -505,20 +522,15 @@ function MockupTransformControls({
     >
       <button
         type="button"
-        aria-label="Remove screenshot from canvas"
-        title="Remove from artwork"
-        className="pointer-events-auto absolute left-1/2 top-0 z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-[calc(100%+10px)] items-center justify-center rounded-full border border-white/80 bg-slate-950 text-white shadow-lg shadow-slate-950/20 outline-none transition hover:bg-rose-600 focus-visible:ring-2 focus-visible:ring-blue-300"
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          onRemoveFromCanvas();
-        }}
-        onPointerDown={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }}
+        aria-label="Rotate screenshot"
+        title="Rotate screenshot"
+        className="pointer-events-auto absolute left-1/2 top-0 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-[calc(100%+10px)] touch-none items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
+        onPointerCancel={onRotatePointerCancel}
+        onPointerDown={onRotatePointerDown}
+        onPointerMove={onRotatePointerMove}
+        onPointerUp={onRotatePointerUp}
       >
-        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+        <RotateCw className="h-8 w-8" aria-hidden="true" />
       </button>
       {RESIZE_HANDLES.map((handleId) => (
         <button
@@ -543,6 +555,23 @@ function MockupTransformControls({
           />
         </button>
       ))}
+      <button
+        type="button"
+        aria-label="Remove screenshot from canvas"
+        title="Remove from artwork"
+        className="pointer-events-auto absolute bottom-0 left-1/2 z-10 flex h-14 w-14 -translate-x-1/2 translate-y-[calc(100%+10px)] items-center justify-center rounded-full border border-white/80 bg-slate-950 text-white shadow-lg shadow-slate-950/20 outline-none transition hover:bg-rose-600 focus-visible:ring-2 focus-visible:ring-blue-300"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onRemoveFromCanvas();
+        }}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
+        <Trash2 className="h-7 w-7" aria-hidden="true" />
+      </button>
     </div>
   );
 }
@@ -644,6 +673,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const textRotateStateRef = useRef<TextLayerRotateState | null>(null);
     const mockupDragStateRef = useRef<MockupDragState | null>(null);
     const mockupResizeStateRef = useRef<MockupResizeState | null>(null);
+    const mockupRotateStateRef = useRef<MockupRotateState | null>(null);
     const suppressNextTextClickRef = useRef<TextLayerId | null>(null);
     const parallaxFrameRef = useRef<number | null>(null);
     const textDragFrameRef = useRef<number | null>(null);
@@ -787,6 +817,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const setImageZoomOffset = useEditorStore(
       (state) => state.setImageZoomOffset,
     );
+    const setRotateZ = useEditorStore((state) => state.setRotateZ);
     const tiltEnabled = useEditorStore((state) => state.tiltEnabled);
     const tiltPresetId = useEditorStore((state) => state.tiltPresetId);
     const perspective = useEditorStore((state) => state.perspective);
@@ -1035,6 +1066,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         transformDragActiveRef.current = false;
         textResizeStateRef.current = null;
         textRotateStateRef.current = null;
+        mockupRotateStateRef.current = null;
 
         if (textDragFrameRef.current !== null) {
           cancelAnimationFrame(textDragFrameRef.current);
@@ -1195,7 +1227,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         textResizeStateRef.current ||
         textRotateStateRef.current ||
         mockupDragStateRef.current ||
-        mockupResizeStateRef.current
+        mockupResizeStateRef.current ||
+        mockupRotateStateRef.current
       ) {
         return;
       }
@@ -2174,6 +2207,95 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       }
     }
 
+    function handleMockupRotatePointerDown(
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      if (isExportMode || event.button !== 0 || !activeScreenshotId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      setIsMockupSelected(true);
+      setActiveTextLayerId(null);
+      setIsDraggingCanvasItem(true);
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
+      transformDragActiveRef.current = true;
+      mockupRotateStateRef.current = {
+        moved: false,
+        pointerId: event.pointerId,
+        screenshotId: activeScreenshotId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startRotation: rotateZ,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handleMockupRotatePointerMove(
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = mockupRotateStateRef.current;
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - dragState.startClientX;
+      const deltaY = event.clientY - dragState.startClientY;
+      const dragDistance = Math.hypot(deltaX, deltaY);
+
+      if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      dragState.moved = true;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const nextRotation = clampValue(
+        Math.round(
+          dragState.startRotation + deltaX * TEXT_ROTATION_DEGREES_PER_PX,
+        ),
+        BEAUTIFY_SETTING_LIMITS.rotateZ.min,
+        BEAUTIFY_SETTING_LIMITS.rotateZ.max,
+      );
+
+      scheduleTransformUpdate(() => {
+        if (
+          useEditorStore.getState().activeScreenshotId !==
+          dragState.screenshotId
+        ) {
+          return;
+        }
+
+        setRotateZ(nextRotation);
+      });
+    }
+
+    function handleMockupRotatePointerEnd(
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const dragState = mockupRotateStateRef.current;
+      transformDragActiveRef.current = false;
+      cancelTransformUpdate();
+
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      mockupRotateStateRef.current = null;
+      setIsDraggingCanvasItem(false);
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }
+
     const screenshotMotionProps = {
       initial: {
         opacity: isExportMode ? 1 : 0,
@@ -2468,6 +2590,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                       removeScreenshotFromCanvas(screenshot.id);
                       setIsMockupSelected(false);
                     }}
+                    onRotatePointerCancel={handleMockupRotatePointerEnd}
+                    onRotatePointerDown={handleMockupRotatePointerDown}
+                    onRotatePointerMove={handleMockupRotatePointerMove}
+                    onRotatePointerUp={handleMockupRotatePointerEnd}
                     onResizePointerCancel={handleResizePointerEnd}
                     onResizePointerDown={handleResizePointerDown}
                     onResizePointerMove={handleResizePointerMove}

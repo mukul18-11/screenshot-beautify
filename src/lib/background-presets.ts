@@ -15,13 +15,7 @@ export const BACKGROUND_PRESETS = [
     cssValue:
       "linear-gradient(rgba(56, 189, 248, 0.11) 1px, transparent 1px) 0 0 / 34px 34px, linear-gradient(90deg, rgba(56, 189, 248, 0.1) 1px, transparent 1px) 0 0 / 34px 34px, radial-gradient(at 50% 92%, rgba(34, 211, 238, 0.6) 0%, transparent 46%), radial-gradient(at 78% 18%, rgba(99, 102, 241, 0.34) 0%, transparent 34%), linear-gradient(135deg, #020617 0%, #0f172a 100%)",
   },
-  {
-    id: "midnight-spotlight",
-    name: "Midnight Spotlight",
-    type: "mesh",
-    cssValue:
-      "radial-gradient(70% 54% at 50% 0%, rgba(255, 255, 255, 0.2) 0%, transparent 56%), radial-gradient(64% 46% at 52% 86%, rgba(59, 130, 246, 0.38) 0%, transparent 62%), radial-gradient(rgba(255, 255, 255, 0.12) 0.7px, transparent 0.7px) 0 0 / 14px 14px, linear-gradient(135deg, #030712 0%, #111827 54%, #020617 100%)",
-  },
+
   {
     id: "liquid-chrome",
     name: "Liquid Chrome",
@@ -29,20 +23,7 @@ export const BACKGROUND_PRESETS = [
     cssValue:
       "radial-gradient(90% 44% at 12% 22%, rgba(255, 255, 255, 0.5) 0%, transparent 44%), radial-gradient(82% 42% at 82% 22%, rgba(96, 165, 250, 0.36) 0%, transparent 48%), linear-gradient(142deg, rgba(255, 255, 255, 0.28) 0 8%, transparent 18% 28%, rgba(71, 85, 105, 0.52) 38%, transparent 50%, rgba(226, 232, 240, 0.32) 62%, transparent 76%), radial-gradient(120% 76% at 50% 116%, #020617 0%, #111827 54%, #020617 100%)",
   },
-  {
-    id: "velvet-storm",
-    name: "Velvet Storm",
-    type: "mesh",
-    cssValue:
-      "conic-gradient(from 220deg at 48% 54%, rgba(236, 72, 153, 0.34), rgba(79, 70, 229, 0.28), transparent 34%, rgba(15, 23, 42, 0.72), rgba(236, 72, 153, 0.26)), radial-gradient(64% 54% at 50% 50%, rgba(255, 255, 255, 0.12) 0%, transparent 54%), radial-gradient(78% 52% at 82% 12%, rgba(99, 102, 241, 0.34) 0%, transparent 46%), linear-gradient(135deg, #07030f 0%, #020617 100%)",
-  },
-  {
-    id: "ocean-blue",
-    name: "Ocean Blue",
-    type: "mesh",
-    cssValue:
-      "radial-gradient(at 18% 32%, #1d4ed8 0%, transparent 58%), radial-gradient(at 82% 14%, #22d3ee 0%, transparent 48%), radial-gradient(at 56% 84%, #0ea5e9 0%, transparent 56%), linear-gradient(135deg, #020617 0%, #082f49 100%)",
-  },
+
   {
     id: "product-hunt-orange",
     name: "Orange Gradient",
@@ -97,24 +78,7 @@ export const BACKGROUND_PRESETS = [
     type: "mesh",
     cssValue: "url('/backgrounds/cyber-circuit-glow.png') center / cover no-repeat",
   },
-  {
-    id: "tech-isometric-3d-circuit",
-    name: "3D Isometric Circuit",
-    type: "mesh",
-    cssValue: "url('/backgrounds/isometric-3d-circuit.png') center / cover no-repeat",
-  },
-  {
-    id: "tech-3d-geometric-wall",
-    name: "3D Geometric Wall",
-    type: "mesh",
-    cssValue: "url('/backgrounds/3d-geometric-wall.png') center / cover no-repeat",
-  },
-  {
-    id: "tech-cyber-grid-horizon",
-    name: "Cyber Grid Horizon",
-    type: "mesh",
-    cssValue: "url('/backgrounds/cyber-grid-horizon.png') center / cover no-repeat",
-  },
+
   /* ──────────────────────────────────────────────────────────
    * Premium Apple-Inspired Wallpapers (Generated HD)
    * ────────────────────────────────────────────────────────── */
@@ -124,12 +88,7 @@ export const BACKGROUND_PRESETS = [
     type: "mesh",
     cssValue: "url('/backgrounds/apple-sonoma-wave.png') center / cover no-repeat",
   },
-  {
-    id: "apple-chroma-liquid",
-    name: "Apple Chroma Liquid",
-    type: "mesh",
-    cssValue: "url('/backgrounds/apple-chroma-liquid.png') center / cover no-repeat",
-  },
+
   {
     id: "apple-neon-ribbons",
     name: "Apple Neon Ribbons",
@@ -142,11 +101,60 @@ export const BACKGROUND_PRESETS = [
     type: "mesh",
     cssValue: "url('/backgrounds/apple-layered-organic.png') center / cover no-repeat",
   },
+
   {
-    id: "apple-glass-aurora",
-    name: "Apple Glass Aurora",
+    id: "apple-sequoia-stream",
+    name: "Apple Sequoia Stream",
     type: "mesh",
-    cssValue: "url('/backgrounds/apple-glass-aurora.png') center / cover no-repeat",
+    cssValue: "url('/backgrounds/apple-sequoia-stream.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-solar-flare",
+    name: "Apple Solar Flare",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-solar-flare.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-obsidian-glow",
+    name: "Apple Obsidian Glow",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-obsidian-glow.png') center / cover no-repeat",
+  },
+  {
+    id: "abstract-energy-beams",
+    name: "Abstract Energy Beams",
+    type: "mesh",
+    cssValue: "url('/backgrounds/abstract-energy-beams.png') center / cover no-repeat",
+  },
+  {
+    id: "vibrant-fluid-splash",
+    name: "Vibrant Fluid Splash",
+    type: "mesh",
+    cssValue: "url('/backgrounds/vibrant-fluid-splash.png') center / cover no-repeat",
+  },
+  {
+    id: "colliding-elemental-flames",
+    name: "Colliding Elemental Flames",
+    type: "mesh",
+    cssValue: "url('/backgrounds/colliding-elemental-flames.png') center / cover no-repeat",
+  },
+  {
+    id: "rainbow-spectrum-clouds",
+    name: "Rainbow Spectrum Clouds",
+    type: "mesh",
+    cssValue: "url('/backgrounds/rainbow-spectrum-clouds.png') center / cover no-repeat",
+  },
+  {
+    id: "rainbow-acrylic-streaks",
+    name: "Rainbow Acrylic Streaks",
+    type: "mesh",
+    cssValue: "url('/backgrounds/rainbow-acrylic-streaks.png') center / cover no-repeat",
+  },
+  {
+    id: "apple-cosmic-silk",
+    name: "Apple Cosmic Silk",
+    type: "mesh",
+    cssValue: "url('/backgrounds/apple-cosmic-silk.png') center / cover no-repeat",
   },
   {
     id: "blur-from-screenshot",

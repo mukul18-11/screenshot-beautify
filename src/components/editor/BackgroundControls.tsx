@@ -61,13 +61,7 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorC: "#020617",
     angle: 135,
   },
-  "midnight-spotlight": {
-    patternId: "spotlight",
-    colorA: "#f8fafc",
-    colorB: "#3b82f6",
-    colorC: "#030712",
-    angle: 135,
-  },
+
   "liquid-chrome": {
     patternId: "liquid-chrome",
     colorA: "#f8fafc",
@@ -75,20 +69,7 @@ const EDITABLE_PRESET_CONFIGS: Record<string, CustomBackgroundConfig> = {
     colorC: "#111827",
     angle: 135,
   },
-  "velvet-storm": {
-    patternId: "velvet-storm",
-    colorA: "#ec4899",
-    colorB: "#4f46e5",
-    colorC: "#07030f",
-    angle: 135,
-  },
-  "ocean-blue": {
-    patternId: "radial",
-    colorA: "#1d4ed8",
-    colorB: "#22d3ee",
-    colorC: "#020617",
-    angle: 135,
-  },
+
   "product-hunt-orange": {
     patternId: "radial",
     colorA: "#fb923c",
