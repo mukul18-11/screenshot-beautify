@@ -2,6 +2,12 @@ import type { BackgroundPreset } from "@/types/editor";
 
 export const BACKGROUND_PRESETS = [
   {
+    id: "wall-4",
+    name: "Wall 4",
+    type: "mesh",
+    cssValue: "url('/backgrounds/wall4.jpg') center / cover no-repeat",
+  },
+  {
     id: "blue-arc-ribbons",
     name: "Blue Arc Ribbons",
     type: "mesh",
@@ -90,12 +96,6 @@ export const BACKGROUND_PRESETS = [
   },
 
   {
-    id: "apple-neon-ribbons",
-    name: "Apple Neon Ribbons",
-    type: "mesh",
-    cssValue: "url('/backgrounds/apple-neon-ribbons.png') center / cover no-repeat",
-  },
-  {
     id: "apple-layered-organic",
     name: "Apple Layered Organic",
     type: "mesh",
@@ -149,6 +149,18 @@ export const BACKGROUND_PRESETS = [
     name: "Rainbow Acrylic Streaks",
     type: "mesh",
     cssValue: "url('/backgrounds/rainbow-acrylic-streaks.png') center / cover no-repeat",
+  },
+  {
+    id: "elemental-flame-border",
+    name: "Elemental Flame Border",
+    type: "mesh",
+    cssValue: "url('/backgrounds/elemental-flame-border.png') center / cover no-repeat",
+  },
+  {
+    id: "cosmic-ink-cloud",
+    name: "Cosmic Ink Cloud",
+    type: "mesh",
+    cssValue: "url('/backgrounds/cosmic-ink-cloud.png') center / cover no-repeat",
   },
   {
     id: "apple-cosmic-silk",

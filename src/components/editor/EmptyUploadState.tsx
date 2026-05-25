@@ -38,6 +38,12 @@ export default function EmptyUploadState({
       description: "Choose an image file under 10 MB.",
     },
   }[dragState];
+  const shouldShowUploadShine = !shouldReduceMotion && !isUploading;
+  const uploadShineTransition = {
+    duration: 1.9,
+    ease: "easeInOut",
+    repeat: Infinity,
+  } as const;
 
   return (
     <motion.div
@@ -86,7 +92,7 @@ export default function EmptyUploadState({
           whileHover={{ y: shouldReduceMotion || isUploading ? 0 : -2.5 }}
           whileTap={{ scale: shouldReduceMotion || isUploading ? 1 : 0.98 }}
           animate={
-            dragState === "idle" && !shouldReduceMotion && !isUploading
+            dragState === "idle" && shouldShowUploadShine
               ? { scale: [1, 1.04, 1] }
               : { scale: 1 }
           }
@@ -94,12 +100,12 @@ export default function EmptyUploadState({
             duration: 1.8,
             ease: "easeInOut",
             repeat:
-              dragState === "idle" && !shouldReduceMotion && !isUploading
+              dragState === "idle" && shouldShowUploadShine
                 ? Infinity
                 : 0,
           }}
           className={cn(
-            "group relative mt-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1.1rem] border bg-white shadow-[0_12px_40px_-20px_rgba(15,23,42,0.8)] outline-none transition dark:bg-zinc-950",
+            "group relative isolate mt-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1.1rem] border bg-white shadow-[0_12px_40px_-20px_rgba(15,23,42,0.8)] outline-none transition dark:bg-zinc-950",
             "focus-visible:ring-2 focus-visible:ring-sky-400/30",
             dragState === "idle" &&
               "border-sky-300/70 bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 text-sky-600 shadow-[0_16px_45px_-20px_rgba(2,132,199,0.85)] hover:border-sky-400/80 hover:text-sky-700 dark:border-zinc-800 dark:bg-gradient-to-br dark:from-zinc-900 dark:via-zinc-950 dark:to-black dark:text-zinc-300 dark:shadow-[0_16px_45px_-20px_rgba(0,0,0,0.5)] dark:hover:border-zinc-600 dark:hover:text-white",
@@ -109,25 +115,21 @@ export default function EmptyUploadState({
               "border-rose-300 bg-rose-50/95 text-rose-700 dark:border-rose-500/30 dark:bg-rose-950/80 dark:text-rose-400",
           )}
         >
-          {dragState === "idle" && !shouldReduceMotion && !isUploading && (
+          {shouldShowUploadShine && (
             <motion.span
-              className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/75 to-transparent"
-              animate={{ x: ["0%", "330%"] }}
-              transition={{
-                duration: 2.4,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatDelay: 0.6,
-              }}
+              className="pointer-events-none absolute inset-y-[-20%] left-0 z-0 w-1/2 bg-gradient-to-r from-transparent via-white/85 to-transparent blur-[0.5px]"
+              initial={{ x: "-140%", rotate: 14 }}
+              animate={{ x: "285%", rotate: 14 }}
+              transition={uploadShineTransition}
               aria-hidden="true"
             />
           )}
-          <span className="absolute inset-2.5 rounded-[0.8rem] border border-dashed border-current/30 transition group-hover:border-current/50" />
+          <span className="absolute inset-2.5 z-10 rounded-[0.8rem] border border-dashed border-current/30 transition group-hover:border-current/50" />
           {isUploading ? (
-            <Loader2 className="h-7 w-7 animate-spin" aria-hidden="true" />
+            <Loader2 className="relative z-10 h-7 w-7 animate-spin" aria-hidden="true" />
           ) : (
             <UploadCloud
-              className="h-7.5 w-7.5 transition group-hover:-translate-y-0.5"
+              className="relative z-10 h-7.5 w-7.5 transition group-hover:-translate-y-0.5"
               aria-hidden="true"
             />
           )}
@@ -159,10 +161,19 @@ export default function EmptyUploadState({
               event.stopPropagation();
               onBrowse?.();
             }}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1 text-white shadow-md shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/25 disabled:pointer-events-none disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+            className="group relative isolate inline-flex h-8 items-center gap-1.5 overflow-hidden rounded-full bg-slate-950 px-3 py-1 text-white shadow-md shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/25 disabled:pointer-events-none disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
           >
-            <ArrowUpFromLine className="h-3 w-3" aria-hidden="true" />
-            Browse files
+            {shouldShowUploadShine && (
+              <motion.span
+                className="pointer-events-none absolute inset-y-[-45%] left-0 z-0 w-1/3 bg-gradient-to-r from-transparent via-white/70 to-transparent blur-[0.5px] dark:via-slate-950/10"
+                initial={{ x: "-160%", rotate: 14 }}
+                animate={{ x: "430%", rotate: 14 }}
+                transition={uploadShineTransition}
+                aria-hidden="true"
+              />
+            )}
+            <ArrowUpFromLine className="relative z-10 h-3 w-3" aria-hidden="true" />
+            <span className="relative z-10">Browse files</span>
           </button>
           <span className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200/80 bg-slate-50/80 px-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-300">
             <FileImage className="h-3.5 w-3.5" aria-hidden="true" />
