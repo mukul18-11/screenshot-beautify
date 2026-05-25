@@ -1561,29 +1561,31 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       return;
     }
 
-    const shouldAutoLayout =
-      state.screenshots.length === 0 && canApplyScreenshotLayout(imagesToAdd.length);
-    const shouldPlaceFirstImage =
-      state.screenshots.length === 0 && imagesToAdd.length === 1;
-    const shouldPlaceUploadedImages = shouldAutoLayout || shouldPlaceFirstImage;
+    const shouldPlaceUploadedImages = state.screenshots.length === 0;
     const sourceSettings = getEditorDesignSettingsFromState(state);
-    const nextScreenshots = imagesToAdd.map((uploadedImage, index) =>
-      createScreenshotDesign(
+    const nextScreenshots = imagesToAdd.map((uploadedImage, index) => {
+      const uploadedImageSettings = createSettingsForUploadedImage(
         uploadedImage,
-        createSettingsForUploadedImage(uploadedImage, sourceSettings),
-        shouldPlaceUploadedImages && (shouldAutoLayout || index === 0),
-      ),
-    );
+        sourceSettings,
+      );
+
+      return createScreenshotDesign(
+        uploadedImage,
+        shouldPlaceUploadedImages
+          ? {
+              ...uploadedImageSettings,
+              ...createNextManualPlacement(index),
+            }
+          : uploadedImageSettings,
+        shouldPlaceUploadedImages,
+      );
+    });
     const mergedScreenshots = [
       ...state.screenshots,
       ...nextScreenshots,
     ];
-    const layoutPresetId: ScreenshotLayoutPresetId = shouldAutoLayout
-      ? "deck"
-      : "manual";
-    const arrangedScreenshots = shouldAutoLayout
-      ? applyScreenshotLayoutToPlacedScreenshots(mergedScreenshots, layoutPresetId)
-      : mergedScreenshots;
+    const layoutPresetId: ScreenshotLayoutPresetId = "manual";
+    const arrangedScreenshots = mergedScreenshots;
     const activeScreenshot = shouldPlaceUploadedImages
       ? arrangedScreenshots.find(
           (screenshot) =>
