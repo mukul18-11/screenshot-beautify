@@ -117,9 +117,9 @@ export default function UploadZone() {
         animate={{ scale: isDragActive && !shouldReduceMotion ? 1.005 : 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
-          "relative flex h-full min-h-[calc(100svh-4rem)] w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-slate-950/10",
+          "relative flex h-full min-h-0 w-full cursor-default items-stretch justify-center overflow-hidden border border-dashed outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-slate-950/10",
           !hasScreenshots
-            ? "border-transparent bg-transparent p-4 sm:p-6 lg:p-8"
+            ? "min-h-[calc(100svh-4rem)] border-transparent bg-transparent p-4 sm:p-6 lg:p-8"
             : "border-transparent bg-transparent",
           isDragActive && "border-blue-500/60 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-500/30",
           isDragAccept && "border-emerald-500/60 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-500/30",
@@ -165,40 +165,42 @@ export default function UploadZone() {
             )}
           </AnimatePresence>
 
-          <AnimatePresence initial={false}>
-            {hasScreenshots ? (
-              <ImagePreview
-                key="uploaded"
-                isUploading={isUploading}
-                toolbar={
-                  <ScreenshotTray
-                    isUploading={isUploading}
-                    onAdd={handleBrowseAdd}
-                    onRemove={handleRemoveImage}
-                    onReplace={handleBrowseReplace}
-                  />
-                }
-                onRemove={handleRemoveImage}
-                onReplace={handleBrowseReplace}
-                uploadedImage={uploadedImage}
-              />
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 1, y: 0 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="flex min-h-0 w-full flex-1"
-              >
-                <EmptyUploadState
-                  dragState={dragState}
+          <div className="min-h-0 w-full flex-1">
+            <AnimatePresence initial={false}>
+              {hasScreenshots ? (
+                <ImagePreview
+                  key="uploaded"
                   isUploading={isUploading}
-                  onBrowse={handleBrowseAdd}
+                  toolbar={
+                    <ScreenshotTray
+                      isUploading={isUploading}
+                      onAdd={handleBrowseAdd}
+                      onRemove={handleRemoveImage}
+                      onReplace={handleBrowseReplace}
+                    />
+                  }
+                  onRemove={handleRemoveImage}
+                  onReplace={handleBrowseReplace}
+                  uploadedImage={uploadedImage}
                 />
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="flex min-h-0 w-full flex-1"
+                >
+                  <EmptyUploadState
+                    dragState={dragState}
+                    isUploading={isUploading}
+                    onBrowse={handleBrowseAdd}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <AnimatePresence>
             {(errorMessage || isDragReject) && (

@@ -52,8 +52,8 @@ export default function EditorClient() {
 
   return (
     <ExportProvider>
-      <main className="relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)]">
-        <div className="relative z-10 flex min-h-screen flex-col">
+      <main className="relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)] lg:h-screen lg:overflow-hidden">
+        <div className="relative z-10 flex min-h-screen flex-col lg:h-full lg:min-h-0">
           <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
             <div className="flex items-center gap-3">
               <Link
@@ -111,8 +111,8 @@ export default function EditorClient() {
             </div>
           </header>
 
-          <section className="grid min-h-0 w-full flex-1 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_440px]">
-            <div className="relative flex min-h-[calc(100svh-4rem)] min-w-0 items-stretch overflow-hidden bg-[var(--editor-bg-strong)]">
+          <section className="grid min-h-0 w-full flex-1 lg:grid-cols-[minmax(0,1fr)_420px] lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_440px]">
+            <div className="relative flex h-[calc(100svh-4rem)] min-h-0 min-w-0 items-stretch overflow-hidden bg-[var(--editor-bg-strong)] lg:h-auto">
               <div
                 className="pointer-events-none absolute inset-0 opacity-70"
                 style={{

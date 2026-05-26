@@ -7,6 +7,9 @@ import { motion, useReducedMotion } from "motion/react";
 import CanvasArtwork from "@/components/editor/CanvasArtwork";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 
+const MAX_PREVIEW_WIDTH = 1320;
+const PREVIEW_GUTTER_PX = 32;
+
 type CanvasPreviewProps = {
   isLoading?: boolean;
   onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
@@ -20,11 +23,15 @@ export default function CanvasPreview({
 }: CanvasPreviewProps) {
   const shouldReduceMotion = useReducedMotion();
   const previewBoundsRef = useRef<HTMLDivElement | null>(null);
-  const [previewWidthPx, setPreviewWidthPx] = useState(0);
+  const [previewSize, setPreviewSize] = useState({
+    height: 0,
+    scale: 0,
+    width: 0,
+  });
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
-  const aspectRatio = canvasWidth / canvasHeight;
-  const previewScale = previewWidthPx > 0 ? previewWidthPx / canvasWidth : 0;
+  const previewScale = previewSize.scale;
+  const zoomPercent = Math.max(1, Math.round(previewScale * 100));
 
   useEffect(() => {
     const previewBounds = previewBoundsRef.current;
@@ -33,29 +40,41 @@ export default function CanvasPreview({
       return;
     }
 
-    const updatePreviewWidth = (entry?: ResizeObserverEntry) => {
+    const updatePreviewSize = (entry?: ResizeObserverEntry) => {
       const rect = entry?.contentRect ?? previewBounds.getBoundingClientRect();
-      const nextWidth = Math.max(
-        0,
-        Math.min(rect.width, rect.height * aspectRatio, 1320),
+      const availableWidth = Math.max(0, rect.width - PREVIEW_GUTTER_PX);
+      const availableHeight = Math.max(0, rect.height - PREVIEW_GUTTER_PX);
+      const fitScale = Math.min(
+        availableWidth / canvasWidth,
+        availableHeight / canvasHeight,
+        MAX_PREVIEW_WIDTH / canvasWidth,
       );
+      const nextScale = Number.isFinite(fitScale) ? Math.max(0, fitScale) : 0;
+      const nextSize = {
+        height: canvasHeight * nextScale,
+        scale: nextScale,
+        width: canvasWidth * nextScale,
+      };
 
-      setPreviewWidthPx((currentWidth) =>
-        Math.abs(currentWidth - nextWidth) < 0.5 ? currentWidth : nextWidth,
+      setPreviewSize((currentSize) =>
+        Math.abs(currentSize.width - nextSize.width) < 0.5 &&
+        Math.abs(currentSize.height - nextSize.height) < 0.5
+          ? currentSize
+          : nextSize,
       );
     };
 
-    updatePreviewWidth();
+    updatePreviewSize();
 
     const resizeObserver = new ResizeObserver((entries) => {
-      updatePreviewWidth(entries[0]);
+      updatePreviewSize(entries[0]);
     });
     resizeObserver.observe(previewBounds);
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [aspectRatio]);
+  }, [canvasHeight, canvasWidth]);
 
   return (
     <motion.div
@@ -72,14 +91,18 @@ export default function CanvasPreview({
         scale: shouldReduceMotion ? 1 : 0.99,
       }}
       transition={{ duration: 0.28, ease: "easeOut" }}
-      className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-2 py-2 sm:px-4 sm:py-3 lg:px-8 lg:py-5"
+      className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-2 py-2 sm:px-4 sm:py-3 lg:px-8 lg:py-5"
     >
+      <div className="pointer-events-none absolute right-3 top-3 z-20 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white/80 shadow-lg shadow-slate-950/20 backdrop-blur-md">
+        Fit {zoomPercent}%
+      </div>
       <div
         className="relative overflow-hidden rounded-xl shadow-2xl shadow-slate-950/20 ring-1 ring-slate-950/[0.06]"
         style={{
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
-          opacity: previewWidthPx > 0 ? 1 : 0,
-          width: previewWidthPx > 0 ? `${previewWidthPx}px` : "100%",
+          height: previewSize.height > 0 ? `${previewSize.height}px` : undefined,
+          opacity: previewSize.width > 0 ? 1 : 0,
+          width: previewSize.width > 0 ? `${previewSize.width}px` : "100%",
         }}
       >
         <div
