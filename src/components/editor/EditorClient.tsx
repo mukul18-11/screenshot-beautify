@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Lock, RotateCcw, Sparkles, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import EditorSettingsPanel from "@/components/editor/EditorSettingsPanel";
 import { ExportProvider } from "@/components/editor/ExportProvider";
 import UploadZone from "@/components/editor/UploadZone";
+import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 
 export default function EditorClient() {
@@ -20,29 +21,17 @@ export default function EditorClient() {
  
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") as "light" | "dark" | null;
-    const initialTheme = savedTheme || "dark";
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    
-    const timer = setTimeout(() => {
-      setTheme(initialTheme);
+    const timer = window.setTimeout(() => {
+      setTheme(savedTheme || "dark");
     }, 0);
-    
-    return () => clearTimeout(timer);
+
+    return () => window.clearTimeout(timer);
   }, []);
  
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
     localStorage.setItem("app-theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   };
 
   function handleResetDesign() {
@@ -52,7 +41,12 @@ export default function EditorClient() {
 
   return (
     <ExportProvider>
-      <main className="relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)] lg:h-screen lg:overflow-hidden">
+      <main
+        className={cn(
+          theme === "dark" && "dark",
+          "relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)] lg:h-screen lg:overflow-hidden",
+        )}
+      >
         <div className="relative z-10 flex min-h-screen flex-col lg:h-full lg:min-h-0">
           <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
             <div className="flex items-center gap-3">
