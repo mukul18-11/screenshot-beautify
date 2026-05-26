@@ -19,7 +19,10 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { RotateCw, Trash2 } from "lucide-react";
 
-import BrowserFrame from "@/components/editor/BrowserFrame";
+import BrowserFrame, {
+  MACOS_TOP_BAR_HEIGHT,
+  MINIMAL_TOP_BAR_HEIGHT,
+} from "@/components/editor/BrowserFrame";
 import TextOverlay, {
   type TextResizeHandleId,
 } from "@/components/editor/TextOverlay";
@@ -63,6 +66,11 @@ type CanvasArtworkMode = "preview" | "export";
 type TextDragGuide = {
   horizontal: number | null;
   vertical: number | null;
+};
+
+type ScreenshotSlotSize = {
+  height: number;
+  width: number;
 };
 
 type TextLayerDragState = {
@@ -258,27 +266,48 @@ function getScreenshotMaxWidthRatio(
   return 1;
 }
 
-function getFallbackScreenshotSlotWidth({
+function getFallbackScreenshotSlotSize({
+  canvasHeight,
   canvasWidth,
   imagePadding,
   textOverlayEnabled,
   textPosition,
 }: {
+  canvasHeight: number;
   canvasWidth: number;
   imagePadding: number;
   textOverlayEnabled: boolean;
   textPosition: TextPosition;
 }) {
   const contentWidth = Math.max(1, canvasWidth - imagePadding * 2);
+  const contentHeight = Math.max(1, canvasHeight - imagePadding * 2);
 
   if (
     textOverlayEnabled &&
     (textPosition === "left" || textPosition === "right")
   ) {
-    return Math.max(1, contentWidth * 0.62);
+    return {
+      height: contentHeight,
+      width: Math.max(1, contentWidth * 0.62),
+    };
   }
 
-  return contentWidth;
+  if (
+    textOverlayEnabled &&
+    textPosition !== "left" &&
+    textPosition !== "right" &&
+    textPosition !== "center"
+  ) {
+    return {
+      height: Math.max(1, contentHeight * 0.8),
+      width: contentWidth,
+    };
+  }
+
+  return {
+    height: contentHeight,
+    width: contentWidth,
+  };
 }
 
 function mergeRefs<T>(
@@ -769,9 +798,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformUpdateRef = useRef<(() => void) | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
-    const [screenshotSlotWidth, setScreenshotSlotWidth] = useState<
-      number | null
-    >(null);
+    const [screenshotSlotSize, setScreenshotSlotSize] =
+      useState<ScreenshotSlotSize | null>(null);
     const activeTextLayerId = useEditorStore((state) => state.activeTextLayerId);
     const setActiveTextLayerId = useEditorStore(
       (state) => state.setActiveTextLayerId,
@@ -1130,29 +1158,38 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      const updateScreenshotSlotWidth = (entry?: ResizeObserverEntry) => {
-        setScreenshotSlotWidth((currentWidth) => {
+      const updateScreenshotSlotSize = (entry?: ResizeObserverEntry) => {
+        setScreenshotSlotSize((currentSize) => {
           const observedWidth = entry?.contentRect.width;
+          const observedHeight = entry?.contentRect.height;
           const nextWidth =
             observedWidth && observedWidth > 0
               ? observedWidth
               : screenshotSlot.clientWidth;
+          const nextHeight =
+            observedHeight && observedHeight > 0
+              ? observedHeight
+              : screenshotSlot.clientHeight;
 
           if (
-            currentWidth !== null &&
-            Math.abs(currentWidth - nextWidth) < 0.5
+            currentSize !== null &&
+            Math.abs(currentSize.width - nextWidth) < 0.5 &&
+            Math.abs(currentSize.height - nextHeight) < 0.5
           ) {
-            return currentWidth;
+            return currentSize;
           }
 
-          return nextWidth;
+          return {
+            height: nextHeight,
+            width: nextWidth,
+          };
         });
       };
 
-      updateScreenshotSlotWidth();
+      updateScreenshotSlotSize();
 
       const resizeObserver = new ResizeObserver((entries) => {
-        updateScreenshotSlotWidth(entries[0]);
+        updateScreenshotSlotSize(entries[0]);
       });
       resizeObserver.observe(screenshotSlot);
 
@@ -2546,16 +2583,19 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       hasFlowTextOverlay,
       textPosition,
     );
-    const fallbackScreenshotSlotWidth = getFallbackScreenshotSlotWidth({
+    const fallbackScreenshotSlotSize = getFallbackScreenshotSlotSize({
+      canvasHeight,
       canvasWidth,
       imagePadding,
       textOverlayEnabled: hasFlowTextOverlay,
       textPosition,
     });
-    const resolvedScreenshotSlotWidth =
-      screenshotSlotWidth !== null && screenshotSlotWidth > 0
-        ? screenshotSlotWidth
-        : fallbackScreenshotSlotWidth;
+    const resolvedScreenshotSlotSize =
+      screenshotSlotSize !== null &&
+      screenshotSlotSize.width > 0 &&
+      screenshotSlotSize.height > 0
+        ? screenshotSlotSize
+        : fallbackScreenshotSlotSize;
     const activeLayerSettings = activeScreenshot
       ? ({
           ...activeScreenshot.settings,
@@ -2624,14 +2664,25 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const croppedImageHeight =
         screenshot.uploadedImage.height * layerCropRatios.height;
       const maxScreenshotWidth =
-        resolvedScreenshotSlotWidth *
+        resolvedScreenshotSlotSize.width *
         getScreenshotMaxWidthRatio(hasFlowTextOverlay, textPosition);
+      const frameChromeHeight = layerSettings.browserFrameEnabled
+        ? layerSettings.browserFrameStyle === "macos"
+          ? MACOS_TOP_BAR_HEIGHT
+          : MINIMAL_TOP_BAR_HEIGHT
+        : 0;
+      const maxScreenshotHeight = Math.max(
+        1,
+        resolvedScreenshotSlotSize.height - frameChromeHeight,
+      );
+      const cropAspectRatio = croppedImageWidth / croppedImageHeight;
       const screenshotCropWidth =
         Math.max(
           1,
           Math.min(
             croppedImageWidth,
             maxScreenshotWidth * layerCropRatios.width,
+            maxScreenshotHeight * layerCropRatios.height * cropAspectRatio,
           ),
         );
       const layerTiltEnabled = layerSettings.tiltEnabled;
