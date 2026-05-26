@@ -38,6 +38,7 @@ type TextOverlayProps = {
   badgeRotation: number;
   badgeSize: number;
   badgeText: string;
+  badgeWidth: number;
   className?: string;
   customTextLayers: CustomTextLayer[];
   activeLayerId?: TextLayerId | null;
@@ -46,6 +47,7 @@ type TextOverlayProps = {
   headlineRotation: number;
   headlineSize: number;
   headlineText: string;
+  headlineWidth: number;
   isEditable?: boolean;
   isCanvasOverlay?: boolean;
   isExportMode?: boolean;
@@ -114,6 +116,7 @@ type TextOverlayProps = {
   subtitleRotation: number;
   subtitleSize: number;
   subtitleText: string;
+  subtitleWidth: number;
   textAlign: TextAlign;
   textColor: string;
   textFontId: TextFontId;
@@ -135,14 +138,19 @@ type TextOverlayProps = {
   textUnderline: boolean;
 };
 
-export type TextResizeHandleId = "nw" | "ne" | "sw" | "se";
+export type TextResizeHandleId = "nw" | "ne" | "sw" | "se" | "w" | "e";
 
 const TEXT_RESIZE_HANDLES = [
   "nw",
   "ne",
   "se",
   "sw",
-] as const satisfies readonly TextResizeHandleId[];
+] as const satisfies readonly Exclude<TextResizeHandleId, "w" | "e">[];
+
+const TEXT_WIDTH_HANDLES = [
+  "w",
+  "e",
+] as const satisfies readonly Extract<TextResizeHandleId, "w" | "e">[];
 
 const TEXT_FONT_WEIGHT_VALUES = {
   regular: 400,
@@ -182,10 +190,10 @@ function getTextWidthClass(textPosition: TextPosition) {
   }
 
   if (textPosition === "center") {
-    return "max-w-[76%]";
+    return "max-w-[96%]";
   }
 
-  return "max-w-[82%]";
+  return "max-w-[96%]";
 }
 
 function createLayerPlacementStyle(
@@ -207,6 +215,18 @@ function createLayerPlacementStyle(
       anchorToCenter ? "translate(-50%, -50%) " : ""
     }translate(${translateX}, ${translateY}) rotate(${rotation}deg)`,
     transformOrigin: "center",
+  } satisfies CSSProperties;
+}
+
+function createLayerWidthStyle(
+  width: number,
+  placementBounds?: { height: number; width: number },
+) {
+  return {
+    maxWidth: placementBounds ? `${placementBounds.width}px` : "96cqw",
+    width: placementBounds
+      ? `${width * placementBounds.width}px`
+      : `${width * 100}cqw`,
   } satisfies CSSProperties;
 }
 
@@ -257,13 +277,23 @@ function createLayerTextStyle(
 
 function getTextResizeHandleTargetClass(handleId: TextResizeHandleId) {
   const positionClasses = {
+    e: "right-0 top-1/2 h-10 w-8 -translate-y-1/2 translate-x-1/2 cursor-ew-resize",
     ne: "right-0 top-0 h-9 w-9 -translate-y-1/2 translate-x-1/2 cursor-nesw-resize",
     nw: "left-0 top-0 h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize",
     se: "bottom-0 right-0 h-9 w-9 translate-x-1/2 translate-y-1/2 cursor-nwse-resize",
     sw: "bottom-0 left-0 h-9 w-9 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize",
+    w: "left-0 top-1/2 h-10 w-8 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize",
   } satisfies Record<TextResizeHandleId, string>;
 
   return positionClasses[handleId];
+}
+
+function getTextResizeHandleVisualClass(handleId: TextResizeHandleId) {
+  if (handleId === "e" || handleId === "w") {
+    return "h-6 w-1.5 rounded-full";
+  }
+
+  return "h-3 w-3 rounded-full";
 }
 
 type TextLayerResizeControlsProps = {
@@ -348,7 +378,45 @@ function TextLayerResizeControls({
         >
           <span
             aria-hidden="true"
-            className="block h-3 w-3 rounded-full border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 transition group-hover:scale-110"
+            className={cn(
+              "block border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 transition group-hover:scale-110",
+              getTextResizeHandleVisualClass(handleId),
+            )}
+          />
+        </button>
+      ))}
+      {TEXT_WIDTH_HANDLES.map((handleId) => (
+        <button
+          key={handleId}
+          type="button"
+          aria-label={`Adjust ${layerId} text width ${handleId}`}
+          className={cn(
+            "group pointer-events-auto absolute flex touch-none items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-300",
+            getTextResizeHandleTargetClass(handleId),
+          )}
+          onPointerCancel={(event) => {
+            event.stopPropagation();
+            onPointerCancel?.(layerId, event);
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            onPointerDown?.(layerId, handleId, event);
+          }}
+          onPointerMove={(event) => {
+            event.stopPropagation();
+            onPointerMove?.(layerId, event);
+          }}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            onPointerUp?.(layerId, event);
+          }}
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "block border border-blue-500/60 bg-white shadow-sm shadow-slate-950/20 transition group-hover:scale-110",
+              getTextResizeHandleVisualClass(handleId),
+            )}
           />
         </button>
       ))}
@@ -430,6 +498,38 @@ function EditableText({
     setIsEditing(false);
   }, [onCommit]);
 
+  function insertLineBreak() {
+    const el = ref.current;
+    const selection = window.getSelection();
+
+    if (!el || !selection || selection.rangeCount === 0) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+
+    if (!el.contains(range.commonAncestorContainer)) {
+      return;
+    }
+
+    if (
+      document.queryCommandSupported?.("insertText") &&
+      document.execCommand("insertText", false, "\n")
+    ) {
+      return;
+    }
+
+    range.deleteContents();
+
+    const lineBreak = document.createTextNode("\n");
+    range.insertNode(lineBreak);
+    range.setStartAfter(lineBreak);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
   function startEditing() {
     if (!isEditable) {
       return;
@@ -508,8 +608,8 @@ function EditableText({
   function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key === "Enter") {
       event.preventDefault();
-      commitValue();
-      ref.current?.blur();
+      insertLineBreak();
+      return;
     }
 
     if (event.key === "Escape") {
@@ -532,6 +632,7 @@ function EditableText({
       >}
       className={cn(
         className,
+        "whitespace-pre-wrap",
         isEditable && "px-2 py-1",
         isEditing && "select-text",
         isEditable && !isEditing &&
@@ -565,6 +666,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     badgeRotation,
     badgeSize,
     badgeText,
+    badgeWidth,
     className,
     customTextLayers,
     headlineOffsetX,
@@ -572,6 +674,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     headlineRotation,
     headlineSize,
     headlineText,
+    headlineWidth,
     isEditable = false,
     isCanvasOverlay = false,
     isExportMode = false,
@@ -597,6 +700,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     subtitleRotation,
     subtitleSize,
     subtitleText,
+    subtitleWidth,
     textAlign,
     textColor,
     textFontId,
@@ -700,6 +804,18 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     false,
     placementBounds,
   );
+  const badgeLayerStyleProperties = {
+    ...badgePlacementStyle,
+    ...createLayerWidthStyle(badgeWidth, placementBounds),
+  } satisfies CSSProperties;
+  const headlineLayerStyleProperties = {
+    ...headlinePlacementStyle,
+    ...createLayerWidthStyle(headlineWidth, placementBounds),
+  } satisfies CSSProperties;
+  const subtitleLayerStyleProperties = {
+    ...subtitlePlacementStyle,
+    ...createLayerWidthStyle(subtitleWidth, placementBounds),
+  } satisfies CSSProperties;
 
   function createLayerInteractionProps(layerId: TextLayerId) {
     return {
@@ -741,11 +857,11 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             "pointer-events-auto relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
           )}
-          style={badgePlacementStyle}
+          style={badgeLayerStyleProperties}
         >
           <div
             className={cn(
-              "max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 font-bold uppercase leading-tight tracking-normal shadow-sm",
+              "w-full max-w-full rounded-full border border-white/25 bg-white/18 px-3 py-1 font-bold uppercase leading-tight tracking-normal shadow-sm",
               badgeTextStyle.className,
               getTextContentAlignClass(badgeLayerStyle.textAlign),
               !isExportMode && "backdrop-blur-md",
@@ -759,7 +875,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               onCommit={setBadgeText}
               onEditStart={() => onLayerEditStart?.("badge")}
               placeholder="BADGE"
-              className="block max-w-full whitespace-normal break-words [overflow-wrap:anywhere]"
+              className="block w-full max-w-full whitespace-normal break-words [overflow-wrap:anywhere]"
             />
           </div>
           {!isExportMode && activeLayerId === "badge" && (
@@ -786,7 +902,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             "pointer-events-auto relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
           )}
-          style={headlinePlacementStyle}
+          style={headlineLayerStyleProperties}
         >
           <EditableText
             tag="h2"
@@ -796,7 +912,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             onEditStart={() => onLayerEditStart?.("headline")}
             placeholder="Headline text"
             className={cn(
-              "max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]",
+              "w-full max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere]",
               headlineTextStyle.className,
               getTextContentAlignClass(headlineLayerStyle.textAlign),
             )}
@@ -826,7 +942,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             "pointer-events-auto relative max-w-full touch-none",
             isMovable && "cursor-move select-none",
           )}
-          style={subtitlePlacementStyle}
+          style={subtitleLayerStyleProperties}
         >
           <EditableText
             tag="p"
@@ -836,7 +952,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             onEditStart={() => onLayerEditStart?.("subtitle")}
             placeholder="Subtitle text"
             className={cn(
-              "max-w-full text-pretty break-words font-medium leading-snug opacity-90 [overflow-wrap:anywhere]",
+              "w-full max-w-full text-pretty break-words font-medium leading-snug opacity-90 [overflow-wrap:anywhere]",
               subtitleTextStyle.className,
               getTextContentAlignClass(subtitleLayerStyle.textAlign),
             )}
@@ -873,6 +989,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           isCanvasOverlay,
           placementBounds,
         );
+        const customLayerStyleProperties = {
+          ...customPlacementStyle,
+          ...createLayerWidthStyle(layer.width ?? headlineWidth, placementBounds),
+        } satisfies CSSProperties;
 
         return (
           <div
@@ -881,11 +1001,11 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             data-text-layer-id={layer.id}
             className={cn(
               isCanvasOverlay
-                ? "pointer-events-auto absolute left-1/2 top-1/2 max-w-[76%] touch-none"
+                ? "pointer-events-auto absolute left-1/2 top-1/2 touch-none"
                 : "pointer-events-auto relative max-w-full touch-none",
               isMovable && "cursor-move select-none",
             )}
-            style={customPlacementStyle}
+            style={customLayerStyleProperties}
           >
             <EditableText
               tag="h2"
@@ -902,7 +1022,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               onEditStart={() => onLayerEditStart?.(layer.id)}
               placeholder="New text"
               className={cn(
-                "max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] sm:max-w-[14em]",
+                "w-full max-w-full text-balance break-words font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere]",
                 customTextStyle.className,
                 getTextContentAlignClass(layer.style.textAlign),
               )}

@@ -11,6 +11,7 @@ import ScreenshotTray from "@/components/editor/ScreenshotTray";
 import { cn } from "@/lib/utils";
 import { useClipboardImage } from "@/hooks/useClipboardImage";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { MAX_SCREENSHOT_UPLOADS } from "@/store/editor-store";
 
 export default function UploadZone() {
   const shouldReduceMotion = useReducedMotion();
@@ -43,13 +44,18 @@ export default function UploadZone() {
   const isUploading = isAdding || isReplacing;
   const errorMessage = addErrorMessage ?? replaceErrorMessage;
   const hasScreenshots = screenshots.length > 0;
+  const isAtScreenshotLimit = screenshots.length >= MAX_SCREENSHOT_UPLOADS;
 
   useClipboardImage({ uploadFile });
 
   const handleBrowseAdd = useCallback(() => {
+    if (isAtScreenshotLimit) {
+      return;
+    }
+
     clearReplaceError();
     open();
-  }, [clearReplaceError, open]);
+  }, [clearReplaceError, isAtScreenshotLimit, open]);
 
   const handleBrowseReplace = useCallback(() => {
     clearAddError();
@@ -73,14 +79,14 @@ export default function UploadZone() {
         return;
       }
 
-      if (isUploading) {
+      if (isUploading || isAtScreenshotLimit) {
         return;
       }
 
       event.preventDefault();
       handleBrowseAdd();
     },
-    [handleBrowseAdd, isUploading],
+    [handleBrowseAdd, isAtScreenshotLimit, isUploading],
   );
 
   const dragState = isDragReject ? "reject" : isDragAccept ? "accept" : "idle";

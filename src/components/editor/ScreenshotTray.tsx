@@ -164,30 +164,28 @@ export default function ScreenshotTray({
             );
           })}
 
-          <div role="listitem" className="shrink-0">
-            <motion.button
-              type="button"
-              aria-label={
-                isAtLimit
-                  ? `Limit reached: ${MAX_SCREENSHOT_UPLOADS} screenshots`
-                  : "Add screenshots"
-              }
-              disabled={isBusy || isAtLimit}
-              onClick={(event) => {
-                event.stopPropagation();
-                onAdd?.();
-              }}
-              whileHover={{
-                y: shouldReduceMotion || isBusy || isAtLimit ? 0 : -1,
-              }}
-              whileTap={{
-                scale: shouldReduceMotion || isBusy || isAtLimit ? 1 : 0.98,
-              }}
-              className="flex h-14 w-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/65 text-slate-500 outline-none transition hover:border-slate-400 hover:bg-white hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950/20 disabled:pointer-events-none disabled:opacity-45"
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-            </motion.button>
-          </div>
+          {!isAtLimit && (
+            <div role="listitem" className="shrink-0">
+              <motion.button
+                type="button"
+                aria-label="Add screenshots"
+                disabled={isBusy}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAdd?.();
+                }}
+                whileHover={{
+                  y: shouldReduceMotion || isBusy ? 0 : -1,
+                }}
+                whileTap={{
+                  scale: shouldReduceMotion || isBusy ? 1 : 0.98,
+                }}
+                className="flex h-14 w-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/65 text-slate-500 outline-none transition hover:border-slate-400 hover:bg-white hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950/20 disabled:pointer-events-none disabled:opacity-45"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+              </motion.button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -225,21 +223,23 @@ export default function ScreenshotTray({
         <span className="hidden min-w-10 text-center text-[11px] font-bold text-slate-500 sm:inline dark:text-slate-400">
           {screenshots.length}/{MAX_SCREENSHOT_UPLOADS}
         </span>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          disabled={isBusy || isAtLimit}
-          aria-label="Add screenshots"
-          title="Add screenshots"
-          onClick={(event) => {
-            event.stopPropagation();
-            onAdd?.();
-          }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
-        >
-          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-        </Button>
+        {!isAtLimit && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            disabled={isBusy}
+            aria-label="Add screenshots"
+            title="Add screenshots"
+            onClick={(event) => {
+              event.stopPropagation();
+              onAdd?.();
+            }}
+            className="h-8 w-8 rounded-lg bg-white/65 text-slate-500 shadow-sm hover:bg-white hover:text-slate-950 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          </Button>
+        )}
         <Button
           type="button"
           size="icon"

@@ -17,6 +17,7 @@ import {
   clampValue,
   clampImageCrop,
   clampTextLayerOffset,
+  clampTextLayerWidth,
   clampUnitOffset,
 } from "@/lib/editor-geometry";
 import { sanitizeFileName } from "@/lib/export-utils";
@@ -102,9 +103,12 @@ type HistoryGlobalSettings = Pick<
   | "headlineSize"
   | "subtitleSize"
   | "badgeSize"
+  | "badgeWidth"
   | "badgeRotation"
   | "headlineRotation"
+  | "headlineWidth"
   | "subtitleRotation"
+  | "subtitleWidth"
   | "badgeEnabled"
   | "badgeOffsetX"
   | "badgeOffsetY"
@@ -163,9 +167,12 @@ const HISTORY_GLOBAL_SETTING_KEYS = [
   "headlineSize",
   "subtitleSize",
   "badgeSize",
+  "badgeWidth",
   "badgeRotation",
   "headlineRotation",
+  "headlineWidth",
   "subtitleRotation",
+  "subtitleWidth",
   "badgeEnabled",
   "badgeOffsetX",
   "badgeOffsetY",
@@ -289,6 +296,15 @@ type EditorStore = EditorDesignSettings & {
       offsetX: number,
       offsetY: number,
     ) => void;
+    setTextLayerBox: (
+      layerId: TextLayerId,
+      box: {
+        offsetX: number;
+        offsetY: number;
+        width: number;
+      },
+    ) => void;
+    setTextLayerWidth: (layerId: TextLayerId, width: number) => void;
     resetTextLayerPosition: (layerId?: TextLayerId) => void;
     toggleBadge: () => void;
     resetTextOverlaySettings: () => void;
@@ -514,9 +530,12 @@ function getEditorDesignSettingsFromState(
     headlineSize: state.headlineSize,
     subtitleSize: state.subtitleSize,
     badgeSize: state.badgeSize,
+    badgeWidth: state.badgeWidth,
     badgeRotation: state.badgeRotation,
     headlineRotation: state.headlineRotation,
+    headlineWidth: state.headlineWidth,
     subtitleRotation: state.subtitleRotation,
+    subtitleWidth: state.subtitleWidth,
     badgeEnabled: state.badgeEnabled,
     badgeOffsetX: state.badgeOffsetX,
     badgeOffsetY: state.badgeOffsetY,
@@ -586,9 +605,12 @@ function getHistoryGlobalSettingsFromState(
     headlineSize: state.headlineSize,
     subtitleSize: state.subtitleSize,
     badgeSize: state.badgeSize,
+    badgeWidth: state.badgeWidth,
     badgeRotation: state.badgeRotation,
     headlineRotation: state.headlineRotation,
+    headlineWidth: state.headlineWidth,
     subtitleRotation: state.subtitleRotation,
+    subtitleWidth: state.subtitleWidth,
     badgeEnabled: state.badgeEnabled,
     badgeOffsetX: state.badgeOffsetX,
     badgeOffsetY: state.badgeOffsetY,
@@ -772,6 +794,14 @@ function getTextLayerRotationKey(layerId: TextLayerId) {
   return `${layerId}Rotation` as const;
 }
 
+function getTextLayerWidthKey(layerId: TextLayerId) {
+  if (!isDefaultTextLayerId(layerId)) {
+    return null;
+  }
+
+  return `${layerId}Width` as const;
+}
+
 function getCustomTextLayer(
   state: EditorStore,
   layerId: TextLayerId,
@@ -796,6 +826,7 @@ function createCustomTextLayer(state: EditorStore): CustomTextLayer {
       ...state.textLayerStyles.headline,
     },
     text: "New text",
+    width: state.headlineWidth,
   };
 }
 
@@ -1144,6 +1175,7 @@ function didCustomTextLayersChange(
       layer.offsetY !== nextLayer.offsetY ||
       layer.rotation !== nextLayer.rotation ||
       layer.size !== nextLayer.size ||
+      layer.width !== nextLayer.width ||
       didTextLayerStylesChange(
         { badge: layer.style, headline: layer.style, subtitle: layer.style },
         {
@@ -1257,9 +1289,12 @@ const LAYER_SCALAR_SETTING_KEYS = [
   "headlineSize",
   "subtitleSize",
   "badgeSize",
+  "badgeWidth",
   "badgeRotation",
   "headlineRotation",
+  "headlineWidth",
   "subtitleRotation",
+  "subtitleWidth",
   "badgeEnabled",
   "badgeOffsetX",
   "badgeOffsetY",
@@ -2303,6 +2338,67 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       [offsetKeys.x]: clampTextLayerOffset(offsetX),
       [offsetKeys.y]: clampTextLayerOffset(offsetY),
+    });
+  },
+  setTextLayerBox: (layerId, box) => {
+    const nextWidth = clampTextLayerWidth(box.width);
+    const nextOffsetX = clampTextLayerOffset(box.offsetX);
+    const nextOffsetY = clampTextLayerOffset(box.offsetY);
+
+    if (!isDefaultTextLayerId(layerId)) {
+      set((state) => ({
+        customTextLayers: state.customTextLayers.map((layer) =>
+          layer.id === layerId
+            ? {
+                ...layer,
+                offsetX: nextOffsetX,
+                offsetY: nextOffsetY,
+                width: nextWidth,
+              }
+            : layer,
+        ),
+      }));
+      return;
+    }
+
+    const offsetKeys = getTextLayerOffsetKeys(layerId);
+    const widthKey = getTextLayerWidthKey(layerId);
+
+    if (!offsetKeys || !widthKey) {
+      return;
+    }
+
+    set({
+      [offsetKeys.x]: nextOffsetX,
+      [offsetKeys.y]: nextOffsetY,
+      [widthKey]: nextWidth,
+    });
+  },
+  setTextLayerWidth: (layerId, width) => {
+    const nextWidth = clampTextLayerWidth(width);
+
+    if (!isDefaultTextLayerId(layerId)) {
+      set((state) => ({
+        customTextLayers: state.customTextLayers.map((layer) =>
+          layer.id === layerId
+            ? {
+                ...layer,
+                width: nextWidth,
+              }
+            : layer,
+        ),
+      }));
+      return;
+    }
+
+    const widthKey = getTextLayerWidthKey(layerId);
+
+    if (!widthKey) {
+      return;
+    }
+
+    set({
+      [widthKey]: nextWidth,
     });
   },
   resetTextLayerPosition: (layerId) => {

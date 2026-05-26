@@ -14,6 +14,10 @@ export function clampTextLayerOffset(value: number) {
   return clampValue(value, -2, 2);
 }
 
+export function clampTextLayerWidth(value: number) {
+  return clampValue(value, 0.08, 0.96);
+}
+
 export function clampCropInset(value: number) {
   return clampValue(value, 0, 1 - MIN_CROP_RATIO);
 }

@@ -36,6 +36,7 @@ import {
 import {
   clampCropInset,
   clampTextLayerOffset,
+  clampTextLayerWidth,
   clampUnitOffset,
   clampValue,
   getCropRatios,
@@ -78,12 +79,17 @@ type TextLayerDragState = {
 type TextLayerResizeState = {
   anchorX: number;
   anchorY: number;
+  canvasRect: DOMRect;
+  handleId: TextResizeHandleId;
   layerId: TextLayerId;
   moved: boolean;
   pointerId: number;
   startClientX: number;
   startClientY: number;
+  startOffsetX: number;
+  startOffsetY: number;
   startSize: number;
+  startWidth: number;
 };
 
 type TextLayerRotateState = {
@@ -170,7 +176,9 @@ type CanvasArtworkProps = {
 type ScreenshotWheelEvent = {
   clientX: number;
   clientY: number;
+  ctrlKey?: boolean;
   deltaY: number;
+  metaKey?: boolean;
   preventDefault: () => void;
   stopPropagation: () => void;
 };
@@ -411,6 +419,10 @@ function getTextResizeHandleDirections(handleId: TextResizeHandleId) {
     x: handleId.includes("e") ? 1 : -1,
     y: handleId.includes("s") ? 1 : -1,
   };
+}
+
+function isTextWidthResizeHandle(handleId: TextResizeHandleId) {
+  return handleId === "e" || handleId === "w";
 }
 
 function getTextResizeHandleAnchor(
@@ -853,6 +865,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const headlineOffsetY = useEditorStore((state) => state.headlineOffsetY);
     const subtitleOffsetX = useEditorStore((state) => state.subtitleOffsetX);
     const subtitleOffsetY = useEditorStore((state) => state.subtitleOffsetY);
+    const badgeWidth = useEditorStore((state) => state.badgeWidth);
+    const headlineWidth = useEditorStore((state) => state.headlineWidth);
+    const subtitleWidth = useEditorStore((state) => state.subtitleWidth);
     const placeScreenshot = useEditorStore((state) => state.placeScreenshot);
     const removeScreenshotFromCanvas = useEditorStore(
       (state) => state.removeScreenshotFromCanvas,
@@ -864,6 +879,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const setTextLayerPosition = useEditorStore(
       (state) => state.setTextLayerPosition,
     );
+    const setTextLayerBox = useEditorStore((state) => state.setTextLayerBox);
     const setTextLayerSize = useEditorStore(
       (state) => state.setTextLayerSize,
     );
@@ -1015,7 +1031,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     const applyScreenshotWheelZoom = useCallback(
       (event: ScreenshotWheelEvent, targetElement: HTMLElement) => {
-        if (isExportMode) {
+        if (isExportMode || event.ctrlKey || event.metaKey) {
           return;
         }
 
@@ -1380,6 +1396,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       headline: headlineSize,
       subtitle: subtitleSize,
     } satisfies Record<DefaultTextLayerId, number>;
+    const textLayerWidths = {
+      badge: badgeWidth,
+      headline: headlineWidth,
+      subtitle: subtitleWidth,
+    } satisfies Record<DefaultTextLayerId, number>;
     const textLayerRotations = {
       badge: badgeRotation,
       headline: headlineRotation,
@@ -1415,6 +1436,21 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       return (
         customTextLayers.find((layer) => layer.id === layerId)?.size ??
         headlineSize
+      );
+    }
+
+    function getTextLayerWidth(layerId: TextLayerId) {
+      if (
+        layerId === "badge" ||
+        layerId === "headline" ||
+        layerId === "subtitle"
+      ) {
+        return textLayerWidths[layerId];
+      }
+
+      return (
+        customTextLayers.find((layer) => layer.id === layerId)?.width ??
+        headlineWidth
       );
     }
 
@@ -1636,13 +1672,20 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const textLayerElement = event.currentTarget.closest(
         "[data-text-layer-id]",
       );
+      const canvasShell = canvasShellRef.current;
 
-      if (!(textLayerElement instanceof HTMLElement)) {
+      if (!(textLayerElement instanceof HTMLElement) || !canvasShell) {
         return;
       }
 
       const textRect = textLayerElement.getBoundingClientRect();
-      const anchor = getTextResizeHandleAnchor(handleId, textRect);
+      const anchor = isTextWidthResizeHandle(handleId)
+        ? {
+            x: handleId === "e" ? textRect.left : textRect.right,
+            y: textRect.top + textRect.height / 2,
+          }
+        : getTextResizeHandleAnchor(handleId, textRect);
+      const layerOffset = getTextLayerOffset(layerId);
 
       event.preventDefault();
       event.stopPropagation();
@@ -1655,12 +1698,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       textResizeStateRef.current = {
         anchorX: anchor.x,
         anchorY: anchor.y,
+        canvasRect: canvasShell.getBoundingClientRect(),
+        handleId,
         layerId,
         moved: false,
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
+        startOffsetX: layerOffset.x,
+        startOffsetY: layerOffset.y,
         startSize: getTextLayerSize(layerId),
+        startWidth: getTextLayerWidth(layerId),
       };
 
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -1691,6 +1739,29 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       dragState.moved = true;
       event.preventDefault();
       event.stopPropagation();
+
+      if (isTextWidthResizeHandle(dragState.handleId)) {
+        const direction = dragState.handleId === "e" ? 1 : -1;
+        const startWidthPx = dragState.startWidth * dragState.canvasRect.width;
+        const nextWidth = clampTextLayerWidth(
+          (startWidthPx + deltaX * direction) / dragState.canvasRect.width,
+        );
+        const appliedDeltaWidthPx =
+          (nextWidth - dragState.startWidth) * dragState.canvasRect.width;
+        const nextOffsetX = clampTextLayerOffset(
+          dragState.startOffsetX +
+            (appliedDeltaWidthPx * direction) / dragState.canvasRect.width,
+        );
+
+        scheduleTextDragUpdate(() => {
+          setTextLayerBox(layerId, {
+            offsetX: nextOffsetX,
+            offsetY: dragState.startOffsetY,
+            width: nextWidth,
+          });
+        });
+        return;
+      }
 
       const rawRatio = calculateTextResizeRatio(
         dragState,
@@ -2702,6 +2773,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         badgeRotation={badgeRotation}
         badgeSize={badgeSize}
         badgeText={badgeText}
+        badgeWidth={badgeWidth}
         customTextLayers={customTextLayers}
         textLayerStyles={textLayerStyles}
         headlineOffsetX={headlineOffsetX}
@@ -2709,6 +2781,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         headlineRotation={headlineRotation}
         headlineSize={headlineSize}
         headlineText={headlineText}
+        headlineWidth={headlineWidth}
         isEditable={!isExportMode}
         isExportMode={isExportMode}
         isMovable={!isExportMode}
@@ -2732,6 +2805,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         subtitleRotation={subtitleRotation}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
+        subtitleWidth={subtitleWidth}
         textAlign={textAlign}
         textColor={textColor}
         textFontId={textFontId}
@@ -2770,6 +2844,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         badgeRotation={badgeRotation}
         badgeSize={badgeSize}
         badgeText={badgeText}
+        badgeWidth={badgeWidth}
         customTextLayers={customTextLayers}
         textLayerStyles={textLayerStyles}
         headlineOffsetX={headlineOffsetX}
@@ -2777,6 +2852,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         headlineRotation={headlineRotation}
         headlineSize={headlineSize}
         headlineText={headlineText}
+        headlineWidth={headlineWidth}
         isCanvasOverlay
         isEditable={!isExportMode}
         isExportMode={isExportMode}
@@ -2801,6 +2877,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         subtitleRotation={subtitleRotation}
         subtitleSize={subtitleSize}
         subtitleText={subtitleText}
+        subtitleWidth={subtitleWidth}
         textAlign={textAlign}
         textColor={textColor}
         textFontId={textFontId}

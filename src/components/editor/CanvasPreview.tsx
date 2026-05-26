@@ -19,37 +19,47 @@ export default function CanvasPreview({
   uploadedImage,
 }: CanvasPreviewProps) {
   const shouldReduceMotion = useReducedMotion();
-  const previewFrameRef = useRef<HTMLDivElement | null>(null);
+  const previewBoundsRef = useRef<HTMLDivElement | null>(null);
   const [previewWidthPx, setPreviewWidthPx] = useState(0);
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
   const aspectRatio = canvasWidth / canvasHeight;
-  const previewWidth = `min(100%, 1320px, calc((100svh - 8.5rem) * ${aspectRatio}))`;
   const previewScale = previewWidthPx > 0 ? previewWidthPx / canvasWidth : 0;
 
   useEffect(() => {
-    const previewFrame = previewFrameRef.current;
+    const previewBounds = previewBoundsRef.current;
 
-    if (!previewFrame) {
+    if (!previewBounds) {
       return;
     }
 
-    const updatePreviewWidth = () => {
-      setPreviewWidthPx(previewFrame.getBoundingClientRect().width);
+    const updatePreviewWidth = (entry?: ResizeObserverEntry) => {
+      const rect = entry?.contentRect ?? previewBounds.getBoundingClientRect();
+      const nextWidth = Math.max(
+        0,
+        Math.min(rect.width, rect.height * aspectRatio, 1320),
+      );
+
+      setPreviewWidthPx((currentWidth) =>
+        Math.abs(currentWidth - nextWidth) < 0.5 ? currentWidth : nextWidth,
+      );
     };
 
     updatePreviewWidth();
 
-    const resizeObserver = new ResizeObserver(updatePreviewWidth);
-    resizeObserver.observe(previewFrame);
+    const resizeObserver = new ResizeObserver((entries) => {
+      updatePreviewWidth(entries[0]);
+    });
+    resizeObserver.observe(previewBounds);
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [aspectRatio]);
 
   return (
     <motion.div
+      ref={previewBoundsRef}
       initial={{
         opacity: 1,
         y: 0,
@@ -62,14 +72,14 @@ export default function CanvasPreview({
         scale: shouldReduceMotion ? 1 : 0.99,
       }}
       transition={{ duration: 0.28, ease: "easeOut" }}
-      className="flex h-full min-h-0 w-full items-center justify-center px-2 py-2 sm:px-4 sm:py-3 lg:px-8 lg:py-5"
+      className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-2 py-2 sm:px-4 sm:py-3 lg:px-8 lg:py-5"
     >
       <div
-        ref={previewFrameRef}
         className="relative overflow-hidden rounded-xl shadow-2xl shadow-slate-950/20 ring-1 ring-slate-950/[0.06]"
         style={{
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
-          width: previewWidth,
+          opacity: previewWidthPx > 0 ? 1 : 0,
+          width: previewWidthPx > 0 ? `${previewWidthPx}px` : "100%",
         }}
       >
         <div

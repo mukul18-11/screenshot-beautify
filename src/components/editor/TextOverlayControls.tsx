@@ -51,6 +51,7 @@ type TextFieldProps = {
   disabled: boolean;
   id: string;
   label: string;
+  multiline?: boolean;
   onChange: (value: string) => void;
   onFocus?: () => void;
   placeholder: string;
@@ -290,11 +291,15 @@ function TextField({
   disabled,
   id,
   label,
+  multiline = false,
   onChange,
   onFocus,
   placeholder,
   value,
 }: TextFieldProps) {
+  const fieldClassName =
+    "w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-100";
+
   return (
     <div className={cn("space-y-1.5", disabled && "opacity-50")}>
       <Label
@@ -303,16 +308,29 @@ function TextField({
       >
         {label}
       </Label>
-      <input
-        id={id}
-        type="text"
-        value={value}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        onFocus={onFocus}
-        className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
-      />
+      {multiline ? (
+        <textarea
+          id={id}
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
+          rows={2}
+          className={cn("min-h-16 resize-none py-2 leading-5", fieldClassName)}
+        />
+      ) : (
+        <input
+          id={id}
+          type="text"
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
+          className={cn("h-8", fieldClassName)}
+        />
+      )}
     </div>
   );
 }
@@ -588,7 +606,7 @@ export default function TextOverlayControls() {
           >
             <div className="space-y-3 pt-1">
               <p className="text-[11px] text-slate-400">
-                Double-click text to edit. Drag corners to resize, top handle left or right to tilt.
+                Double-click text to edit. Drag side handles to wrap, corners to resize, top handle to tilt.
               </p>
 
               <Button
@@ -641,6 +659,7 @@ export default function TextOverlayControls() {
                     label="Headline"
                     value={headlineText}
                     disabled={false}
+                    multiline
                     placeholder="Turn screenshots into launch-ready visuals"
                     onChange={setHeadlineText}
                     onFocus={() => setActiveTextLayerId("headline")}
@@ -654,6 +673,7 @@ export default function TextOverlayControls() {
                       label="Text"
                       value={selectedCustomTextLayer.text}
                       disabled={false}
+                      multiline
                       placeholder="New text"
                       onChange={(value) =>
                         setCustomTextLayerText(selectedCustomTextLayer.id, value)

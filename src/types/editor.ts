@@ -92,6 +92,7 @@ export type CustomTextLayer = {
   size: number;
   style: TextLayerStyle;
   text: string;
+  width: number;
 };
 
 export type TiltPresetId =
@@ -215,9 +216,12 @@ export type TextOverlaySettings = {
   headlineSize: number;
   subtitleSize: number;
   badgeSize: number;
+  badgeWidth: number;
   badgeRotation: number;
   headlineRotation: number;
+  headlineWidth: number;
   subtitleRotation: number;
+  subtitleWidth: number;
   badgeEnabled: boolean;
   badgeOffsetX: number;
   badgeOffsetY: number;
