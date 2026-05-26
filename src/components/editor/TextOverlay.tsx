@@ -13,7 +13,7 @@ import {
   type Ref,
 } from "react";
 
-import { RotateCw } from "lucide-react";
+import { Move, RotateCw } from "lucide-react";
 
 import { createTextShadowCss } from "@/lib/text-effect-presets";
 import { getTextFontOption } from "@/lib/text-fonts";
@@ -92,6 +92,22 @@ type TextOverlayProps = {
     event: PointerEvent<HTMLButtonElement>,
   ) => void;
   onLayerResizePointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerMovePointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerMovePointerDown?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerMovePointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onLayerMovePointerUp?: (
     layerId: TextLayerId,
     event: PointerEvent<HTMLButtonElement>,
   ) => void;
@@ -315,6 +331,22 @@ type TextLayerResizeControlsProps = {
     layerId: TextLayerId,
     event: PointerEvent<HTMLButtonElement>,
   ) => void;
+  onMovePointerCancel?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onMovePointerDown?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onMovePointerMove?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
+  onMovePointerUp?: (
+    layerId: TextLayerId,
+    event: PointerEvent<HTMLButtonElement>,
+  ) => void;
   onRotatePointerCancel?: (
     layerId: TextLayerId,
     event: PointerEvent<HTMLButtonElement>,
@@ -339,6 +371,10 @@ function TextLayerResizeControls({
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  onMovePointerCancel,
+  onMovePointerDown,
+  onMovePointerMove,
+  onMovePointerUp,
   onRotatePointerCancel,
   onRotatePointerDown,
   onRotatePointerMove,
@@ -420,29 +456,56 @@ function TextLayerResizeControls({
           />
         </button>
       ))}
-      <button
-        type="button"
-        aria-label={`Rotate ${layerId} text`}
-        className="pointer-events-auto absolute -top-8 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
-        onPointerCancel={(event) => {
-          event.stopPropagation();
-          onRotatePointerCancel?.(layerId, event);
-        }}
-        onPointerDown={(event) => {
-          event.stopPropagation();
-          onRotatePointerDown?.(layerId, event);
-        }}
-        onPointerMove={(event) => {
-          event.stopPropagation();
-          onRotatePointerMove?.(layerId, event);
-        }}
-        onPointerUp={(event) => {
-          event.stopPropagation();
-          onRotatePointerUp?.(layerId, event);
-        }}
-      >
-        <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
-      </button>
+      <div className="pointer-events-none absolute -top-14 left-1/2 flex -translate-x-1/2 items-center gap-3">
+        <button
+          type="button"
+          aria-label={`Rotate ${layerId} text`}
+          title="Rotate text"
+          className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
+          onPointerCancel={(event) => {
+            event.stopPropagation();
+            onRotatePointerCancel?.(layerId, event);
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            onRotatePointerDown?.(layerId, event);
+          }}
+          onPointerMove={(event) => {
+            event.stopPropagation();
+            onRotatePointerMove?.(layerId, event);
+          }}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            onRotatePointerUp?.(layerId, event);
+          }}
+        >
+          <RotateCw className="h-7 w-7" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label={`Move ${layerId} text`}
+          title="Move text"
+          className="pointer-events-auto flex h-12 w-12 touch-none items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
+          onPointerCancel={(event) => {
+            event.stopPropagation();
+            onMovePointerCancel?.(layerId, event);
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            onMovePointerDown?.(layerId, event);
+          }}
+          onPointerMove={(event) => {
+            event.stopPropagation();
+            onMovePointerMove?.(layerId, event);
+          }}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            onMovePointerUp?.(layerId, event);
+          }}
+        >
+          <Move className="h-7 w-7" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -691,6 +754,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     onLayerResizePointerDown,
     onLayerResizePointerMove,
     onLayerResizePointerUp,
+    onLayerMovePointerCancel,
+    onLayerMovePointerDown,
+    onLayerMovePointerMove,
+    onLayerMovePointerUp,
     onLayerRotatePointerCancel,
     onLayerRotatePointerDown,
     onLayerRotatePointerMove,
@@ -885,6 +952,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               onPointerDown={onLayerResizePointerDown}
               onPointerMove={onLayerResizePointerMove}
               onPointerUp={onLayerResizePointerUp}
+              onMovePointerCancel={onLayerMovePointerCancel}
+              onMovePointerDown={onLayerMovePointerDown}
+              onMovePointerMove={onLayerMovePointerMove}
+              onMovePointerUp={onLayerMovePointerUp}
               onRotatePointerCancel={onLayerRotatePointerCancel}
               onRotatePointerDown={onLayerRotatePointerDown}
               onRotatePointerMove={onLayerRotatePointerMove}
@@ -925,6 +996,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               onPointerDown={onLayerResizePointerDown}
               onPointerMove={onLayerResizePointerMove}
               onPointerUp={onLayerResizePointerUp}
+              onMovePointerCancel={onLayerMovePointerCancel}
+              onMovePointerDown={onLayerMovePointerDown}
+              onMovePointerMove={onLayerMovePointerMove}
+              onMovePointerUp={onLayerMovePointerUp}
               onRotatePointerCancel={onLayerRotatePointerCancel}
               onRotatePointerDown={onLayerRotatePointerDown}
               onRotatePointerMove={onLayerRotatePointerMove}
@@ -965,6 +1040,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               onPointerDown={onLayerResizePointerDown}
               onPointerMove={onLayerResizePointerMove}
               onPointerUp={onLayerResizePointerUp}
+              onMovePointerCancel={onLayerMovePointerCancel}
+              onMovePointerDown={onLayerMovePointerDown}
+              onMovePointerMove={onLayerMovePointerMove}
+              onMovePointerUp={onLayerMovePointerUp}
               onRotatePointerCancel={onLayerRotatePointerCancel}
               onRotatePointerDown={onLayerRotatePointerDown}
               onRotatePointerMove={onLayerRotatePointerMove}
@@ -1035,6 +1114,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
                 onPointerDown={onLayerResizePointerDown}
                 onPointerMove={onLayerResizePointerMove}
                 onPointerUp={onLayerResizePointerUp}
+                onMovePointerCancel={onLayerMovePointerCancel}
+                onMovePointerDown={onLayerMovePointerDown}
+                onMovePointerMove={onLayerMovePointerMove}
+                onMovePointerUp={onLayerMovePointerUp}
                 onRotatePointerCancel={onLayerRotatePointerCancel}
                 onRotatePointerDown={onLayerRotatePointerDown}
                 onRotatePointerMove={onLayerRotatePointerMove}

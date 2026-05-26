@@ -347,6 +347,21 @@ function isEditableKeyboardTarget(target: EventTarget | null) {
   );
 }
 
+function blurEditableTextOnOutsidePointer(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement) || target.closest("[data-text-layer-id]")) {
+    return;
+  }
+
+  const activeElement = document.activeElement;
+
+  if (
+    activeElement instanceof HTMLElement &&
+    activeElement.closest("[data-editor-editable-text='true']")
+  ) {
+    activeElement.blur();
+  }
+}
+
 function isPointOutsideRect(
   rect: DOMRect,
   clientX: number,
@@ -1378,6 +1393,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         eventTarget instanceof HTMLElement &&
         !eventTarget.closest("[data-text-layer-id]")
       ) {
+        blurEditableTextOnOutsidePointer(eventTarget);
         setActiveTextLayerId(null);
       }
     }
@@ -1468,9 +1484,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       );
     }
 
-    function handleTextLayerPointerDown(
+    function startTextLayerDrag(
       layerId: TextLayerId,
-      event: PointerEvent<HTMLDivElement>,
+      event: PointerEvent<HTMLElement>,
+      layerElement: HTMLElement,
+      captureElement: HTMLElement,
     ) {
       if (isExportMode || event.button !== 0) {
         return;
@@ -1516,16 +1534,48 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         startClientY: event.clientY,
         startOffsetX: layerOffset.x,
         startOffsetY: layerOffset.y,
-        textRect: event.currentTarget.getBoundingClientRect(),
+        textRect: layerElement.getBoundingClientRect(),
       };
 
       setIsDraggingCanvasItem(true);
-      event.currentTarget.setPointerCapture(event.pointerId);
+      captureElement.setPointerCapture(event.pointerId);
+    }
+
+    function handleTextLayerPointerDown(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLDivElement>,
+    ) {
+      startTextLayerDrag(
+        layerId,
+        event,
+        event.currentTarget,
+        event.currentTarget,
+      );
+    }
+
+    function handleTextMovePointerDown(
+      layerId: TextLayerId,
+      event: PointerEvent<HTMLButtonElement>,
+    ) {
+      const textLayerElement = event.currentTarget.closest(
+        "[data-text-layer-id]",
+      );
+
+      if (!(textLayerElement instanceof HTMLElement)) {
+        return;
+      }
+
+      startTextLayerDrag(
+        layerId,
+        event,
+        textLayerElement,
+        event.currentTarget,
+      );
     }
 
     function handleTextLayerPointerMove(
       layerId: TextLayerId,
-      event: PointerEvent<HTMLDivElement>,
+      event: PointerEvent<HTMLElement>,
     ) {
       const dragState = textDragStateRef.current;
 
@@ -1621,7 +1671,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
     function handleTextLayerPointerEnd(
       layerId: TextLayerId,
-      event: PointerEvent<HTMLDivElement>,
+      event: PointerEvent<HTMLElement>,
     ) {
       const dragState = textDragStateRef.current;
       textDragActiveRef.current = false;
@@ -1969,6 +2019,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       if (!targetLayerElement) {
         return;
       }
+
+      blurEditableTextOnOutsidePointer(event.target);
 
       const targetScreenshotId =
         targetLayerElement.dataset.screenshotLayerId ?? screenshotId;
@@ -2796,6 +2848,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onLayerResizePointerDown={handleTextResizePointerDown}
         onLayerResizePointerMove={handleTextResizePointerMove}
         onLayerResizePointerUp={handleTextResizePointerEnd}
+        onLayerMovePointerCancel={handleTextLayerPointerEnd}
+        onLayerMovePointerDown={handleTextMovePointerDown}
+        onLayerMovePointerMove={handleTextLayerPointerMove}
+        onLayerMovePointerUp={handleTextLayerPointerEnd}
         onLayerRotatePointerCancel={handleTextRotatePointerEnd}
         onLayerRotatePointerDown={handleTextRotatePointerDown}
         onLayerRotatePointerMove={handleTextRotatePointerMove}
@@ -2868,6 +2924,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onLayerResizePointerDown={handleTextResizePointerDown}
         onLayerResizePointerMove={handleTextResizePointerMove}
         onLayerResizePointerUp={handleTextResizePointerEnd}
+        onLayerMovePointerCancel={handleTextLayerPointerEnd}
+        onLayerMovePointerDown={handleTextMovePointerDown}
+        onLayerMovePointerMove={handleTextLayerPointerMove}
+        onLayerMovePointerUp={handleTextLayerPointerEnd}
         onLayerRotatePointerCancel={handleTextRotatePointerEnd}
         onLayerRotatePointerDown={handleTextRotatePointerDown}
         onLayerRotatePointerMove={handleTextRotatePointerMove}
