@@ -87,9 +87,13 @@ type TextLayerResizeState = {
 };
 
 type TextLayerRotateState = {
+  centerX: number;
+  centerY: number;
+  lastPointerAngle: number;
   layerId: TextLayerId;
   moved: boolean;
   pointerId: number;
+  rotationDelta: number;
   startClientX: number;
   startClientY: number;
   startRotation: number;
@@ -126,8 +130,12 @@ type MockupResizeState = {
 };
 
 type MockupRotateState = {
+  centerX: number;
+  centerY: number;
+  lastPointerAngle: number;
   moved: boolean;
   pointerId: number;
+  rotationDelta: number;
   screenshotId: string;
   startClientX: number;
   startClientY: number;
@@ -287,7 +295,6 @@ const MIN_RESIZED_MOCKUP_HEIGHT_PX = 96;
 const MIN_RESIZED_MOCKUP_WIDTH_PX = 144;
 const REMOVE_FROM_CANVAS_OUTSET_PX = 24;
 const SNAP_THRESHOLD_PX = 12;
-const TEXT_ROTATION_DEGREES_PER_PX = 0.45;
 const RESIZE_HANDLES = [
   "nw",
   "n",
@@ -650,15 +657,53 @@ function getTextLayerSizeLimits(layerId: TextLayerId) {
   return BEAUTIFY_SETTING_LIMITS.badgeSize;
 }
 
-function getHorizontalDragRotation(
-  startRotation: number,
-  deltaX: number,
-  limits: { min: number; max: number },
+function getPointerAngleDegrees(
+  centerX: number,
+  centerY: number,
+  clientX: number,
+  clientY: number,
 ) {
-  return clampValue(
-    Math.round(startRotation + deltaX * TEXT_ROTATION_DEGREES_PER_PX),
-    limits.min,
-    limits.max,
+  return (Math.atan2(clientY - centerY, clientX - centerX) * 180) / Math.PI;
+}
+
+function getShortestAngleDelta(fromAngle: number, toAngle: number) {
+  return ((((toAngle - fromAngle + 180) % 360) + 360) % 360) - 180;
+}
+
+function normalizeRotationDegrees(rotation: number) {
+  const normalized = ((((rotation + 180) % 360) + 360) % 360) - 180;
+
+  return normalized === -180 ? 180 : normalized;
+}
+
+function getCircularDragRotation(
+  dragState: Pick<
+    TextLayerRotateState | MockupRotateState,
+    | "centerX"
+    | "centerY"
+    | "lastPointerAngle"
+    | "rotationDelta"
+    | "startRotation"
+  >,
+  clientX: number,
+  clientY: number,
+) {
+  const pointerAngle = getPointerAngleDegrees(
+    dragState.centerX,
+    dragState.centerY,
+    clientX,
+    clientY,
+  );
+  const angleDelta = getShortestAngleDelta(
+    dragState.lastPointerAngle,
+    pointerAngle,
+  );
+
+  dragState.lastPointerAngle = pointerAngle;
+  dragState.rotationDelta += angleDelta;
+
+  return normalizeRotationDegrees(
+    Math.round(dragState.startRotation + dragState.rotationDelta),
   );
 }
 
@@ -1709,6 +1754,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
+      const textRect = textLayerElement.getBoundingClientRect();
+      const centerX = textRect.left + textRect.width / 2;
+      const centerY = textRect.top + textRect.height / 2;
+      const pointerAngle = getPointerAngleDegrees(
+        centerX,
+        centerY,
+        event.clientX,
+        event.clientY,
+      );
+
       event.preventDefault();
       event.stopPropagation();
       setActiveTextLayerId(layerId);
@@ -1718,9 +1773,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       cancelTextDragUpdate();
       textDragActiveRef.current = true;
       textRotateStateRef.current = {
+        centerX,
+        centerY,
+        lastPointerAngle: pointerAngle,
         layerId,
         moved: false,
         pointerId: event.pointerId,
+        rotationDelta: 0,
         startClientX: event.clientX,
         startClientY: event.clientY,
         startRotation: getTextLayerRotation(layerId),
@@ -1755,10 +1814,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.preventDefault();
       event.stopPropagation();
 
-      const nextRotation = getHorizontalDragRotation(
-        dragState.startRotation,
-        deltaX,
-        BEAUTIFY_SETTING_LIMITS.textRotation,
+      const nextRotation = getCircularDragRotation(
+        dragState,
+        event.clientX,
+        event.clientY,
       );
 
       scheduleTextDragUpdate(() => {
@@ -2223,6 +2282,22 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
+      const mockupVisual = mockupVisualRef.current;
+
+      if (!mockupVisual) {
+        return;
+      }
+
+      const mockupRect = mockupVisual.getBoundingClientRect();
+      const centerX = mockupRect.left + mockupRect.width / 2;
+      const centerY = mockupRect.top + mockupRect.height / 2;
+      const pointerAngle = getPointerAngleDegrees(
+        centerX,
+        centerY,
+        event.clientX,
+        event.clientY,
+      );
+
       event.preventDefault();
       event.stopPropagation();
       setIsMockupSelected(true);
@@ -2232,8 +2307,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       cancelTransformUpdate();
       transformDragActiveRef.current = true;
       mockupRotateStateRef.current = {
+        centerX,
+        centerY,
+        lastPointerAngle: pointerAngle,
         moved: false,
         pointerId: event.pointerId,
+        rotationDelta: 0,
         screenshotId: activeScreenshotId,
         startClientX: event.clientX,
         startClientY: event.clientY,
@@ -2264,10 +2343,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.preventDefault();
       event.stopPropagation();
 
-      const nextRotation = getHorizontalDragRotation(
-        dragState.startRotation,
-        deltaX,
-        BEAUTIFY_SETTING_LIMITS.rotateZ,
+      const nextRotation = getCircularDragRotation(
+        dragState,
+        event.clientX,
+        event.clientY,
       );
 
       scheduleTransformUpdate(() => {
@@ -2541,6 +2620,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           >
             <TiltedMockupWrapper
               className="flex w-full"
+              isTransforming={isDraggingCanvasItem}
               settings={tiltSettings}
             >
               <div className="relative flex w-full">

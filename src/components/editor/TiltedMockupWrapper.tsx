@@ -20,6 +20,7 @@ import type { TiltSettings } from "@/types/editor";
 type TiltedMockupWrapperProps = {
   children: ReactNode;
   className?: string;
+  isTransforming?: boolean;
   settings?: Pick<
     TiltSettings,
     | "tiltEnabled"
@@ -37,6 +38,7 @@ type TiltedMockupWrapperProps = {
 export default function TiltedMockupWrapper({
   children,
   className,
+  isTransforming = false,
   settings,
   style,
 }: TiltedMockupWrapperProps) {
@@ -165,7 +167,7 @@ export default function TiltedMockupWrapper({
         ...style,
         transform: baseTransform,
         transformStyle: "preserve-3d",
-        transition: shouldReduceMotion
+        transition: shouldReduceMotion || isTransforming
           ? undefined
           : "transform 250ms ease-out",
         willChange:
