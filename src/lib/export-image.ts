@@ -15,6 +15,7 @@ const IMAGE_LOAD_ERROR_MESSAGE = "An image could not be loaded for export.";
 export const EXPORT_LAYOUT_ERROR_MESSAGE =
   "Export renderer did not match the selected canvas size.";
 const EXPORT_LAYOUT_TOLERANCE_PX = 1;
+const CSS_URL_PATTERN = /url\((['"]?)(.*?)\1\)/g;
 
 type ExportPngOptions = {
   cacheBust?: boolean;
@@ -96,6 +97,167 @@ async function waitForImageElement(image: HTMLImageElement) {
       { once: true },
     );
   });
+}
+
+function isDataUrl(url: string) {
+  return url.startsWith("data:");
+}
+
+function resolveResourceUrl(url: string) {
+  if (url.startsWith("blob:") || isDataUrl(url)) {
+    return url;
+  }
+
+  return new URL(url, window.location.href).href;
+}
+
+async function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error(IMAGE_LOAD_ERROR_MESSAGE));
+    });
+    reader.addEventListener("error", () => {
+      reject(new Error(IMAGE_LOAD_ERROR_MESSAGE));
+    });
+    reader.readAsDataURL(blob);
+  });
+}
+
+function createResourceInliner() {
+  const cache = new Map<string, Promise<string>>();
+
+  return (url: string) => {
+    const resourceUrl = resolveResourceUrl(url.trim());
+
+    if (isDataUrl(resourceUrl)) {
+      return Promise.resolve(resourceUrl);
+    }
+
+    const cachedDataUrl = cache.get(resourceUrl);
+
+    if (cachedDataUrl) {
+      return cachedDataUrl;
+    }
+
+    const dataUrl = fetch(resourceUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
+        }
+
+        return response.blob();
+      })
+      .then(blobToDataUrl)
+      .catch(() => {
+        throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
+      });
+
+    cache.set(resourceUrl, dataUrl);
+
+    return dataUrl;
+  };
+}
+
+function getCssUrls(cssText: string) {
+  const urls = new Set<string>();
+
+  for (const match of cssText.matchAll(CSS_URL_PATTERN)) {
+    const url = match[2]?.trim();
+
+    if (url && !isDataUrl(url)) {
+      urls.add(url);
+    }
+  }
+
+  return Array.from(urls);
+}
+
+async function inlineCssUrls(
+  cssText: string,
+  inlineResource: (url: string) => Promise<string>,
+) {
+  const urls = getCssUrls(cssText);
+
+  if (urls.length === 0) {
+    return cssText;
+  }
+
+  const replacements = new Map<string, string>();
+
+  await Promise.all(
+    urls.map(async (url) => {
+      replacements.set(url, await inlineResource(url));
+    }),
+  );
+
+  return cssText.replace(CSS_URL_PATTERN, (raw, _quote, rawUrl) => {
+    const dataUrl = replacements.get(rawUrl.trim());
+
+    return dataUrl ? `url("${dataUrl}")` : raw;
+  });
+}
+
+async function inlineExportResources(node: HTMLElement) {
+  const inlineResource = createResourceInliner();
+  const restoreCallbacks: Array<() => void> = [];
+  const elements = [node, ...Array.from(node.querySelectorAll<HTMLElement>("*"))];
+
+  const restore = () => {
+    restoreCallbacks.reverse().forEach((restoreCallback) => restoreCallback());
+  };
+
+  try {
+    for (const element of elements) {
+      const background = element.style.getPropertyValue("background");
+      const propertyName =
+        background && getCssUrls(background).length > 0
+          ? "background"
+          : "background-image";
+      const originalValue = element.style.getPropertyValue(propertyName);
+
+      if (!originalValue || getCssUrls(originalValue).length === 0) {
+        continue;
+      }
+
+      const originalPriority = element.style.getPropertyPriority(propertyName);
+      const inlinedValue = await inlineCssUrls(originalValue, inlineResource);
+
+      restoreCallbacks.push(() => {
+        element.style.setProperty(propertyName, originalValue, originalPriority);
+      });
+      element.style.setProperty(propertyName, inlinedValue, originalPriority);
+    }
+
+    for (const image of Array.from(node.querySelectorAll("img"))) {
+      if (!image.src || isDataUrl(image.src)) {
+        continue;
+      }
+
+      const originalSrc = image.src;
+      const originalSrcSet = image.srcset;
+      const inlinedSrc = await inlineResource(originalSrc);
+
+      restoreCallbacks.push(() => {
+        image.src = originalSrc;
+        image.srcset = originalSrcSet;
+      });
+      image.srcset = "";
+      image.src = inlinedSrc;
+      await waitForImageElement(image);
+    }
+  } catch (error) {
+    restore();
+    throw error;
+  }
+
+  return restore;
 }
 
 async function waitForImageUrl(url: string) {
@@ -208,21 +370,28 @@ export async function createExportPngBlob({
   await waitForBackgroundImages(node);
   await waitForExportLayout(node, { height, width });
 
-  const blob = await toBlob(node, {
-    cacheBust,
-    canvasHeight: height,
-    canvasWidth: width,
-    filter: shouldIncludeExportNode,
-    height,
-    onImageErrorHandler: handleExportImageError,
-    pixelRatio: scale,
-    skipAutoScale: true,
-    width,
-    style: {
-      height: `${height}px`,
-      width: `${width}px`,
-    },
-  });
+  const restoreInlinedResources = await inlineExportResources(node);
+  let blob: Blob | null;
+
+  try {
+    blob = await toBlob(node, {
+      cacheBust,
+      canvasHeight: height,
+      canvasWidth: width,
+      filter: shouldIncludeExportNode,
+      height,
+      onImageErrorHandler: handleExportImageError,
+      pixelRatio: scale,
+      skipAutoScale: true,
+      width,
+      style: {
+        height: `${height}px`,
+        width: `${width}px`,
+      },
+    });
+  } finally {
+    restoreInlinedResources();
+  }
 
   if (!blob) {
     throw new Error("Unable to create PNG export.");
