@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Footer from "@/components/landing/Footer";
 import ExampleShowcase from "@/components/landing/ExampleShowcase";
 import FAQSection, { FAQS } from "@/components/landing/FAQSection";
@@ -90,14 +89,10 @@ function StructuredData() {
 }
 
 export default function Home() {
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
-
   return (
     <>
       <StructuredData />
-      <main className="min-h-screen overflow-x-clip bg-white text-slate-950">
+      <main className="min-h-screen overflow-x-clip bg-white text-slate-950 dark:bg-slate-950 dark:text-white">
         <LandingNav />
         <HeroSection />
         <ExampleShowcase />
@@ -108,4 +103,3 @@ export default function Home() {
     </>
   );
 }
-

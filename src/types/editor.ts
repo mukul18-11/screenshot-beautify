@@ -114,7 +114,7 @@ export type ScreenshotLayoutPresetId =
   | "staggered-rows"
   | "grid";
 
-export type ExportScale = 1 | 2 | 4;
+export type ExportScale = 1 | 2 | 4 | 6;
 
 export type UploadedImage = {
   id: string;

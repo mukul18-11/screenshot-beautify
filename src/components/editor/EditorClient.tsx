@@ -16,11 +16,11 @@ export default function EditorClient() {
   const resetActiveScreenshotDesign = useEditorStore(
     (state) => state.resetActiveScreenshotDesign,
   );
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
  
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") as "light" | "dark" | null;
-    const initialTheme = savedTheme || "light";
+    const initialTheme = savedTheme || "dark";
     if (initialTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {

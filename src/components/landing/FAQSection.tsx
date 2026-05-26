@@ -23,7 +23,7 @@ export const FAQS = [
   {
     question: "How do exports work?",
     answer:
-      "Download crisp, sharp PNG graphics upscaled to 1x, 2x, or 4x for retina displays, or copy directly to your clipboard for fast sharing.",
+      "Download crisp, sharp PNG graphics upscaled to 1x, 2x, 4x, or 6x for retina displays, or copy directly to your clipboard for fast sharing.",
   },
   {
     question: "Who is this built for?",

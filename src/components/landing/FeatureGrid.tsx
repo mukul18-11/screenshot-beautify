@@ -55,7 +55,7 @@ const FEATURES = [
   {
     icon: Download,
     title: "High-Res Exports & Copy",
-    description: "Export clean PNG files upscaled to 1x, 2x, or 4x, or copy directly to clipboard.",
+    description: "Export clean PNG files upscaled to 1x, 2x, 4x, or 6x, or copy directly to clipboard.",
     color: "bg-violet-50 text-violet-600 border-violet-100 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20",
   },
   {

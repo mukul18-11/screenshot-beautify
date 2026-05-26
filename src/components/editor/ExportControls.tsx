@@ -26,7 +26,7 @@ type ExportControlsProps = {
   uploadedImage: UploadedImage | null;
 };
 
-const EXPORT_SCALES: ExportScale[] = [1, 2, 4];
+const EXPORT_SCALES: ExportScale[] = [1, 2, 4, 6];
 const CLEAN_ERROR_MESSAGES = new Set([
   "An image could not be loaded for export.",
   "Copying images is not supported in this browser. Please download the PNG instead.",
@@ -72,7 +72,7 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
     exportScale,
   );
   const isExportDisabled = !uploadedImage || isExporting;
-  const shouldShowHighResHint = exportScale === 4;
+  const shouldShowHighResHint = exportScale >= 4;
 
   async function handleDownloadPng() {
     if (!uploadedImage || isExporting || exportActionInFlightRef.current) {
@@ -183,7 +183,7 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
             id="export-scale"
             role="radiogroup"
             aria-label="Export scale"
-            className="mt-2 grid grid-cols-3 gap-2 rounded-2xl border border-slate-200/80 bg-white/60 p-1.5 shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
+            className="mt-2 grid grid-cols-4 gap-2 rounded-2xl border border-slate-200/80 bg-white/60 p-1.5 shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
           >
             {EXPORT_SCALES.map((scale) => {
               const isSelected = exportScale === scale;
