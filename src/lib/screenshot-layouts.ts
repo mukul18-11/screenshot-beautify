@@ -5,7 +5,7 @@ import type {
 } from "@/types/editor";
 
 export const MIN_SCREENSHOT_LAYOUT_COUNT = 2;
-export const MAX_SCREENSHOT_LAYOUT_COUNT = 8;
+export const MAX_SCREENSHOT_LAYOUT_COUNT = 5;
 
 export type ScreenshotLayoutPreset = {
   id: ScreenshotLayoutPresetId;
