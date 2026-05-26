@@ -43,6 +43,8 @@ import type {
   ImageShadow,
   ScreenshotLayoutPresetId,
   ScreenshotDesign,
+  ShadowScenePlacement,
+  ShadowScenePresetId,
   TextAlign,
   TextFontId,
   TextFontWeight,
@@ -251,6 +253,10 @@ type EditorStore = EditorDesignSettings & {
     setBrowserFrameStyle: (style: BrowserFrameStyle) => void;
     setBrowserFrameUrl: (url: string) => void;
     toggleBrowserFrameUrl: () => void;
+    setShadowSceneEnabled: (enabled: boolean) => void;
+    setShadowScenePreset: (presetId: ShadowScenePresetId) => void;
+    setShadowSceneOpacity: (opacity: number) => void;
+    setShadowScenePlacement: (placement: ShadowScenePlacement) => void;
     toggleTextOverlay: () => void;
     setHeadlineText: (value: string) => void;
     setSubtitleText: (value: string) => void;
@@ -502,6 +508,10 @@ function getEditorDesignSettingsFromState(
     browserFrameStyle: state.browserFrameStyle,
     browserFrameUrl: state.browserFrameUrl,
     browserFrameShowUrl: state.browserFrameShowUrl,
+    shadowSceneEnabled: state.shadowSceneEnabled,
+    shadowScenePresetId: state.shadowScenePresetId,
+    shadowSceneOpacity: state.shadowSceneOpacity,
+    shadowScenePlacement: state.shadowScenePlacement,
     textOverlayEnabled: state.textOverlayEnabled,
     headlineText: state.headlineText,
     subtitleText: state.subtitleText,
@@ -914,6 +924,10 @@ function getLayerSettingsPatch(settings: EditorDesignSettings) {
     browserFrameStyle: settings.browserFrameStyle,
     browserFrameUrl: settings.browserFrameUrl,
     browserFrameShowUrl: settings.browserFrameShowUrl,
+    shadowSceneEnabled: settings.shadowSceneEnabled,
+    shadowScenePresetId: settings.shadowScenePresetId,
+    shadowSceneOpacity: settings.shadowSceneOpacity,
+    shadowScenePlacement: settings.shadowScenePlacement,
     tiltEnabled: settings.tiltEnabled,
     tiltPresetId: settings.tiltPresetId,
     perspective: settings.perspective,
@@ -940,6 +954,10 @@ const LAYER_HISTORY_SCALAR_SETTING_KEYS = [
   "browserFrameStyle",
   "browserFrameUrl",
   "browserFrameShowUrl",
+  "shadowSceneEnabled",
+  "shadowScenePresetId",
+  "shadowSceneOpacity",
+  "shadowScenePlacement",
   "tiltEnabled",
   "tiltPresetId",
   "perspective",
@@ -1263,6 +1281,10 @@ const LAYER_SCALAR_SETTING_KEYS = [
   "browserFrameStyle",
   "browserFrameUrl",
   "browserFrameShowUrl",
+  "shadowSceneEnabled",
+  "shadowScenePresetId",
+  "shadowSceneOpacity",
+  "shadowScenePlacement",
   "textOverlayEnabled",
   "headlineText",
   "subtitleText",
@@ -2038,6 +2060,31 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((state) => ({
       browserFrameShowUrl: !state.browserFrameShowUrl,
     }));
+  },
+  setShadowSceneEnabled: (enabled) => {
+    set({ shadowSceneEnabled: enabled });
+  },
+  setShadowScenePreset: (presetId) => {
+    set({
+      shadowScenePresetId: presetId,
+      shadowSceneEnabled: true,
+    });
+  },
+  setShadowSceneOpacity: (opacity) => {
+    set({
+      shadowSceneOpacity: clampValue(
+        opacity,
+        BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.min,
+        BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.max,
+      ),
+      shadowSceneEnabled: true,
+    });
+  },
+  setShadowScenePlacement: (placement) => {
+    set({
+      shadowScenePlacement: placement,
+      shadowSceneEnabled: true,
+    });
   },
   toggleTextOverlay: () => {
     set((state) => ({

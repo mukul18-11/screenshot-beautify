@@ -11,6 +11,16 @@ export type BrowserFrameTheme = "light" | "dark";
 
 export type BrowserFrameStyle = "macos" | "minimal";
 
+export type ShadowScenePresetId =
+  | "soft-bars"
+  | "window-light"
+  | "leaf-dapple"
+  | "spotlight"
+  | "silk-sweep"
+  | "mesh-depth";
+
+export type ShadowScenePlacement = "underlay" | "overlay";
+
 export type TextPosition = "top" | "bottom" | "left" | "right" | "center";
 
 export type TextAlign = "left" | "center" | "right";
@@ -185,6 +195,10 @@ export type BrowserFrameSettings = {
   browserFrameStyle: BrowserFrameStyle;
   browserFrameUrl: string;
   browserFrameShowUrl: boolean;
+  shadowSceneEnabled: boolean;
+  shadowScenePresetId: ShadowScenePresetId;
+  shadowSceneOpacity: number;
+  shadowScenePlacement: ShadowScenePlacement;
 };
 
 export type TextOverlaySettings = {

@@ -1,14 +1,21 @@
 "use client";
 
-import { AppWindow } from "lucide-react";
+import { AppWindow, Layers2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
+import { SHADOW_SCENE_PRESETS } from "@/lib/shadow-scenes";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
-import type { BrowserFrameStyle, BrowserFrameTheme } from "@/types/editor";
+import type {
+  BrowserFrameStyle,
+  BrowserFrameTheme,
+  ShadowScenePlacement,
+} from "@/types/editor";
 
 type SegmentOption<TValue extends string> = {
   label: string;
@@ -44,6 +51,17 @@ const STYLE_OPTIONS = [
     value: "minimal",
   },
 ] as const satisfies readonly SegmentOption<BrowserFrameStyle>[];
+
+const SHADOW_SCENE_PLACEMENT_OPTIONS = [
+  {
+    label: "Underlay",
+    value: "underlay",
+  },
+  {
+    label: "Overlay",
+    value: "overlay",
+  },
+] as const satisfies readonly SegmentOption<ShadowScenePlacement>[];
 
 function SegmentedControl<TValue extends string>({
   disabled = false,
@@ -101,6 +119,18 @@ export default function BrowserFrameControls() {
   const browserFrameShowUrl = useEditorStore(
     (state) => state.browserFrameShowUrl,
   );
+  const shadowSceneEnabled = useEditorStore(
+    (state) => state.shadowSceneEnabled,
+  );
+  const shadowScenePresetId = useEditorStore(
+    (state) => state.shadowScenePresetId,
+  );
+  const shadowSceneOpacity = useEditorStore(
+    (state) => state.shadowSceneOpacity,
+  );
+  const shadowScenePlacement = useEditorStore(
+    (state) => state.shadowScenePlacement,
+  );
   const toggleBrowserFrame = useEditorStore(
     (state) => state.toggleBrowserFrame,
   );
@@ -116,6 +146,19 @@ export default function BrowserFrameControls() {
   const toggleBrowserFrameUrl = useEditorStore(
     (state) => state.toggleBrowserFrameUrl,
   );
+  const setShadowSceneEnabled = useEditorStore(
+    (state) => state.setShadowSceneEnabled,
+  );
+  const setShadowScenePreset = useEditorStore(
+    (state) => state.setShadowScenePreset,
+  );
+  const setShadowSceneOpacity = useEditorStore(
+    (state) => state.setShadowSceneOpacity,
+  );
+  const setShadowScenePlacement = useEditorStore(
+    (state) => state.setShadowScenePlacement,
+  );
+  const shadowSceneOpacityPercent = Math.round(shadowSceneOpacity * 100);
 
   return (
     <motion.section
@@ -219,6 +262,98 @@ export default function BrowserFrameControls() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="mt-4 border-t border-slate-100 pt-4 dark:border-white/8">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Layers2 className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            <h3 className="text-[13px] font-semibold text-slate-700 dark:text-white">
+              Shadow scene
+            </h3>
+          </div>
+          <Switch
+            id="shadow-scene-toggle"
+            checked={shadowSceneEnabled}
+            onCheckedChange={setShadowSceneEnabled}
+            aria-label="Toggle shadow scene"
+          />
+        </div>
+
+        <AnimatePresence initial={false}>
+          {shadowSceneEnabled && (
+            <motion.div
+              key="shadow-scene-settings"
+              initial={{
+                opacity: 0,
+                height: shouldReduceMotion ? "auto" : 0,
+              }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{
+                opacity: 0,
+                height: shouldReduceMotion ? "auto" : 0,
+              }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-3 pt-1">
+                <div className="grid grid-cols-3 gap-2">
+                  {SHADOW_SCENE_PRESETS.map((preset) => {
+                    const isSelected = preset.id === shadowScenePresetId;
+
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => setShadowScenePreset(preset.id)}
+                        className={cn(
+                          "group min-w-0 rounded-xl border p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
+                          isSelected
+                            ? "border-slate-950 bg-white shadow-sm dark:border-white dark:bg-white/10"
+                            : "border-slate-200/80 bg-white/55 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/10",
+                        )}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="block aspect-[1.55] rounded-lg border border-black/5 bg-slate-100 shadow-inner dark:border-white/10"
+                          style={{ backgroundImage: preset.preview }}
+                        />
+                        <span className="mt-1.5 block truncate text-[11px] font-semibold text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">
+                          {preset.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <SegmentedControl
+                  label="Layer"
+                  value={shadowScenePlacement}
+                  options={SHADOW_SCENE_PLACEMENT_OPTIONS}
+                  onChange={setShadowScenePlacement}
+                />
+
+                <EditorSliderRow
+                  label="Opacity"
+                  labelClassName="text-slate-600 dark:text-slate-300"
+                  min={Math.round(
+                    BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.min * 100,
+                  )}
+                  max={Math.round(
+                    BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.max * 100,
+                  )}
+                  step={Math.round(
+                    BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.step * 100,
+                  )}
+                  value={shadowSceneOpacityPercent}
+                  suffix="%"
+                  onChange={(opacity) => setShadowSceneOpacity(opacity / 100)}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.section>
   );
 }

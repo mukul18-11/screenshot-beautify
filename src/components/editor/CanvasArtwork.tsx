@@ -43,6 +43,7 @@ import {
   MIN_CROP_RATIO,
 } from "@/lib/editor-geometry";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
+import { createShadowSceneStyle } from "@/lib/shadow-scenes";
 import { cn } from "@/lib/utils";
 import {
   useEditorStore,
@@ -826,6 +827,18 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const browserFrameUrl = useEditorStore((state) => state.browserFrameUrl);
     const browserFrameShowUrl = useEditorStore(
       (state) => state.browserFrameShowUrl,
+    );
+    const shadowSceneEnabled = useEditorStore(
+      (state) => state.shadowSceneEnabled,
+    );
+    const shadowScenePresetId = useEditorStore(
+      (state) => state.shadowScenePresetId,
+    );
+    const shadowSceneOpacity = useEditorStore(
+      (state) => state.shadowSceneOpacity,
+    );
+    const shadowScenePlacement = useEditorStore(
+      (state) => state.shadowScenePlacement,
     );
     const textOverlayEnabled = useEditorStore(
       (state) => state.textOverlayEnabled,
@@ -2561,6 +2574,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           browserFrameStyle,
           browserFrameUrl,
           browserFrameShowUrl,
+          shadowSceneEnabled,
+          shadowScenePresetId,
+          shadowSceneOpacity,
+          shadowScenePlacement,
           tiltEnabled,
           tiltPresetId,
           perspective,
@@ -2644,6 +2661,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         borderRadius: `${layerSettings.imageRadius}px`,
         boxShadow: layerScreenshotShadow,
       } satisfies CSSProperties;
+      const shadowSceneStyle = createShadowSceneStyle({
+        borderRadius: layerSettings.imageRadius,
+        opacity: layerSettings.shadowSceneOpacity,
+        placement: layerSettings.shadowScenePlacement,
+        presetId: layerSettings.shadowScenePresetId,
+      });
+      const showShadowScene =
+        layerSettings.shadowSceneEnabled && layerSettings.shadowSceneOpacity > 0;
       const cropContentStyle = {
         height: `${100 / layerCropRatios.height}%`,
         left: `${(-layerSettings.imageCrop.left / layerCropRatios.width) * 100}%`,
@@ -2717,6 +2742,26 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       );
       const showMockupControls =
         !isExportMode && isActiveLayer && isMockupSelected;
+      const renderShadowSceneLayer = (
+        placement: typeof layerSettings.shadowScenePlacement,
+      ) => {
+        if (!showShadowScene || layerSettings.shadowScenePlacement !== placement) {
+          return null;
+        }
+
+        return (
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute",
+              placement === "overlay"
+                ? "inset-0 z-20 overflow-hidden"
+                : "-inset-x-[7%] -inset-y-[9%] z-0",
+            )}
+            style={shadowSceneStyle}
+          />
+        );
+      };
 
       return (
         <div
@@ -2747,9 +2792,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
               settings={tiltSettings}
             >
               <div className="relative flex w-full">
+                {renderShadowSceneLayer("underlay")}
                 {layerSettings.browserFrameEnabled ? (
                   <div
-                    className="w-full overflow-hidden"
+                    className="relative z-10 w-full overflow-hidden"
                     style={mockupDecorationStyle}
                   >
                     <BrowserFrame
@@ -2778,7 +2824,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                 ) : (
                   <motion.div
                     ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
-                    className="relative overflow-hidden"
+                    className="relative z-10 overflow-hidden"
                     style={{
                       ...screenshotCropStyle,
                       ...mockupDecorationStyle,
@@ -2792,6 +2838,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     </div>
                   </motion.div>
                 )}
+                {renderShadowSceneLayer("overlay")}
 
                 {showMockupControls && (
                   <MockupTransformControls

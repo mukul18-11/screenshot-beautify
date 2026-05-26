@@ -60,6 +60,10 @@ export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
   browserFrameStyle: "macos",
   browserFrameUrl: "yourproduct.com",
   browserFrameShowUrl: false,
+  shadowSceneEnabled: false,
+  shadowScenePresetId: "soft-bars",
+  shadowSceneOpacity: 0.42,
+  shadowScenePlacement: "overlay",
 };
 
 const DEFAULT_TEXT_LAYER_STYLE: TextLayerStyle = {
@@ -199,6 +203,11 @@ export const BEAUTIFY_SETTING_LIMITS = {
     min: 0,
     max: 60,
     step: 1,
+  },
+  shadowSceneOpacity: {
+    min: 0.08,
+    max: 0.7,
+    step: 0.01,
   },
   headlineSize: {
     min: 24,
