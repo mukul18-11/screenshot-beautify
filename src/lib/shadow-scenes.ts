@@ -24,9 +24,9 @@ export const SHADOW_SCENE_PRESETS = [
     id: "soft-bars",
     name: "Soft bars",
     preview:
-      "linear-gradient(128deg, rgba(255,255,255,0) 0 7%, rgba(15,23,42,0.94) 13% 21%, rgba(255,255,255,0.82) 27% 37%, rgba(15,23,42,0.88) 45% 54%, rgba(255,255,255,0.72) 62% 72%, rgba(15,23,42,0.86) 80% 90%, rgba(255,255,255,0) 100%), linear-gradient(38deg, rgba(15,23,42,0.58), rgba(255,255,255,0.26) 46%, rgba(15,23,42,0.68))",
+      "linear-gradient(128deg, transparent 0 8%, rgba(15,23,42,0.88) 13% 20%, transparent 25% 37%, rgba(15,23,42,0.82) 43% 51%, transparent 57% 70%, rgba(15,23,42,0.76) 77% 86%, transparent 92% 100%)",
     scene:
-      "linear-gradient(128deg, transparent 0 6%, rgba(15,23,42,0.8) 11%, rgba(15,23,42,0.28) 18%, transparent 26%), linear-gradient(126deg, transparent 17%, rgba(255,255,255,0.42) 27%, rgba(255,255,255,0.12) 37%, transparent 45%), linear-gradient(132deg, transparent 35%, rgba(15,23,42,0.88) 45%, rgba(15,23,42,0.3) 55%, transparent 64%), linear-gradient(124deg, transparent 55%, rgba(255,255,255,0.38) 66%, rgba(255,255,255,0.08) 75%, transparent 83%), linear-gradient(130deg, transparent 71%, rgba(15,23,42,0.78) 82%, rgba(15,23,42,0.2) 92%, transparent 100%), radial-gradient(ellipse at 28% 18%, rgba(255,255,255,0.28), transparent 34%), radial-gradient(ellipse at 72% 92%, rgba(15,23,42,0.48), transparent 38%)",
+      "linear-gradient(128deg, transparent 0 7%, rgba(15,23,42,0.16) 10%, rgba(15,23,42,0.82) 13% 18%, rgba(15,23,42,0.16) 21%, transparent 25%), linear-gradient(126deg, transparent 22%, rgba(15,23,42,0.14) 26%, rgba(15,23,42,0.74) 30% 36%, rgba(15,23,42,0.14) 40%, transparent 45%), linear-gradient(132deg, transparent 40%, rgba(15,23,42,0.16) 44%, rgba(15,23,42,0.86) 48% 54%, rgba(15,23,42,0.16) 58%, transparent 64%), linear-gradient(124deg, transparent 60%, rgba(15,23,42,0.12) 64%, rgba(15,23,42,0.68) 68% 74%, rgba(15,23,42,0.12) 78%, transparent 84%)",
   },
   {
     id: "window-light",
@@ -94,9 +94,9 @@ export function createShadowSceneStyle({
   return {
     backgroundImage: preset.scene,
     borderRadius: `${Math.max(0, borderRadius)}px`,
-    filter: isOverlay ? "blur(5px)" : "blur(16px)",
-    mixBlendMode: isOverlay ? "soft-light" : "normal",
+    filter: isOverlay ? "blur(1.5px)" : "blur(14px)",
+    mixBlendMode: isOverlay ? "multiply" : "normal",
     opacity,
-    transform: isOverlay ? undefined : "scale(1.04)",
+    transform: isOverlay ? undefined : "scale(1.02)",
   };
 }

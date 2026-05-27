@@ -2715,22 +2715,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         layerSettings.imageBorder,
         layerSettings.imageRadius,
       );
-      const underlayShadowSceneStyle = createShadowSceneStyle({
-        borderRadius: layerSettings.imageRadius,
-        opacity: layerSettings.shadowSceneOpacity,
-        placement: "underlay",
-        presetId: layerSettings.shadowScenePresetId,
-      });
-      const overlayShadowSceneStyle = createShadowSceneStyle({
-        borderRadius: layerSettings.imageRadius,
-        opacity: layerSettings.shadowSceneOpacity,
-        placement: "overlay",
-        presetId: layerSettings.shadowScenePresetId,
-      });
-      const showShadowScene =
-        layerSettings.shadowSceneEnabled &&
-        layerSettings.shadowScenePresetId !== "none" &&
-        layerSettings.shadowSceneOpacity > 0;
       const cropContentStyle = {
         height: `${100 / layerCropRatios.height}%`,
         left: `${(-layerSettings.imageCrop.left / layerCropRatios.width) * 100}%`,
@@ -2804,35 +2788,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       );
       const showMockupControls =
         !isExportMode && isActiveLayer && isMockupSelected;
-      const renderShadowSceneLayer = (
-        placement: typeof layerSettings.shadowScenePlacement,
-      ) => {
-        const shouldRenderPlacement =
-          placement === "underlay"
-            ? showShadowScene
-            : showShadowScene && layerSettings.shadowScenePlacement === "overlay";
-
-        if (!shouldRenderPlacement) {
-          return null;
-        }
-
-        return (
-          <div
-            aria-hidden="true"
-            className={cn(
-              "pointer-events-none absolute",
-              placement === "overlay"
-                ? "inset-0 z-20 overflow-hidden"
-                : "-inset-x-[7%] -inset-y-[9%] z-0",
-            )}
-            style={
-              placement === "overlay"
-                ? overlayShadowSceneStyle
-                : underlayShadowSceneStyle
-            }
-          />
-        );
-      };
 
       return (
         <div
@@ -2863,7 +2818,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
               settings={tiltSettings}
             >
               <div className="relative flex w-full">
-                {renderShadowSceneLayer("underlay")}
                 {borderBackingLayers.map((layerStyle, index) => (
                   <div
                     key={`${screenshot.id}-border-backing-${index}`}
@@ -2917,8 +2871,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     </div>
                   </motion.div>
                 )}
-                {renderShadowSceneLayer("overlay")}
-
                 {showMockupControls && (
                   <MockupTransformControls
                     imageRadius={layerSettings.imageRadius}
@@ -3092,6 +3044,55 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         }
       />
     ) : null;
+    const showCanvasShadowScene =
+      shadowSceneEnabled &&
+      shadowScenePresetId !== "none" &&
+      shadowSceneOpacity > 0;
+    const canvasUnderlayShadowSceneOpacity =
+      shadowScenePlacement === "overlay"
+        ? shadowSceneOpacity * 0.28
+        : shadowSceneOpacity;
+    const canvasUnderlayShadowSceneStyle = createShadowSceneStyle({
+      borderRadius: 0,
+      opacity: canvasUnderlayShadowSceneOpacity,
+      placement: "underlay",
+      presetId: shadowScenePresetId,
+    });
+    const canvasOverlayShadowSceneStyle = createShadowSceneStyle({
+      borderRadius: 0,
+      opacity: shadowSceneOpacity,
+      placement: "overlay",
+      presetId: shadowScenePresetId,
+    });
+    const renderCanvasShadowSceneLayer = (
+      placement: typeof shadowScenePlacement,
+    ) => {
+      const shouldRenderPlacement =
+        placement === "underlay"
+          ? showCanvasShadowScene
+          : showCanvasShadowScene && shadowScenePlacement === "overlay";
+
+      if (!shouldRenderPlacement) {
+        return null;
+      }
+
+      return (
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]",
+            placement === "overlay" ? "z-[2]" : "z-0",
+          )}
+          style={{
+            ...(placement === "overlay"
+              ? canvasOverlayShadowSceneStyle
+              : canvasUnderlayShadowSceneStyle),
+            borderRadius: "inherit",
+          }}
+        />
+      );
+    };
+
     return (
       <div
         ref={mergeRefs(canvasShellRef, forwardedRef)}
@@ -3164,6 +3165,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           />
         )}
 
+        {renderCanvasShadowSceneLayer("underlay")}
+
         {!isExportMode && textDragGuide.vertical !== null && (
           <div
             data-export-ignore="true"
@@ -3184,7 +3187,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
         <div
           className={cn(
-            "relative flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
+            "relative z-[1] flex h-full w-full min-w-0 items-center justify-center overflow-hidden",
             hasFlowTextOverlay && getContentLayoutClasses(textPosition),
           )}
           style={{ padding: canvasPadding }}
@@ -3207,6 +3210,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           {hasFlowTextOverlay && textPosition === "right" && textOverlay}
           {hasFlowTextOverlay && textPosition === "bottom" && textOverlay}
         </div>
+        {renderCanvasShadowSceneLayer("overlay")}
         {customTextOverlay}
       </div>
     );
