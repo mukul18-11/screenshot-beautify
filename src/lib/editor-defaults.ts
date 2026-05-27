@@ -13,7 +13,7 @@ import type {
   TiltSettings,
 } from "@/types/editor";
 
-const DEFAULT_CANVAS_PRESET_ID = "wide-hero";
+const DEFAULT_CANVAS_PRESET_ID = "ratio-16-9";
 const DEFAULT_BACKGROUND_PRESET_ID = "apple-layered-organic";
 
 const defaultCanvasPreset = getCanvasPreset(DEFAULT_CANVAS_PRESET_ID);

@@ -18,7 +18,7 @@ export const BEAUTIFY_PRESETS = [
   {
     id: "clean-saas",
     name: "Clean SaaS",
-    canvasPresetId: "square-post",
+    canvasPresetId: "ratio-1-1",
     backgroundPresetId: "classic-ocean-blue",
     imagePadding: 96,
     imageRadius: 24,
@@ -33,7 +33,7 @@ export const BEAUTIFY_PRESETS = [
   {
     id: "founder-dark",
     name: "Founder Dark",
-    canvasPresetId: "square-post",
+    canvasPresetId: "ratio-1-1",
     backgroundPresetId: "classic-deep-space",
     imagePadding: 132,
     imageRadius: 28,
@@ -48,7 +48,7 @@ export const BEAUTIFY_PRESETS = [
   {
     id: "product-hunt",
     name: "Product Hunt",
-    canvasPresetId: "product-hunt",
+    canvasPresetId: "ratio-16-9",
     backgroundPresetId: "product-hunt-orange",
     imagePadding: 96,
     imageRadius: 22,
@@ -63,7 +63,7 @@ export const BEAUTIFY_PRESETS = [
   {
     id: "launch-hero",
     name: "Launch Hero",
-    canvasPresetId: "wide-hero",
+    canvasPresetId: "ratio-16-9",
     backgroundPresetId: "neon-grid-glow",
     imagePadding: 128,
     imageRadius: 26,
@@ -78,7 +78,7 @@ export const BEAUTIFY_PRESETS = [
   {
     id: "linkedin-clean",
     name: "LinkedIn Clean",
-    canvasPresetId: "linkedin-post",
+    canvasPresetId: "ratio-4-5",
     backgroundPresetId: "classic-soft-peach",
     imagePadding: 96,
     imageRadius: 20,
@@ -93,7 +93,7 @@ export const BEAUTIFY_PRESETS = [
   {
     id: "mobile-story",
     name: "Mobile Story",
-    canvasPresetId: "story-reel",
+    canvasPresetId: "ratio-9-16",
     backgroundPresetId: "classic-deep-space",
     imagePadding: 136,
     imageRadius: 28,
