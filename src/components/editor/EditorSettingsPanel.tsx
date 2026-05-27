@@ -17,9 +17,9 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 
 import BackgroundControls from "@/components/editor/BackgroundControls";
-import BeautifyPresetBar from "@/components/editor/BeautifyPresetBar";
 import BrowserFrameControls from "@/components/editor/BrowserFrameControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
+import DeviceMockupControls from "@/components/editor/DeviceMockupControls";
 import ExportControls from "@/components/editor/ExportControls";
 import ImageStyleControls from "@/components/editor/ImageStyleControls";
 import ResetControls from "@/components/editor/ResetControls";
@@ -152,7 +152,7 @@ function SettingsSectionContent({
   if (sectionId === "style") {
     return (
       <>
-        <BeautifyPresetBar />
+        <DeviceMockupControls uploadedImage={uploadedImage} />
         <CanvasPresetSelector />
         <BackgroundControls />
         <ImageStyleControls mode="style" />

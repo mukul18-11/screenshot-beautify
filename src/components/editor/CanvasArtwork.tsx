@@ -23,6 +23,7 @@ import BrowserFrame, {
   MACOS_TOP_BAR_HEIGHT,
   MINIMAL_TOP_BAR_HEIGHT,
 } from "@/components/editor/BrowserFrame";
+import DeviceFrame from "@/components/editor/DeviceFrame";
 import TextOverlay, {
   type TextResizeHandleId,
 } from "@/components/editor/TextOverlay";
@@ -36,6 +37,7 @@ import {
   BEAUTIFY_SETTING_LIMITS,
   createImageShadowCss,
 } from "@/lib/editor-defaults";
+import { isPhysicalDeviceMockup } from "@/lib/device-mockups";
 import {
   clampCropInset,
   clampTextLayerOffset,
@@ -858,6 +860,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const browserFrameShowUrl = useEditorStore(
       (state) => state.browserFrameShowUrl,
     );
+    const deviceMockupId = useEditorStore((state) => state.deviceMockupId);
+    const deviceMockupVariantId = useEditorStore(
+      (state) => state.deviceMockupVariantId,
+    );
     const shadowSceneEnabled = useEditorStore(
       (state) => state.shadowSceneEnabled,
     );
@@ -1246,9 +1252,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         screenshotZoomTarget.removeEventListener("wheel", handleNativeWheel);
       };
     }, [
+      activeScreenshotId,
       activeLayerImage,
       applyScreenshotWheelZoom,
       browserFrameEnabled,
+      deviceMockupId,
       isExportMode,
     ]);
 
@@ -2616,6 +2624,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           browserFrameStyle,
           browserFrameUrl,
           browserFrameShowUrl,
+          deviceMockupId,
+          deviceMockupVariantId,
           shadowSceneEnabled,
           shadowScenePresetId,
           shadowSceneOpacity,
@@ -2668,7 +2678,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const maxScreenshotWidth =
         resolvedScreenshotSlotSize.width *
         getScreenshotMaxWidthRatio(hasFlowTextOverlay, textPosition);
-      const frameChromeHeight = layerSettings.browserFrameEnabled
+      const hasDeviceMockup = isPhysicalDeviceMockup(
+        layerSettings.deviceMockupId,
+      );
+      const hasBrowserFrame =
+        layerSettings.browserFrameEnabled && !hasDeviceMockup;
+      const frameChromeHeight = hasBrowserFrame
         ? layerSettings.browserFrameStyle === "macos"
           ? MACOS_TOP_BAR_HEIGHT
           : MINIMAL_TOP_BAR_HEIGHT
@@ -2705,7 +2720,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       });
       const screenshotCropStyle = {
         aspectRatio: `${croppedImageWidth} / ${croppedImageHeight}`,
-        width: `${screenshotCropWidth}px`,
+        width: hasDeviceMockup ? "100%" : `${screenshotCropWidth}px`,
       } satisfies CSSProperties;
       const mockupDecorationStyle = {
         ...createImageBorderCss(layerSettings.imageBorder, layerScreenshotShadow),
@@ -2826,7 +2841,29 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     style={layerStyle}
                   />
                 ))}
-                {layerSettings.browserFrameEnabled ? (
+                {hasDeviceMockup ? (
+                  <DeviceFrame
+                    className="relative z-10 w-full"
+                    mockupId={layerSettings.deviceMockupId}
+                    shadow={layerScreenshotShadow}
+                    variantId={layerSettings.deviceMockupVariantId}
+                  >
+                    <motion.div
+                      ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
+                      className="relative overflow-hidden"
+                      style={{
+                        ...screenshotCropStyle,
+                        touchAction: "pan-y",
+                      }}
+                    >
+                      <div style={cropContentStyle}>
+                        <AnimatePresence mode="wait">
+                          {screenshotPreview}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  </DeviceFrame>
+                ) : hasBrowserFrame ? (
                   <div
                     className="relative z-10 w-full overflow-hidden"
                     style={mockupDecorationStyle}

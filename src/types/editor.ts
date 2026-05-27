@@ -11,6 +11,63 @@ export type BrowserFrameTheme = "light" | "dark";
 
 export type BrowserFrameStyle = "macos" | "minimal";
 
+export type DeviceMockupCategory =
+  | "essentials"
+  | "phone"
+  | "tablet"
+  | "laptop"
+  | "desktop"
+  | "wearable";
+
+export type DeviceMockupId =
+  | "none"
+  | "browser"
+  | "iphone-17"
+  | "iphone-17-air"
+  | "iphone-17-pro"
+  | "iphone-17-pro-max"
+  | "iphone-16"
+  | "iphone-16-plus"
+  | "iphone-16-pro"
+  | "iphone-16-pro-max"
+  | "ipad-pro-13"
+  | "ipad-pro-11"
+  | "ipad-air"
+  | "ipad-mini"
+  | "macbook-pro-16"
+  | "macbook-air-m2"
+  | "macbook-air-13"
+  | "imac-24"
+  | "pro-display-xdr"
+  | "imac-pro"
+  | "apple-watch-ultra"
+  | "apple-watch-10-46"
+  | "apple-watch-10-42";
+
+export type DeviceMockupVariant = {
+  id: string;
+  name: string;
+  accent: string;
+  edge: string;
+  frame: string;
+  screenBorder: string;
+};
+
+export type DeviceMockup = {
+  id: DeviceMockupId;
+  name: string;
+  category: DeviceMockupCategory;
+  screenWidth: number;
+  screenHeight: number;
+  defaultScale: number;
+  variants: readonly DeviceMockupVariant[];
+};
+
+export type DeviceMockupSettings = {
+  deviceMockupId: DeviceMockupId;
+  deviceMockupVariantId: string | null;
+};
+
 export type ShadowScenePresetId =
   | "none"
   | "soft-bars"
@@ -301,7 +358,9 @@ export type ExportSettings = {
   lastExportedAt: number | null;
 };
 
-export type Phase3Settings = BrowserFrameSettings & TextOverlaySettings;
+export type Phase3Settings = BrowserFrameSettings &
+  DeviceMockupSettings &
+  TextOverlaySettings;
 
 export type Phase4Settings = TiltSettings;
 

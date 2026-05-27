@@ -7,6 +7,7 @@ import type {
   ImageCrop,
   ImageBorder,
   ImageShadow,
+  DeviceMockupSettings,
   TextLayerStyle,
   TextOverlaySettings,
   TiltSettings,
@@ -72,6 +73,11 @@ export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
   shadowScenePresetId: "none",
   shadowSceneOpacity: 0.42,
   shadowScenePlacement: "overlay",
+};
+
+export const DEFAULT_DEVICE_MOCKUP_SETTINGS: DeviceMockupSettings = {
+  deviceMockupId: "none",
+  deviceMockupVariantId: null,
 };
 
 const DEFAULT_TEXT_LAYER_STYLE: TextLayerStyle = {

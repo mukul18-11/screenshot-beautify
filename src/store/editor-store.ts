@@ -9,10 +9,17 @@ import {
   BEAUTIFY_SETTING_LIMITS,
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
+  DEFAULT_DEVICE_MOCKUP_SETTINGS,
   DEFAULT_EXPORT_SETTINGS,
   DEFAULT_TEXT_OVERLAY_SETTINGS,
   DEFAULT_TILT_SETTINGS,
 } from "@/lib/editor-defaults";
+import {
+  createCenteredCropForMockup,
+  getDeviceMockup,
+  getDeviceMockupVariant,
+  isPhysicalDeviceMockup,
+} from "@/lib/device-mockups";
 import {
   clampValue,
   clampImageCrop,
@@ -36,6 +43,8 @@ import type {
   CustomTextLayer,
   CustomTextLayerId,
   DefaultTextLayerId,
+  DeviceMockupId,
+  DeviceMockupSettings,
   EditorDesignSettings,
   ExportScale,
   ExportSettings,
@@ -257,6 +266,12 @@ type EditorStore = EditorDesignSettings & {
     setBrowserFrameStyle: (style: BrowserFrameStyle) => void;
     setBrowserFrameUrl: (url: string) => void;
     toggleBrowserFrameUrl: () => void;
+    setDeviceMockup: (
+      mockupId: DeviceMockupId,
+      variantId?: string | null,
+    ) => void;
+    setDeviceMockupVariant: (variantId: string) => void;
+    clearDeviceMockup: () => void;
     setShadowSceneEnabled: (enabled: boolean) => void;
     setShadowScenePreset: (presetId: ShadowScenePresetId) => void;
     setShadowSceneOpacity: (opacity: number) => void;
@@ -372,6 +387,12 @@ function createDefaultBrowserFrameSettings(): BrowserFrameSettings {
   };
 }
 
+function createDefaultDeviceMockupSettings(): DeviceMockupSettings {
+  return {
+    ...DEFAULT_DEVICE_MOCKUP_SETTINGS,
+  };
+}
+
 function createDefaultTextOverlaySettings(): TextOverlaySettings {
   return {
     ...DEFAULT_TEXT_OVERLAY_SETTINGS,
@@ -421,6 +442,7 @@ function createDefaultEditorDesignSettings(): EditorDesignSettings {
   return {
     ...createDefaultBeautifySettings(),
     ...createDefaultBrowserFrameSettings(),
+    ...createDefaultDeviceMockupSettings(),
     ...createDefaultTextOverlaySettings(),
     ...createDefaultTiltSettings(),
     ...createDefaultExportSettings(),
@@ -518,6 +540,8 @@ function getEditorDesignSettingsFromState(
     browserFrameStyle: state.browserFrameStyle,
     browserFrameUrl: state.browserFrameUrl,
     browserFrameShowUrl: state.browserFrameShowUrl,
+    deviceMockupId: state.deviceMockupId,
+    deviceMockupVariantId: state.deviceMockupVariantId,
     shadowSceneEnabled: state.shadowSceneEnabled,
     shadowScenePresetId: state.shadowScenePresetId,
     shadowSceneOpacity: state.shadowSceneOpacity,
@@ -936,6 +960,8 @@ function getLayerSettingsPatch(settings: EditorDesignSettings) {
     browserFrameStyle: settings.browserFrameStyle,
     browserFrameUrl: settings.browserFrameUrl,
     browserFrameShowUrl: settings.browserFrameShowUrl,
+    deviceMockupId: settings.deviceMockupId,
+    deviceMockupVariantId: settings.deviceMockupVariantId,
     shadowSceneEnabled: settings.shadowSceneEnabled,
     shadowScenePresetId: settings.shadowScenePresetId,
     shadowSceneOpacity: settings.shadowSceneOpacity,
@@ -965,6 +991,8 @@ const LAYER_HISTORY_SCALAR_SETTING_KEYS = [
   "browserFrameStyle",
   "browserFrameUrl",
   "browserFrameShowUrl",
+  "deviceMockupId",
+  "deviceMockupVariantId",
   "shadowSceneEnabled",
   "shadowScenePresetId",
   "shadowSceneOpacity",
@@ -1295,6 +1323,8 @@ const LAYER_SCALAR_SETTING_KEYS = [
   "browserFrameStyle",
   "browserFrameUrl",
   "browserFrameShowUrl",
+  "deviceMockupId",
+  "deviceMockupVariantId",
   "shadowSceneEnabled",
   "shadowScenePresetId",
   "shadowSceneOpacity",
@@ -2104,6 +2134,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   toggleBrowserFrame: () => {
     set((state) => ({
       browserFrameEnabled: !state.browserFrameEnabled,
+      deviceMockupId: "none",
+      deviceMockupVariantId: null,
     }));
   },
   setBrowserFrameTheme: (theme) => {
@@ -2119,6 +2151,74 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((state) => ({
       browserFrameShowUrl: !state.browserFrameShowUrl,
     }));
+  },
+  setDeviceMockup: (mockupId, variantId) => {
+    if (mockupId === "none") {
+      get().clearDeviceMockup();
+      return;
+    }
+
+    if (mockupId === "browser") {
+      set({
+        browserFrameEnabled: true,
+        deviceMockupId: "none",
+        deviceMockupVariantId: null,
+      });
+      return;
+    }
+
+    const state = get();
+    const activeScreenshot = getActiveScreenshot(state);
+
+    if (!activeScreenshot || !isPhysicalDeviceMockup(mockupId)) {
+      return;
+    }
+
+    const mockup = getDeviceMockup(mockupId);
+    const isChangingModel = state.deviceMockupId !== mockup.id;
+    const variant = getDeviceMockupVariant(
+      mockup.id,
+      variantId ?? (isChangingModel ? null : state.deviceMockupVariantId),
+    );
+
+    set({
+      browserFrameEnabled: false,
+      deviceMockupId: mockup.id,
+      deviceMockupVariantId: variant.id,
+      ...(isChangingModel
+        ? {
+            imageCrop: clampImageCrop(
+              createCenteredCropForMockup(activeScreenshot.uploadedImage, mockup),
+            ),
+            imageScale: mockup.defaultScale,
+            imageZoom: 100,
+            imageZoomOffsetX: 0,
+            imageZoomOffsetY: 0,
+            screenshotLayoutPresetId: "manual" as const,
+          }
+        : {}),
+    });
+  },
+  setDeviceMockupVariant: (variantId) => {
+    const state = get();
+
+    if (!isPhysicalDeviceMockup(state.deviceMockupId)) {
+      return;
+    }
+
+    set({
+      deviceMockupVariantId: getDeviceMockupVariant(
+        state.deviceMockupId,
+        variantId,
+      ).id,
+    });
+  },
+  clearDeviceMockup: () => {
+    set({
+      browserFrameEnabled: false,
+      deviceMockupId: "none",
+      deviceMockupVariantId: null,
+    });
   },
   setShadowSceneEnabled: (enabled) => {
     set({ shadowSceneEnabled: enabled });
@@ -2687,6 +2787,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       ...createDefaultBeautifySettings(),
       ...createDefaultBrowserFrameSettings(),
+      ...createDefaultDeviceMockupSettings(),
       ...createDefaultTextOverlaySettings(),
       ...createDefaultTiltSettings(),
       ...createDefaultExportSettings(),
@@ -2702,6 +2803,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       ...createDefaultBeautifySettings(),
       ...createDefaultBrowserFrameSettings(),
+      ...createDefaultDeviceMockupSettings(),
       ...createDefaultTextOverlaySettings(),
       ...createDefaultTiltSettings(),
       activeTextLayerId: null,
