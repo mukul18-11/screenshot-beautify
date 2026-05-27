@@ -2,9 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Lock, RotateCcw, Sparkles, Sun, Moon } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  Lock,
+  Minimize2,
+  Moon,
+  RotateCcw,
+  Sparkles,
+  Sun,
+} from "lucide-react";
 import { toast } from "sonner";
 
+import CanvasPreview from "@/components/editor/CanvasPreview";
 import EditorSettingsPanel from "@/components/editor/EditorSettingsPanel";
 import { ExportProvider } from "@/components/editor/ExportProvider";
 import UploadZone from "@/components/editor/UploadZone";
@@ -18,6 +28,8 @@ export default function EditorClient() {
     (state) => state.resetActiveScreenshotDesign,
   );
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const isPreviewActive = isPreviewMode && Boolean(uploadedImage);
  
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") as "light" | "dark" | null;
@@ -27,6 +39,24 @@ export default function EditorClient() {
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isPreviewMode) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsPreviewMode(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isPreviewMode]);
  
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -44,9 +74,30 @@ export default function EditorClient() {
       <main
         className={cn(
           theme === "dark" && "dark",
-          "relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)] lg:h-screen lg:overflow-hidden",
+          isPreviewActive
+            ? "relative h-screen min-h-screen overflow-hidden bg-[#090909] text-white"
+            : "relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)] lg:h-screen lg:overflow-hidden",
         )}
       >
+        {isPreviewActive ? (
+          <div className="relative z-10 flex h-screen w-full items-center justify-center overflow-hidden px-3 py-14 sm:px-6 sm:py-16">
+            <button
+              type="button"
+              onClick={() => setIsPreviewMode(false)}
+              className="absolute left-1/2 top-4 z-30 inline-flex h-9 -translate-x-1/2 items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-3 text-xs font-bold text-white/85 shadow-lg shadow-black/30 backdrop-blur-xl transition hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35"
+              aria-label="Exit preview"
+              title="Exit preview"
+            >
+              <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
+              Exit Preview
+            </button>
+            <CanvasPreview
+              artworkMode="export"
+              showFitBadge={false}
+              uploadedImage={uploadedImage}
+            />
+          </div>
+        ) : (
         <div className="relative z-10 flex min-h-screen flex-col lg:h-full lg:min-h-0">
           <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
             <div className="flex items-center gap-3">
@@ -73,17 +124,30 @@ export default function EditorClient() {
             </div>
             <div className="flex items-center gap-2">
               {uploadedImage && (
-                <button
-                  type="button"
-                  onClick={handleResetDesign}
-                  disabled={isExporting}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)] disabled:pointer-events-none disabled:opacity-50"
-                  aria-label="Reset screenshot to initial state"
-                  title="Reset screenshot to initial state"
-                >
-                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                  <span className="hidden sm:inline">Reset</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewMode(true)}
+                    disabled={isExporting}
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)] disabled:pointer-events-none disabled:opacity-50"
+                    aria-label="Preview artwork"
+                    title="Preview artwork"
+                  >
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Preview</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetDesign}
+                    disabled={isExporting}
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)] disabled:pointer-events-none disabled:opacity-50"
+                    aria-label="Reset screenshot to initial state"
+                    title="Reset screenshot to initial state"
+                  >
+                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Reset</span>
+                  </button>
+                </>
               )}
               <button
                 type="button"
@@ -122,6 +186,7 @@ export default function EditorClient() {
             <EditorSettingsPanel uploadedImage={uploadedImage} />
           </section>
         </div>
+        )}
       </main>
     </ExportProvider>
   );
