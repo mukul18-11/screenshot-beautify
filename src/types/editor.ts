@@ -12,6 +12,7 @@ export type BrowserFrameTheme = "light" | "dark";
 export type BrowserFrameStyle = "macos" | "minimal";
 
 export type ShadowScenePresetId =
+  | "none"
   | "soft-bars"
   | "window-light"
   | "leaf-dapple"
@@ -167,7 +168,11 @@ export type ImageBorderPreset =
   | "liquid"
   | "inset-light"
   | "inset-dark"
-  | "outline";
+  | "outline"
+  | "retro"
+  | "card"
+  | "stack"
+  | "stack-2";
 
 export type ImageBorder = {
   enabled: boolean;

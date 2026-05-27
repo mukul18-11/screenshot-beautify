@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { BEAUTIFY_SETTING_LIMITS } from "@/lib/editor-defaults";
 import {
+  createImageBorderBackingLayers,
   createImageBorderCss,
   IMAGE_BORDER_PRESETS,
 } from "@/lib/image-border-styles";
@@ -221,6 +222,14 @@ export default function ImageStyleControls({
                       },
                       "0 10px 20px rgba(15, 23, 42, 0.16)",
                     );
+                    const previewBackingLayers = createImageBorderBackingLayers(
+                      {
+                        ...imageBorder,
+                        enabled: preset.id !== "none",
+                        preset: preset.id as ImageBorderPreset,
+                      },
+                      7,
+                    );
 
                     return (
                       <button
@@ -236,13 +245,22 @@ export default function ImageStyleControls({
                         )}
                       >
                         <div className="mb-2 flex h-10 items-center justify-center rounded-lg bg-[linear-gradient(135deg,#ecfeff,#f8fafc_46%,#eef2ff)] dark:bg-[linear-gradient(135deg,#020617,#111827)]">
-                          <span
-                            className="block h-6 w-12 rounded-md bg-white/95 dark:bg-slate-950/95"
-                            style={{
-                              ...previewStyle,
-                              borderRadius: "7px",
-                            }}
-                          />
+                          <span className="relative block h-6 w-12">
+                            {previewBackingLayers.map((layerStyle, index) => (
+                              <span
+                                key={`${preset.id}-backing-${index}`}
+                                className="absolute inset-0 rounded-md"
+                                style={layerStyle}
+                              />
+                            ))}
+                            <span
+                              className="absolute inset-0 rounded-md bg-white/95 dark:bg-slate-950/95"
+                              style={{
+                                ...previewStyle,
+                                borderRadius: "7px",
+                              }}
+                            />
+                          </span>
                         </div>
                         <span className="flex items-center justify-between gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-100">
                           {preset.name}

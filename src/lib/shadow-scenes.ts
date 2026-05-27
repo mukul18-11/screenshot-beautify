@@ -14,12 +14,19 @@ export type ShadowScenePreset = {
 
 export const SHADOW_SCENE_PRESETS = [
   {
+    id: "none",
+    name: "None",
+    preview:
+      "linear-gradient(135deg, rgba(15,23,42,0.1), rgba(15,23,42,0.04))",
+    scene: "none",
+  },
+  {
     id: "soft-bars",
     name: "Soft bars",
     preview:
-      "linear-gradient(128deg, rgba(255,255,255,0) 0 9%, rgba(15,23,42,0.82) 15% 22%, rgba(255,255,255,0.54) 30% 39%, rgba(15,23,42,0.72) 48% 55%, rgba(255,255,255,0.48) 64% 73%, rgba(15,23,42,0.68) 83% 90%, rgba(255,255,255,0) 100%), linear-gradient(38deg, rgba(15,23,42,0.46), rgba(255,255,255,0.2) 48%, rgba(15,23,42,0.54))",
+      "linear-gradient(128deg, rgba(255,255,255,0) 0 7%, rgba(15,23,42,0.94) 13% 21%, rgba(255,255,255,0.82) 27% 37%, rgba(15,23,42,0.88) 45% 54%, rgba(255,255,255,0.72) 62% 72%, rgba(15,23,42,0.86) 80% 90%, rgba(255,255,255,0) 100%), linear-gradient(38deg, rgba(15,23,42,0.58), rgba(255,255,255,0.26) 46%, rgba(15,23,42,0.68))",
     scene:
-      "linear-gradient(128deg, transparent 0 7%, rgba(15,23,42,0.58) 12%, rgba(15,23,42,0.18) 18%, transparent 25%), linear-gradient(126deg, transparent 18%, rgba(255,255,255,0.18) 27%, rgba(255,255,255,0.06) 36%, transparent 44%), linear-gradient(132deg, transparent 36%, rgba(15,23,42,0.68) 45%, rgba(15,23,42,0.22) 54%, transparent 64%), linear-gradient(124deg, transparent 56%, rgba(255,255,255,0.2) 66%, rgba(255,255,255,0.04) 74%, transparent 82%), linear-gradient(130deg, transparent 72%, rgba(15,23,42,0.54) 82%, rgba(15,23,42,0.14) 91%, transparent 100%), radial-gradient(ellipse at 28% 18%, rgba(255,255,255,0.2), transparent 34%), radial-gradient(ellipse at 72% 92%, rgba(15,23,42,0.34), transparent 38%)",
+      "linear-gradient(128deg, transparent 0 6%, rgba(15,23,42,0.8) 11%, rgba(15,23,42,0.28) 18%, transparent 26%), linear-gradient(126deg, transparent 17%, rgba(255,255,255,0.42) 27%, rgba(255,255,255,0.12) 37%, transparent 45%), linear-gradient(132deg, transparent 35%, rgba(15,23,42,0.88) 45%, rgba(15,23,42,0.3) 55%, transparent 64%), linear-gradient(124deg, transparent 55%, rgba(255,255,255,0.38) 66%, rgba(255,255,255,0.08) 75%, transparent 83%), linear-gradient(130deg, transparent 71%, rgba(15,23,42,0.78) 82%, rgba(15,23,42,0.2) 92%, transparent 100%), radial-gradient(ellipse at 28% 18%, rgba(255,255,255,0.28), transparent 34%), radial-gradient(ellipse at 72% 92%, rgba(15,23,42,0.48), transparent 38%)",
   },
   {
     id: "window-light",

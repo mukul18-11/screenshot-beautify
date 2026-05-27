@@ -2126,24 +2126,24 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setShadowScenePreset: (presetId) => {
     set({
       shadowScenePresetId: presetId,
-      shadowSceneEnabled: true,
+      shadowSceneEnabled: presetId !== "none",
     });
   },
   setShadowSceneOpacity: (opacity) => {
-    set({
+    set((state) => ({
       shadowSceneOpacity: clampValue(
         opacity,
         BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.min,
         BEAUTIFY_SETTING_LIMITS.shadowSceneOpacity.max,
       ),
-      shadowSceneEnabled: true,
-    });
+      shadowSceneEnabled: state.shadowScenePresetId !== "none",
+    }));
   },
   setShadowScenePlacement: (placement) => {
-    set({
+    set((state) => ({
       shadowScenePlacement: placement,
-      shadowSceneEnabled: true,
-    });
+      shadowSceneEnabled: state.shadowScenePresetId !== "none",
+    }));
   },
   toggleTextOverlay: () => {
     set((state) => ({

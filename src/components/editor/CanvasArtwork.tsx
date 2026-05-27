@@ -45,7 +45,10 @@ import {
   getCropRatios,
   MIN_CROP_RATIO,
 } from "@/lib/editor-geometry";
-import { createImageBorderCss } from "@/lib/image-border-styles";
+import {
+  createImageBorderBackingLayers,
+  createImageBorderCss,
+} from "@/lib/image-border-styles";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { createShadowSceneStyle } from "@/lib/shadow-scenes";
 import { cn } from "@/lib/utils";
@@ -2708,14 +2711,26 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         ...createImageBorderCss(layerSettings.imageBorder, layerScreenshotShadow),
         borderRadius: `${layerSettings.imageRadius}px`,
       } satisfies CSSProperties;
-      const shadowSceneStyle = createShadowSceneStyle({
+      const borderBackingLayers = createImageBorderBackingLayers(
+        layerSettings.imageBorder,
+        layerSettings.imageRadius,
+      );
+      const underlayShadowSceneStyle = createShadowSceneStyle({
         borderRadius: layerSettings.imageRadius,
         opacity: layerSettings.shadowSceneOpacity,
-        placement: layerSettings.shadowScenePlacement,
+        placement: "underlay",
+        presetId: layerSettings.shadowScenePresetId,
+      });
+      const overlayShadowSceneStyle = createShadowSceneStyle({
+        borderRadius: layerSettings.imageRadius,
+        opacity: layerSettings.shadowSceneOpacity,
+        placement: "overlay",
         presetId: layerSettings.shadowScenePresetId,
       });
       const showShadowScene =
-        layerSettings.shadowSceneEnabled && layerSettings.shadowSceneOpacity > 0;
+        layerSettings.shadowSceneEnabled &&
+        layerSettings.shadowScenePresetId !== "none" &&
+        layerSettings.shadowSceneOpacity > 0;
       const cropContentStyle = {
         height: `${100 / layerCropRatios.height}%`,
         left: `${(-layerSettings.imageCrop.left / layerCropRatios.width) * 100}%`,
@@ -2792,7 +2807,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const renderShadowSceneLayer = (
         placement: typeof layerSettings.shadowScenePlacement,
       ) => {
-        if (!showShadowScene || layerSettings.shadowScenePlacement !== placement) {
+        const shouldRenderPlacement =
+          placement === "underlay"
+            ? showShadowScene
+            : showShadowScene && layerSettings.shadowScenePlacement === "overlay";
+
+        if (!shouldRenderPlacement) {
           return null;
         }
 
@@ -2805,7 +2825,11 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                 ? "inset-0 z-20 overflow-hidden"
                 : "-inset-x-[7%] -inset-y-[9%] z-0",
             )}
-            style={shadowSceneStyle}
+            style={
+              placement === "overlay"
+                ? overlayShadowSceneStyle
+                : underlayShadowSceneStyle
+            }
           />
         );
       };
@@ -2840,6 +2864,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             >
               <div className="relative flex w-full">
                 {renderShadowSceneLayer("underlay")}
+                {borderBackingLayers.map((layerStyle, index) => (
+                  <div
+                    key={`${screenshot.id}-border-backing-${index}`}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-[5]"
+                    style={layerStyle}
+                  />
+                ))}
                 {layerSettings.browserFrameEnabled ? (
                   <div
                     className="relative z-10 w-full overflow-hidden"

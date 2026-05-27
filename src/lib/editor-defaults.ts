@@ -69,7 +69,7 @@ export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
   browserFrameUrl: "yourproduct.com",
   browserFrameShowUrl: false,
   shadowSceneEnabled: false,
-  shadowScenePresetId: "soft-bars",
+  shadowScenePresetId: "none",
   shadowSceneOpacity: 0.42,
   shadowScenePlacement: "overlay",
 };
@@ -219,7 +219,7 @@ export const BEAUTIFY_SETTING_LIMITS = {
   },
   shadowSceneOpacity: {
     min: 0.08,
-    max: 0.7,
+    max: 1,
     step: 0.01,
   },
   headlineSize: {
