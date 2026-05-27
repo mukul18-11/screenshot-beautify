@@ -159,6 +159,23 @@ export type ImageShadow = {
   offsetY: number;
 };
 
+export type ImageBorderPreset =
+  | "none"
+  | "solid"
+  | "glass-light"
+  | "glass-dark"
+  | "liquid"
+  | "inset-light"
+  | "inset-dark"
+  | "outline";
+
+export type ImageBorder = {
+  enabled: boolean;
+  preset: ImageBorderPreset;
+  width: number;
+  color: string;
+};
+
 export type ImageCrop = {
   top: number;
   right: number;
@@ -183,7 +200,7 @@ export type BeautifySettings = {
   imageOffsetY: number;
   imageCrop: ImageCrop;
   imageShadow: ImageShadow;
-  imageBorderEnabled: boolean;
+  imageBorder: ImageBorder;
   imageZoom: number;
   imageZoomOffsetX: number;
   imageZoomOffsetY: number;

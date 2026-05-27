@@ -40,6 +40,7 @@ import type {
   ExportScale,
   ExportSettings,
   ImageCrop,
+  ImageBorderPreset,
   ImageShadow,
   ScreenshotLayoutPresetId,
   ScreenshotDesign,
@@ -243,6 +244,9 @@ type EditorStore = EditorDesignSettings & {
     resetImagePosition: () => void;
     setImageShadow: (partialShadow: Partial<ImageShadow>) => void;
     setImageBorderEnabled: (enabled: boolean) => void;
+    setImageBorderPreset: (preset: ImageBorderPreset) => void;
+    setImageBorderWidth: (width: number) => void;
+    setImageBorderColor: (color: string) => void;
     toggleImageBorder: () => void;
     setImageZoom: (value: number) => void;
     setImageZoomOffset: (offsetX: number, offsetY: number) => void;
@@ -356,6 +360,9 @@ function createDefaultBeautifySettings(): BeautifySettings {
     imageShadow: {
       ...DEFAULT_BEAUTIFY_SETTINGS.imageShadow,
     },
+    imageBorder: {
+      ...DEFAULT_BEAUTIFY_SETTINGS.imageBorder,
+    },
   };
 }
 
@@ -432,6 +439,9 @@ function cloneEditorDesignSettings(
     imageShadow: {
       ...settings.imageShadow,
     },
+    imageBorder: {
+      ...settings.imageBorder,
+    },
     customTextLayers: cloneCustomTextLayers(settings.customTextLayers),
     textLayerStyles: cloneTextLayerStyles(settings.textLayerStyles),
   };
@@ -499,7 +509,7 @@ function getEditorDesignSettingsFromState(
     imageOffsetY: state.imageOffsetY,
     imageCrop: state.imageCrop,
     imageShadow: state.imageShadow,
-    imageBorderEnabled: state.imageBorderEnabled,
+    imageBorder: state.imageBorder,
     imageZoom: state.imageZoom,
     imageZoomOffsetX: state.imageZoomOffsetX,
     imageZoomOffsetY: state.imageZoomOffsetY,
@@ -915,7 +925,9 @@ function getLayerSettingsPatch(settings: EditorDesignSettings) {
     imageShadow: {
       ...settings.imageShadow,
     },
-    imageBorderEnabled: settings.imageBorderEnabled,
+    imageBorder: {
+      ...settings.imageBorder,
+    },
     imageZoom: settings.imageZoom,
     imageZoomOffsetX: settings.imageZoomOffsetX,
     imageZoomOffsetY: settings.imageZoomOffsetY,
@@ -948,7 +960,6 @@ function getLayerSettingsPatchFromState(state: EditorStore) {
 
 const LAYER_HISTORY_SCALAR_SETTING_KEYS = [
   "imageRadius",
-  "imageBorderEnabled",
   "browserFrameEnabled",
   "browserFrameTheme",
   "browserFrameStyle",
@@ -1218,7 +1229,11 @@ function didLayerHistorySettingsChange(
     previousSettings.imageShadow.enabled !== nextSettings.imageShadow.enabled ||
     previousSettings.imageShadow.blur !== nextSettings.imageShadow.blur ||
     previousSettings.imageShadow.opacity !== nextSettings.imageShadow.opacity ||
-    previousSettings.imageShadow.offsetY !== nextSettings.imageShadow.offsetY
+    previousSettings.imageShadow.offsetY !== nextSettings.imageShadow.offsetY ||
+    previousSettings.imageBorder.enabled !== nextSettings.imageBorder.enabled ||
+    previousSettings.imageBorder.preset !== nextSettings.imageBorder.preset ||
+    previousSettings.imageBorder.width !== nextSettings.imageBorder.width ||
+    previousSettings.imageBorder.color !== nextSettings.imageBorder.color
   ) {
     return true;
   }
@@ -1272,7 +1287,6 @@ const LAYER_SCALAR_SETTING_KEYS = [
   "imageScale",
   "imageOffsetX",
   "imageOffsetY",
-  "imageBorderEnabled",
   "imageZoom",
   "imageZoomOffsetX",
   "imageZoomOffsetY",
@@ -1349,7 +1363,11 @@ function didLayerSettingsChange(
     previousState.imageShadow.enabled !== nextState.imageShadow.enabled ||
     previousState.imageShadow.blur !== nextState.imageShadow.blur ||
     previousState.imageShadow.opacity !== nextState.imageShadow.opacity ||
-    previousState.imageShadow.offsetY !== nextState.imageShadow.offsetY
+    previousState.imageShadow.offsetY !== nextState.imageShadow.offsetY ||
+    previousState.imageBorder.enabled !== nextState.imageBorder.enabled ||
+    previousState.imageBorder.preset !== nextState.imageBorder.preset ||
+    previousState.imageBorder.width !== nextState.imageBorder.width ||
+    previousState.imageBorder.color !== nextState.imageBorder.color
   ) {
     return true;
   }
@@ -1955,11 +1973,52 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
   setImageBorderEnabled: (enabled) => {
-    set({ imageBorderEnabled: enabled });
+    set((state) => ({
+      imageBorder: {
+        ...state.imageBorder,
+        enabled,
+        preset: enabled && state.imageBorder.preset === "none"
+          ? "solid"
+          : state.imageBorder.preset,
+      },
+    }));
+  },
+  setImageBorderPreset: (preset) => {
+    set((state) => ({
+      imageBorder: {
+        ...state.imageBorder,
+        enabled: preset !== "none",
+        preset,
+      },
+    }));
+  },
+  setImageBorderWidth: (width) => {
+    set((state) => ({
+      imageBorder: {
+        ...state.imageBorder,
+        width: clampValue(
+          Math.round(width),
+          BEAUTIFY_SETTING_LIMITS.imageBorderWidth.min,
+          BEAUTIFY_SETTING_LIMITS.imageBorderWidth.max,
+        ),
+      },
+    }));
+  },
+  setImageBorderColor: (color) => {
+    set((state) => ({
+      imageBorder: {
+        ...state.imageBorder,
+        color,
+      },
+    }));
   },
   toggleImageBorder: () => {
     set((state) => ({
-      imageBorderEnabled: !state.imageBorderEnabled,
+      imageBorder: {
+        ...state.imageBorder,
+        enabled: state.imageBorder.preset === "none",
+        preset: state.imageBorder.preset === "none" ? "solid" : "none",
+      },
     }));
   },
   setImageZoom: (value) => {

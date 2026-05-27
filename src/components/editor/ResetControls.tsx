@@ -31,8 +31,12 @@ function hasBeautifyChanges(settings: ReturnType<typeof useEditorStore.getState>
     settings.imageCrop.right !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.right ||
     settings.imageCrop.bottom !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.bottom ||
     settings.imageCrop.left !== DEFAULT_BEAUTIFY_SETTINGS.imageCrop.left ||
-    settings.imageBorderEnabled !==
-      DEFAULT_BEAUTIFY_SETTINGS.imageBorderEnabled ||
+    settings.imageBorder.enabled !==
+      DEFAULT_BEAUTIFY_SETTINGS.imageBorder.enabled ||
+    settings.imageBorder.preset !==
+      DEFAULT_BEAUTIFY_SETTINGS.imageBorder.preset ||
+    settings.imageBorder.width !== DEFAULT_BEAUTIFY_SETTINGS.imageBorder.width ||
+    settings.imageBorder.color !== DEFAULT_BEAUTIFY_SETTINGS.imageBorder.color ||
     settings.imageShadow.enabled !==
       DEFAULT_BEAUTIFY_SETTINGS.imageShadow.enabled ||
     settings.imageShadow.blur !== DEFAULT_BEAUTIFY_SETTINGS.imageShadow.blur ||

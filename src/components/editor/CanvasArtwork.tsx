@@ -45,6 +45,7 @@ import {
   getCropRatios,
   MIN_CROP_RATIO,
 } from "@/lib/editor-geometry";
+import { createImageBorderCss } from "@/lib/image-border-styles";
 import { multiplyTiltShadow } from "@/lib/tilt-utils";
 import { createShadowSceneStyle } from "@/lib/shadow-scenes";
 import { cn } from "@/lib/utils";
@@ -833,9 +834,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const imageOffsetY = useEditorStore((state) => state.imageOffsetY);
     const imageCrop = useEditorStore((state) => state.imageCrop);
     const imageShadow = useEditorStore((state) => state.imageShadow);
-    const imageBorderEnabled = useEditorStore(
-      (state) => state.imageBorderEnabled,
-    );
+    const imageBorder = useEditorStore((state) => state.imageBorder);
     const imageZoom = useEditorStore((state) => state.imageZoom);
     const imageZoomOffsetX = useEditorStore(
       (state) => state.imageZoomOffsetX,
@@ -2605,7 +2604,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           imageOffsetY,
           imageCrop,
           imageShadow,
-          imageBorderEnabled,
+          imageBorder,
           imageZoom,
           imageZoomOffsetX,
           imageZoomOffsetY,
@@ -2706,11 +2705,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         width: `${screenshotCropWidth}px`,
       } satisfies CSSProperties;
       const mockupDecorationStyle = {
-        border: layerSettings.imageBorderEnabled
-          ? "1px solid rgba(255, 255, 255, 0.72)"
-          : "none",
+        ...createImageBorderCss(layerSettings.imageBorder, layerScreenshotShadow),
         borderRadius: `${layerSettings.imageRadius}px`,
-        boxShadow: layerScreenshotShadow,
       } satisfies CSSProperties;
       const shadowSceneStyle = createShadowSceneStyle({
         borderRadius: layerSettings.imageRadius,

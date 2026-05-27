@@ -1,5 +1,6 @@
 import { getBackgroundPreset } from "@/lib/background-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
+import { DEFAULT_IMAGE_BORDER } from "@/lib/editor-defaults";
 import type { BeautifySettings, ImageShadow } from "@/types/editor";
 
 export type BeautifyPreset = {
@@ -11,7 +12,6 @@ export type BeautifyPreset = {
   imageRadius: number;
   imageScale: number;
   imageShadow: ImageShadow;
-  imageBorderEnabled: boolean;
 };
 
 export const BEAUTIFY_PRESETS = [
@@ -29,7 +29,6 @@ export const BEAUTIFY_PRESETS = [
       opacity: 0.18,
       offsetY: 18,
     },
-    imageBorderEnabled: true,
   },
   {
     id: "founder-dark",
@@ -45,7 +44,6 @@ export const BEAUTIFY_PRESETS = [
       opacity: 0.44,
       offsetY: 34,
     },
-    imageBorderEnabled: true,
   },
   {
     id: "product-hunt",
@@ -61,7 +59,6 @@ export const BEAUTIFY_PRESETS = [
       opacity: 0.26,
       offsetY: 24,
     },
-    imageBorderEnabled: true,
   },
   {
     id: "launch-hero",
@@ -77,7 +74,6 @@ export const BEAUTIFY_PRESETS = [
       opacity: 0.4,
       offsetY: 34,
     },
-    imageBorderEnabled: true,
   },
   {
     id: "linkedin-clean",
@@ -93,7 +89,6 @@ export const BEAUTIFY_PRESETS = [
       opacity: 0.2,
       offsetY: 18,
     },
-    imageBorderEnabled: true,
   },
   {
     id: "mobile-story",
@@ -109,7 +104,6 @@ export const BEAUTIFY_PRESETS = [
       opacity: 0.42,
       offsetY: 36,
     },
-    imageBorderEnabled: true,
   },
 ] as const satisfies readonly BeautifyPreset[];
 
@@ -153,7 +147,9 @@ export function createBeautifyPresetSettings(
     imageShadow: {
       ...preset.imageShadow,
     },
-    imageBorderEnabled: preset.imageBorderEnabled,
+    imageBorder: {
+      ...DEFAULT_IMAGE_BORDER,
+    },
     imageZoom: 100,
     imageZoomOffsetX: 0,
     imageZoomOffsetY: 0,

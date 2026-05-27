@@ -77,10 +77,7 @@ export default function BeautifyPresetBar() {
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.18)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.14)_1px,transparent_1px)] bg-[size:18px_18px] opacity-35" />
                   <div
-                    className={cn(
-                      "relative h-11 w-20 bg-white/92 ring-1 ring-slate-950/5",
-                      settings.imageBorderEnabled && "border border-white/80",
-                    )}
+                    className="relative h-11 w-20 bg-white/92 ring-1 ring-slate-950/5"
                     style={{
                       borderRadius: `${Math.max(5, settings.imageRadius / 3)}px`,
                       boxShadow: shadow,

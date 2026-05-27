@@ -5,6 +5,7 @@ import type {
   BrowserFrameSettings,
   ExportSettings,
   ImageCrop,
+  ImageBorder,
   ImageShadow,
   TextLayerStyle,
   TextOverlaySettings,
@@ -22,6 +23,13 @@ export const DEFAULT_IMAGE_SHADOW: ImageShadow = {
   blur: 40,
   opacity: 0.25,
   offsetY: 24,
+};
+
+export const DEFAULT_IMAGE_BORDER: ImageBorder = {
+  enabled: false,
+  preset: "none",
+  width: 1,
+  color: "#ffffff",
 };
 
 export const DEFAULT_IMAGE_CROP: ImageCrop = {
@@ -48,7 +56,7 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   imageOffsetY: 0,
   imageCrop: DEFAULT_IMAGE_CROP,
   imageShadow: DEFAULT_IMAGE_SHADOW,
-  imageBorderEnabled: true,
+  imageBorder: DEFAULT_IMAGE_BORDER,
   imageZoom: 100,
   imageZoomOffsetX: 0,
   imageZoomOffsetY: 0,
@@ -202,6 +210,11 @@ export const BEAUTIFY_SETTING_LIMITS = {
   imageShadowOffsetY: {
     min: 0,
     max: 60,
+    step: 1,
+  },
+  imageBorderWidth: {
+    min: 1,
+    max: 12,
     step: 1,
   },
   shadowSceneOpacity: {
