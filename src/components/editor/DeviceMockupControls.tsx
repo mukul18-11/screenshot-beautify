@@ -35,16 +35,16 @@ type MockupGroup = {
 };
 
 const TAB_LABELS: Record<DeviceMockupTabId, string> = {
-  all: "All",
-  phone: "Phone",
-  tablet: "Tablet",
-  laptop: "Laptop",
+  essentials: "Essential",
+  phone: "Phones",
+  tablet: "Tablets",
+  laptop: "Laptops",
   desktop: "Desktop",
-  wearable: "Wearable",
+  wearable: "Wearables",
 };
 
 const TAB_ICONS = {
-  all: ImageIcon,
+  essentials: ImageIcon,
   phone: Smartphone,
   tablet: Tablet,
   laptop: Laptop,
@@ -62,30 +62,13 @@ const GROUP_TITLES: Record<DeviceMockupCategory, string> = {
 };
 
 function getMockupGroups(activeTab: DeviceMockupTabId): MockupGroup[] {
-  if (activeTab !== "all") {
-    return [
-      {
-        id: activeTab,
-        title: GROUP_TITLES[activeTab],
-        mockups: DEVICE_MOCKUPS.filter((mockup) => mockup.category === activeTab),
-      },
-    ];
-  }
-
   return [
-    "essentials",
-    "phone",
-    "tablet",
-    "laptop",
-    "desktop",
-    "wearable",
-  ].map((category) => ({
-    id: category,
-    title: GROUP_TITLES[category as DeviceMockupCategory],
-    mockups: DEVICE_MOCKUPS.filter(
-      (mockup) => mockup.category === category,
-    ),
-  }));
+    {
+      id: activeTab,
+      title: GROUP_TITLES[activeTab],
+      mockups: DEVICE_MOCKUPS.filter((mockup) => mockup.category === activeTab),
+    },
+  ];
 }
 
 function ScreenshotPreview({ uploadedImage }: { uploadedImage: UploadedImage }) {
@@ -177,7 +160,7 @@ export default function DeviceMockupControls({
     (state) => state.setDeviceMockupVariant,
   );
   const [activeTab, setActiveTab] =
-    useState<DeviceMockupTabId>("all");
+    useState<DeviceMockupTabId>("essentials");
   const groups = getMockupGroups(activeTab);
 
   return (
@@ -231,16 +214,14 @@ export default function DeviceMockupControls({
       <div className="space-y-5">
         {groups.map((group) => (
           <div key={group.id}>
-            {activeTab === "all" && (
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h4 className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">
-                  {group.title}
-                </h4>
-                <span className="text-[11px] font-medium text-slate-400">
-                  {group.mockups.length}
-                </span>
-              </div>
-            )}
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h4 className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                {group.title}
+              </h4>
+              <span className="text-[11px] font-medium text-slate-400">
+                {group.mockups.length}
+              </span>
+            </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {group.mockups.map((mockup) => {

@@ -7,10 +7,10 @@ import type {
   UploadedImage,
 } from "@/types/editor";
 
-export type DeviceMockupTabId = "all" | Exclude<DeviceMockupCategory, "essentials">;
+export type DeviceMockupTabId = DeviceMockupCategory;
 
 export const DEVICE_MOCKUP_TABS = [
-  "all",
+  "essentials",
   "phone",
   "tablet",
   "laptop",

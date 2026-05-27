@@ -10,6 +10,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Smartphone,
   Trash2,
   Type,
 } from "lucide-react";
@@ -45,6 +46,11 @@ const SETTINGS_SECTIONS = [
     id: "style",
     label: "Style",
     icon: Sparkles,
+  },
+  {
+    id: "mockup",
+    label: "Mockup",
+    icon: Smartphone,
   },
   {
     id: "frame",
@@ -152,12 +158,15 @@ function SettingsSectionContent({
   if (sectionId === "style") {
     return (
       <>
-        <DeviceMockupControls uploadedImage={uploadedImage} />
         <CanvasPresetSelector />
         <BackgroundControls />
         <ImageStyleControls mode="style" />
       </>
     );
+  }
+
+  if (sectionId === "mockup") {
+    return <DeviceMockupControls uploadedImage={uploadedImage} />;
   }
 
   if (sectionId === "layout") {
