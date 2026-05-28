@@ -94,6 +94,7 @@ function BrowserPreview({ uploadedImage }: { uploadedImage: UploadedImage }) {
         showUrl={false}
         theme="light"
         url="yourproduct.com"
+        urlBold={false}
         variant="macos"
       >
         <div

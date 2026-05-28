@@ -20,8 +20,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { RotateCw, Trash2 } from "lucide-react";
 
 import BrowserFrame, {
-  MACOS_TOP_BAR_HEIGHT,
-  MINIMAL_TOP_BAR_HEIGHT,
+  getBrowserFrameChromeHeight,
 } from "@/components/editor/BrowserFrame";
 import DeviceFrame from "@/components/editor/DeviceFrame";
 import TextOverlay, {
@@ -197,6 +196,9 @@ type ScreenshotWheelEvent = {
   preventDefault: () => void;
   stopPropagation: () => void;
 };
+
+const BACKGROUND_NOISE_TEXTURE =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.58'/%3E%3C/svg%3E\")";
 
 function getContentLayoutClasses(textPosition: TextPosition) {
   if (textPosition === "left" || textPosition === "right") {
@@ -832,6 +834,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const backgroundPatternIntensity = useEditorStore(
       (state) => state.backgroundPatternIntensity,
     );
+    const backgroundNoise = useEditorStore((state) => state.backgroundNoise);
+    const backgroundBlur = useEditorStore((state) => state.backgroundBlur);
     const imagePadding = useEditorStore((state) => state.imagePadding);
     const imageRadius = useEditorStore((state) => state.imageRadius);
     const imageScale = useEditorStore((state) => state.imageScale);
@@ -859,6 +863,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const browserFrameUrl = useEditorStore((state) => state.browserFrameUrl);
     const browserFrameShowUrl = useEditorStore(
       (state) => state.browserFrameShowUrl,
+    );
+    const browserFrameUrlBold = useEditorStore(
+      (state) => state.browserFrameUrlBold,
     );
     const deviceMockupId = useEditorStore((state) => state.deviceMockupId);
     const deviceMockupVariantId = useEditorStore(
@@ -999,6 +1006,33 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       intensity: backgroundPatternIntensity,
       patternId: backgroundPattern.id,
     });
+    const backgroundBlurPixels = Math.round(
+      clampValue(
+        backgroundBlur,
+        BEAUTIFY_SETTING_LIMITS.backgroundBlur.min,
+        BEAUTIFY_SETTING_LIMITS.backgroundBlur.max,
+      ) * 0.32,
+    );
+    const backgroundNoiseOpacity =
+      clampValue(
+        backgroundNoise,
+        BEAUTIFY_SETTING_LIMITS.backgroundNoise.min,
+        BEAUTIFY_SETTING_LIMITS.backgroundNoise.max,
+      ) * 0.0042;
+    const backgroundEffectScale =
+      backgroundBlurPixels > 0
+        ? Math.max(1.04, 1 + backgroundBlurPixels / 240)
+        : 1;
+    const backgroundBaseScale =
+      !isExportMode && backgroundParallaxEnabled
+        ? Math.max(1.04, backgroundEffectScale)
+        : backgroundEffectScale;
+    const backgroundBaseTransform =
+      backgroundBaseScale > 1 || (!isExportMode && backgroundParallaxEnabled)
+        ? `${!isExportMode && backgroundParallaxEnabled
+            ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) "
+            : ""}scale(${backgroundBaseScale})`
+        : undefined;
     const canParallaxBackground =
       !isExportMode &&
       backgroundParallaxEnabled &&
@@ -2624,6 +2658,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           browserFrameStyle,
           browserFrameUrl,
           browserFrameShowUrl,
+          browserFrameUrlBold,
           deviceMockupId,
           deviceMockupVariantId,
           shadowSceneEnabled,
@@ -2684,9 +2719,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const hasBrowserFrame =
         layerSettings.browserFrameEnabled && !hasDeviceMockup;
       const frameChromeHeight = hasBrowserFrame
-        ? layerSettings.browserFrameStyle === "macos"
-          ? MACOS_TOP_BAR_HEIGHT
-          : MINIMAL_TOP_BAR_HEIGHT
+        ? getBrowserFrameChromeHeight(layerSettings.browserFrameStyle)
         : 0;
       const maxScreenshotHeight = Math.max(
         1,
@@ -2873,6 +2906,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                       showUrl={layerSettings.browserFrameShowUrl}
                       theme={layerSettings.browserFrameTheme}
                       url={layerSettings.browserFrameUrl}
+                      urlBold={layerSettings.browserFrameUrlBold}
                       variant={layerSettings.browserFrameStyle}
                     >
                       <motion.div
@@ -3155,17 +3189,20 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           <div
             className="absolute inset-0"
             style={{
-              transform:
-                !isExportMode && backgroundParallaxEnabled
-                  ? "translate3d(var(--bg-shift-x, 0px), var(--bg-shift-y, 0px), 0) scale(1.04)"
+              filter:
+                backgroundBlurPixels > 0
+                  ? `blur(${backgroundBlurPixels}px)`
                   : undefined,
+              transform: backgroundBaseTransform,
+              transformOrigin: "center",
               transition:
                 isExportMode || shouldReduceMotion
                   ? undefined
-                  : "transform 280ms ease-out",
+                  : "filter 220ms ease-out, transform 280ms ease-out",
               willChange:
-                !isExportMode && backgroundParallaxEnabled
-                  ? "transform"
+                backgroundBlurPixels > 0 ||
+                (!isExportMode && backgroundParallaxEnabled)
+                  ? "filter, transform"
                   : undefined,
             }}
           >
@@ -3193,6 +3230,18 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             )}
           </div>
         </div>
+
+        {backgroundNoiseOpacity > 0 && (
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[inherit] mix-blend-overlay"
+            style={{
+              backgroundImage: BACKGROUND_NOISE_TEXTURE,
+              backgroundSize: "180px 180px",
+              opacity: backgroundNoiseOpacity,
+            }}
+            aria-hidden="true"
+          />
+        )}
 
         {backgroundPattern.id !== "none" && (
           <div

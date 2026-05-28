@@ -22,6 +22,8 @@ function hasBeautifyChanges(settings: ReturnType<typeof useEditorStore.getState>
       DEFAULT_BEAUTIFY_SETTINGS.backgroundPatternColor ||
     settings.backgroundPatternIntensity !==
       DEFAULT_BEAUTIFY_SETTINGS.backgroundPatternIntensity ||
+    settings.backgroundNoise !== DEFAULT_BEAUTIFY_SETTINGS.backgroundNoise ||
+    settings.backgroundBlur !== DEFAULT_BEAUTIFY_SETTINGS.backgroundBlur ||
     settings.imagePadding !== DEFAULT_BEAUTIFY_SETTINGS.imagePadding ||
     settings.imageRadius !== DEFAULT_BEAUTIFY_SETTINGS.imageRadius ||
     settings.imageScale !== DEFAULT_BEAUTIFY_SETTINGS.imageScale ||

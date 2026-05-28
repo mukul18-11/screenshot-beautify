@@ -86,6 +86,8 @@ type HistoryGlobalSettings = Pick<
   | "backgroundPatternId"
   | "backgroundPatternColor"
   | "backgroundPatternIntensity"
+  | "backgroundNoise"
+  | "backgroundBlur"
   | "imagePadding"
   | "textOverlayEnabled"
   | "headlineText"
@@ -152,6 +154,8 @@ const HISTORY_GLOBAL_SETTING_KEYS = [
   "backgroundPatternId",
   "backgroundPatternColor",
   "backgroundPatternIntensity",
+  "backgroundNoise",
+  "backgroundBlur",
   "imagePadding",
   "textOverlayEnabled",
   "headlineText",
@@ -232,6 +236,8 @@ type EditorStore = EditorDesignSettings & {
     ) => void;
     setBackgroundPatternColor: (color: string) => void;
     setBackgroundPatternIntensity: (intensity: number) => void;
+    setBackgroundNoise: (noise: number) => void;
+    setBackgroundBlur: (blur: number) => void;
     setSolidBackground: (color: string) => void;
     setGradientBackground: (
       cssValue: string,
@@ -266,6 +272,8 @@ type EditorStore = EditorDesignSettings & {
     setBrowserFrameStyle: (style: BrowserFrameStyle) => void;
     setBrowserFrameUrl: (url: string) => void;
     toggleBrowserFrameUrl: () => void;
+    setBrowserFrameUrlBold: (enabled: boolean) => void;
+    toggleBrowserFrameUrlBold: () => void;
     setDeviceMockup: (
       mockupId: DeviceMockupId,
       variantId?: string | null,
@@ -524,6 +532,8 @@ function getEditorDesignSettingsFromState(
     backgroundPatternId: state.backgroundPatternId,
     backgroundPatternColor: state.backgroundPatternColor,
     backgroundPatternIntensity: state.backgroundPatternIntensity,
+    backgroundNoise: state.backgroundNoise,
+    backgroundBlur: state.backgroundBlur,
     imagePadding: state.imagePadding,
     imageRadius: state.imageRadius,
     imageScale: state.imageScale,
@@ -540,6 +550,7 @@ function getEditorDesignSettingsFromState(
     browserFrameStyle: state.browserFrameStyle,
     browserFrameUrl: state.browserFrameUrl,
     browserFrameShowUrl: state.browserFrameShowUrl,
+    browserFrameUrlBold: state.browserFrameUrlBold,
     deviceMockupId: state.deviceMockupId,
     deviceMockupVariantId: state.deviceMockupVariantId,
     shadowSceneEnabled: state.shadowSceneEnabled,
@@ -620,6 +631,8 @@ function getHistoryGlobalSettingsFromState(
     backgroundPatternId: state.backgroundPatternId,
     backgroundPatternColor: state.backgroundPatternColor,
     backgroundPatternIntensity: state.backgroundPatternIntensity,
+    backgroundNoise: state.backgroundNoise,
+    backgroundBlur: state.backgroundBlur,
     imagePadding: state.imagePadding,
     textOverlayEnabled: state.textOverlayEnabled,
     headlineText: state.headlineText,
@@ -960,6 +973,7 @@ function getLayerSettingsPatch(settings: EditorDesignSettings) {
     browserFrameStyle: settings.browserFrameStyle,
     browserFrameUrl: settings.browserFrameUrl,
     browserFrameShowUrl: settings.browserFrameShowUrl,
+    browserFrameUrlBold: settings.browserFrameUrlBold,
     deviceMockupId: settings.deviceMockupId,
     deviceMockupVariantId: settings.deviceMockupVariantId,
     shadowSceneEnabled: settings.shadowSceneEnabled,
@@ -991,6 +1005,7 @@ const LAYER_HISTORY_SCALAR_SETTING_KEYS = [
   "browserFrameStyle",
   "browserFrameUrl",
   "browserFrameShowUrl",
+  "browserFrameUrlBold",
   "deviceMockupId",
   "deviceMockupVariantId",
   "shadowSceneEnabled",
@@ -1323,6 +1338,7 @@ const LAYER_SCALAR_SETTING_KEYS = [
   "browserFrameStyle",
   "browserFrameUrl",
   "browserFrameShowUrl",
+  "browserFrameUrlBold",
   "deviceMockupId",
   "deviceMockupVariantId",
   "shadowSceneEnabled",
@@ -1875,6 +1891,24 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ),
     });
   },
+  setBackgroundNoise: (noise) => {
+    set({
+      backgroundNoise: clampValue(
+        Math.round(noise),
+        BEAUTIFY_SETTING_LIMITS.backgroundNoise.min,
+        BEAUTIFY_SETTING_LIMITS.backgroundNoise.max,
+      ),
+    });
+  },
+  setBackgroundBlur: (blur) => {
+    set({
+      backgroundBlur: clampValue(
+        Math.round(blur),
+        BEAUTIFY_SETTING_LIMITS.backgroundBlur.min,
+        BEAUTIFY_SETTING_LIMITS.backgroundBlur.max,
+      ),
+    });
+  },
   setSolidBackground: (color) => {
     set({
       backgroundType: "solid",
@@ -2150,6 +2184,14 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   toggleBrowserFrameUrl: () => {
     set((state) => ({
       browserFrameShowUrl: !state.browserFrameShowUrl,
+    }));
+  },
+  setBrowserFrameUrlBold: (enabled) => {
+    set({ browserFrameUrlBold: enabled });
+  },
+  toggleBrowserFrameUrlBold: () => {
+    set((state) => ({
+      browserFrameUrlBold: !state.browserFrameUrlBold,
     }));
   },
   setDeviceMockup: (mockupId, variantId) => {

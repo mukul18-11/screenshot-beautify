@@ -3,6 +3,7 @@
 import { AppWindow, Layers2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import { BROWSER_FRAME_STYLES } from "@/components/editor/BrowserFrame";
 import EditorSliderRow from "@/components/editor/EditorSliderRow";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -49,6 +50,18 @@ const STYLE_OPTIONS = [
   {
     label: "Minimal",
     value: "minimal",
+  },
+  {
+    label: "Safari",
+    value: "safari",
+  },
+  {
+    label: "Chrome",
+    value: "chrome",
+  },
+  {
+    label: "Arc",
+    value: "arc",
   },
 ] as const satisfies readonly SegmentOption<BrowserFrameStyle>[];
 
@@ -104,6 +117,128 @@ function SegmentedControl<TValue extends string>({
   );
 }
 
+function FrameStylePreview({
+  style,
+  theme,
+}: {
+  style: BrowserFrameStyle;
+  theme: BrowserFrameTheme;
+}) {
+  const isDark = theme === "dark";
+  const topBarClass = isDark
+    ? "border-white/10 bg-slate-900"
+    : "border-slate-200 bg-slate-50";
+  const urlClass = isDark ? "bg-white/15" : "bg-white";
+  const screenClass = isDark ? "bg-slate-800" : "bg-slate-100";
+
+  if (style === "minimal") {
+    return (
+      <span className="flex h-full w-full flex-col overflow-hidden rounded-md">
+        <span className={cn("h-4 border-b px-2 py-1", topBarClass)}>
+          <span className="block h-1.5 w-10 rounded-full bg-current opacity-20" />
+        </span>
+        <span className={cn("flex-1", screenClass)} />
+      </span>
+    );
+  }
+
+  if (style === "chrome") {
+    return (
+      <span className="flex h-full w-full flex-col overflow-hidden rounded-md">
+        <span className={cn("h-5 border-b px-1.5 pt-1", topBarClass)}>
+          <span className={cn("block h-4 w-16 rounded-t-md", urlClass)} />
+        </span>
+        <span className={cn("flex h-5 items-center gap-1 px-1.5", topBarClass)}>
+          <span className="h-1.5 w-1.5 rounded-full bg-current opacity-25" />
+          <span className={cn("h-2 flex-1 rounded-full", urlClass)} />
+        </span>
+        <span className={cn("flex-1", screenClass)} />
+      </span>
+    );
+  }
+
+  if (style === "arc") {
+    return (
+      <span className="flex h-full w-full flex-col overflow-hidden rounded-md">
+        <span
+          className={cn(
+            "flex h-7 items-center gap-1.5 border-b px-1.5",
+            isDark ? "border-white/10 bg-[#17131e]" : "border-violet-100 bg-[#f7f3ff]",
+          )}
+        >
+          <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
+          <span className="h-2 w-2 rounded-full bg-[#ffbd2e]" />
+          <span className={cn("h-2 flex-1 rounded-full", urlClass)} />
+        </span>
+        <span className={cn("flex-1", screenClass)} />
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex h-full w-full flex-col overflow-hidden rounded-md">
+      <span className={cn("flex h-7 items-center gap-1.5 border-b px-1.5", topBarClass)}>
+        <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
+        <span className="h-2 w-2 rounded-full bg-[#ffbd2e]" />
+        <span className="h-2 w-2 rounded-full bg-[#28c840]" />
+        {style === "safari" && (
+          <span className={cn("ml-1 h-2 flex-1 rounded-md", urlClass)} />
+        )}
+      </span>
+      <span className={cn("flex-1", screenClass)} />
+    </span>
+  );
+}
+
+function FrameStylePicker({
+  onChange,
+  theme,
+  value,
+}: {
+  onChange: (value: BrowserFrameStyle) => void;
+  theme: BrowserFrameTheme;
+  value: BrowserFrameStyle;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
+        Style
+      </Label>
+      <div className="grid grid-cols-2 gap-2">
+        {STYLE_OPTIONS.map((option) => {
+          const isSelected = option.value === value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={isSelected}
+              title={`${option.label} browser frame`}
+              onClick={() => onChange(option.value)}
+              className={cn(
+                "group min-w-0 rounded-xl border p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
+                isSelected
+                  ? "border-slate-950 bg-white shadow-sm dark:border-white dark:bg-white/10"
+                  : "border-slate-200/80 bg-white/55 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/10",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className="block aspect-[1.72] overflow-hidden rounded-lg border border-black/5 shadow-inner dark:border-white/10"
+              >
+                <FrameStylePreview style={option.value} theme={theme} />
+              </span>
+              <span className="mt-1.5 block truncate text-[11px] font-semibold text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">
+                {BROWSER_FRAME_STYLES[option.value].label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function BrowserFrameControls() {
   const shouldReduceMotion = useReducedMotion();
   const browserFrameEnabled = useEditorStore(
@@ -118,6 +253,9 @@ export default function BrowserFrameControls() {
   const browserFrameUrl = useEditorStore((state) => state.browserFrameUrl);
   const browserFrameShowUrl = useEditorStore(
     (state) => state.browserFrameShowUrl,
+  );
+  const browserFrameUrlBold = useEditorStore(
+    (state) => state.browserFrameUrlBold,
   );
   const shadowScenePresetId = useEditorStore(
     (state) => state.shadowScenePresetId,
@@ -142,6 +280,9 @@ export default function BrowserFrameControls() {
   );
   const toggleBrowserFrameUrl = useEditorStore(
     (state) => state.toggleBrowserFrameUrl,
+  );
+  const setBrowserFrameUrlBold = useEditorStore(
+    (state) => state.setBrowserFrameUrlBold,
   );
   const setShadowScenePreset = useEditorStore(
     (state) => state.setShadowScenePreset,
@@ -202,14 +343,13 @@ export default function BrowserFrameControls() {
                   options={THEME_OPTIONS}
                   onChange={setBrowserFrameTheme}
                 />
-
-                <SegmentedControl
-                  label="Style"
-                  value={browserFrameStyle}
-                  options={STYLE_OPTIONS}
-                  onChange={setBrowserFrameStyle}
-                />
               </div>
+
+              <FrameStylePicker
+                value={browserFrameStyle}
+                theme={browserFrameTheme}
+                onChange={setBrowserFrameStyle}
+              />
 
               <div className="flex items-center justify-between gap-3">
                 <Label
@@ -250,6 +390,20 @@ export default function BrowserFrameControls() {
                       onChange={(event) => setBrowserFrameUrl(event.target.value)}
                       className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
                     />
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <Label
+                        htmlFor="browser-frame-url-bold-toggle"
+                        className="text-[13px] font-medium text-slate-600 dark:text-slate-300"
+                      >
+                        Bold URL
+                      </Label>
+                      <Switch
+                        id="browser-frame-url-bold-toggle"
+                        checked={browserFrameUrlBold}
+                        onCheckedChange={setBrowserFrameUrlBold}
+                        aria-label="Toggle bold browser frame URL"
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -313,7 +467,7 @@ export default function BrowserFrameControls() {
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="overflow-hidden"
               >
-                <div className="space-y-3">
+                <div className="space-y-3 pb-1.5">
                   <SegmentedControl
                     label="Layer"
                     value={shadowScenePlacement}

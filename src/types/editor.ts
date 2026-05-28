@@ -9,7 +9,7 @@ export type BackgroundPatternId =
 
 export type BrowserFrameTheme = "light" | "dark";
 
-export type BrowserFrameStyle = "macos" | "minimal";
+export type BrowserFrameStyle = "macos" | "minimal" | "safari" | "chrome" | "arc";
 
 export type DeviceMockupCategory =
   | "essentials"
@@ -255,6 +255,8 @@ export type BeautifySettings = {
   backgroundPatternId: BackgroundPatternId;
   backgroundPatternColor: string;
   backgroundPatternIntensity: number;
+  backgroundNoise: number;
+  backgroundBlur: number;
   imagePadding: number;
   imageRadius: number;
   imageScale: number;
@@ -274,6 +276,7 @@ export type BrowserFrameSettings = {
   browserFrameStyle: BrowserFrameStyle;
   browserFrameUrl: string;
   browserFrameShowUrl: boolean;
+  browserFrameUrlBold: boolean;
   shadowSceneEnabled: boolean;
   shadowScenePresetId: ShadowScenePresetId;
   shadowSceneOpacity: number;

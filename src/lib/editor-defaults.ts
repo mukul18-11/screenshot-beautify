@@ -50,6 +50,8 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   backgroundPatternId: "none",
   backgroundPatternColor: "#ffffff",
   backgroundPatternIntensity: 25,
+  backgroundNoise: 0,
+  backgroundBlur: 0,
   imagePadding: 96,
   imageRadius: 24,
   imageScale: 92,
@@ -69,6 +71,7 @@ export const DEFAULT_BROWSER_FRAME_SETTINGS: BrowserFrameSettings = {
   browserFrameStyle: "macos",
   browserFrameUrl: "yourproduct.com",
   browserFrameShowUrl: false,
+  browserFrameUrlBold: false,
   shadowSceneEnabled: false,
   shadowScenePresetId: "none",
   shadowSceneOpacity: 0.42,
@@ -201,6 +204,16 @@ export const BEAUTIFY_SETTING_LIMITS = {
   backgroundPatternIntensity: {
     min: 0,
     max: 80,
+    step: 1,
+  },
+  backgroundNoise: {
+    min: 0,
+    max: 100,
+    step: 1,
+  },
+  backgroundBlur: {
+    min: 0,
+    max: 100,
     step: 1,
   },
   imageShadowBlur: {

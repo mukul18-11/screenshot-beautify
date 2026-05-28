@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Check, Image as ImageIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Image as ImageIcon, SlidersHorizontal } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import EditorSliderRow from "@/components/editor/EditorSliderRow";
@@ -318,6 +318,8 @@ function getCustomPatternOptions(patternId: CustomPatternId) {
 export default function BackgroundControls() {
   const shouldReduceMotion = useReducedMotion();
   const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const [isEffectsOpen, setIsEffectsOpen] = useState(false);
+  const effectsPopoverRef = useRef<HTMLDivElement | null>(null);
 
   // Preload all premium image backgrounds to ensure instant loading when clicked
   useEffect(() => {
@@ -344,6 +346,9 @@ export default function BackgroundControls() {
   const backgroundPatternIntensity = useEditorStore(
     (state) => state.backgroundPatternIntensity,
   );
+  const backgroundValue = useEditorStore((state) => state.backgroundValue);
+  const backgroundNoise = useEditorStore((state) => state.backgroundNoise);
+  const backgroundBlur = useEditorStore((state) => state.backgroundBlur);
   const setBackgroundPreset = useEditorStore(
     (state) => state.setBackgroundPreset,
   );
@@ -356,6 +361,10 @@ export default function BackgroundControls() {
   const setBackgroundPatternIntensity = useEditorStore(
     (state) => state.setBackgroundPatternIntensity,
   );
+  const setBackgroundNoise = useEditorStore(
+    (state) => state.setBackgroundNoise,
+  );
+  const setBackgroundBlur = useEditorStore((state) => state.setBackgroundBlur);
   const setGradientBackground = useEditorStore(
     (state) => state.setGradientBackground,
   );
@@ -370,6 +379,39 @@ export default function BackgroundControls() {
   const imageBlurPreset = BACKGROUND_PRESETS.find(
     (preset) => preset.type === "image-blur",
   );
+  const hasBackgroundEffects = backgroundNoise > 0 || backgroundBlur > 0;
+
+  useEffect(() => {
+    if (!isEffectsOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const popover = effectsPopoverRef.current;
+
+      if (!popover || !(event.target instanceof Node)) {
+        return;
+      }
+
+      if (!popover.contains(event.target)) {
+        setIsEffectsOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsEffectsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isEffectsOpen]);
 
   function applyCustomGradient() {
     setGradientBackground(
@@ -421,6 +463,7 @@ export default function BackgroundControls() {
                 setBackgroundPreset(preset.id);
                 selectEditablePreset(preset.id);
                 setIsCustomOpen(false);
+                setIsEffectsOpen(false);
               }}
               className={cn(
                 "group relative flex h-10 items-center justify-center overflow-hidden rounded-xl border transition",
@@ -469,7 +512,10 @@ export default function BackgroundControls() {
                 aria-pressed={isSelected}
                 aria-label={`${pattern.name} background pattern`}
                 title={pattern.name}
-                onClick={() => setBackgroundPattern(pattern.id)}
+                onClick={() => {
+                  setBackgroundPattern(pattern.id);
+                  setIsEffectsOpen(false);
+                }}
                 className={cn(
                   "group flex h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1.5 text-[11px] font-semibold transition",
                   isSelected
@@ -549,6 +595,7 @@ export default function BackgroundControls() {
             const presetConfig = selectEditablePreset(backgroundPresetId);
             const nextConfig = presetConfig ?? customConfig;
 
+            setIsEffectsOpen(false);
             setIsCustomOpen((isOpen) => !isOpen);
             setGradientBackground(
               createCustomGradient(nextConfig),
@@ -577,6 +624,7 @@ export default function BackgroundControls() {
             onClick={() => {
               setBackgroundPreset(imageBlurPreset.id);
               setIsCustomOpen(false);
+              setIsEffectsOpen(false);
             }}
             className={cn(
               "relative flex h-10 w-12 items-center justify-center overflow-hidden rounded-xl border transition",
@@ -592,6 +640,74 @@ export default function BackgroundControls() {
               aria-hidden="true"
             />
           </motion.button>
+        )}
+      </div>
+
+      <div className="relative mt-3" ref={effectsPopoverRef}>
+        <motion.button
+          type="button"
+          whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
+          whileTap={{ scale: shouldReduceMotion ? 1 : 0.97 }}
+          aria-expanded={isEffectsOpen}
+          aria-pressed={hasBackgroundEffects}
+          onClick={() => {
+            setIsCustomOpen(false);
+            setIsEffectsOpen((isOpen) => !isOpen);
+          }}
+          className={cn(
+            "relative flex h-10 w-full items-center justify-between overflow-hidden rounded-xl border px-3 text-[12px] font-semibold text-white transition",
+            isEffectsOpen || hasBackgroundEffects
+              ? "border-slate-800 ring-1 ring-slate-800/30 dark:border-white dark:ring-white/30"
+              : "border-slate-200/70 hover:border-slate-300 dark:border-white/10",
+          )}
+          style={{ background: backgroundValue }}
+        >
+          <span className="absolute inset-0 bg-black/30" aria-hidden="true" />
+          <span className="relative inline-flex min-w-0 items-center gap-2">
+            <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">Noise & Blur</span>
+          </span>
+          <span className="relative text-[11px] font-bold tabular-nums text-white/80">
+            {backgroundNoise}/{backgroundBlur}
+          </span>
+        </motion.button>
+
+        {isEffectsOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-full rounded-xl border border-slate-200/80 bg-white/95 p-3 shadow-xl shadow-slate-950/15 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/40"
+          >
+            <div
+              className="mb-3 h-9 rounded-lg border border-white/50 shadow-inner dark:border-white/10"
+              style={{ background: backgroundValue }}
+              aria-hidden="true"
+            />
+            <div className="space-y-3">
+              <EditorSliderRow
+                label="Noise"
+                labelClassName="text-slate-600 dark:text-slate-300"
+                min={BEAUTIFY_SETTING_LIMITS.backgroundNoise.min}
+                max={BEAUTIFY_SETTING_LIMITS.backgroundNoise.max}
+                step={BEAUTIFY_SETTING_LIMITS.backgroundNoise.step}
+                value={backgroundNoise}
+                suffix="%"
+                onChange={setBackgroundNoise}
+              />
+              <EditorSliderRow
+                label="Blur"
+                labelClassName="text-slate-600 dark:text-slate-300"
+                min={BEAUTIFY_SETTING_LIMITS.backgroundBlur.min}
+                max={BEAUTIFY_SETTING_LIMITS.backgroundBlur.max}
+                step={BEAUTIFY_SETTING_LIMITS.backgroundBlur.step}
+                value={backgroundBlur}
+                suffix="%"
+                onChange={setBackgroundBlur}
+              />
+            </div>
+          </motion.div>
         )}
       </div>
 

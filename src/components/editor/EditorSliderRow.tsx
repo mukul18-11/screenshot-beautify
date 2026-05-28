@@ -39,7 +39,7 @@ export default function EditorSliderRow({
   const displayValue = valueFormatter ? valueFormatter(value) : String(value);
 
   return (
-    <div className={cn("space-y-2", disabled && "opacity-40")}>
+    <div className={cn("space-y-2 py-1", disabled && "opacity-40")}>
       <div className="flex items-center justify-between gap-3">
         <Label
           htmlFor={inputId}

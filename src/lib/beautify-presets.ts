@@ -133,6 +133,8 @@ export function createBeautifyPresetSettings(
     backgroundPatternId: "none",
     backgroundPatternColor: "#ffffff",
     backgroundPatternIntensity: 25,
+    backgroundNoise: 0,
+    backgroundBlur: 0,
     imagePadding: preset.imagePadding,
     imageRadius: preset.imageRadius,
     imageScale: preset.imageScale,
