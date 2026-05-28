@@ -211,6 +211,7 @@ type EditorStore = EditorDesignSettings & {
     activeTextLayerId: TextLayerId | null;
     screenshotLayoutPresetId: ScreenshotLayoutPresetId;
     uploadedImage: UploadedImage | null;
+    customBackgroundImage: UploadedImage | null;
     undo: () => void;
     redo: () => void;
     clearHistory: () => void;
@@ -238,6 +239,8 @@ type EditorStore = EditorDesignSettings & {
     setBackgroundPatternIntensity: (intensity: number) => void;
     setBackgroundNoise: (noise: number) => void;
     setBackgroundBlur: (blur: number) => void;
+    setCustomBackgroundImage: (uploadedImage: UploadedImage) => void;
+    clearCustomBackgroundImage: () => void;
     setSolidBackground: (color: string) => void;
     setGradientBackground: (
       cssValue: string,
@@ -1434,6 +1437,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   activeTextLayerId: null,
   screenshotLayoutPresetId: "manual",
   uploadedImage: null,
+  customBackgroundImage: null,
   ...createDefaultEditorDesignSettings(),
   undo: () => {
     const state = get();
@@ -1756,11 +1760,14 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     revokeObjectUrl(removedScreenshot.uploadedImage);
 
     if (!remainingScreenshots.length) {
+      revokeObjectUrl(state.customBackgroundImage);
+
       set({
         screenshots: remainingScreenshots,
         activeScreenshotId: null,
         screenshotLayoutPresetId: "manual",
         uploadedImage: null,
+        customBackgroundImage: null,
         ...createDefaultEditorDesignSettings(),
       });
       return;
@@ -1807,20 +1814,23 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     get().removeUploadedImage(activeScreenshotId);
   },
   clearAllUploadedImages: () => {
-    const screenshots = get().screenshots;
+    const state = get();
+    const screenshots = state.screenshots;
 
-    if (!screenshots.length) {
+    if (!screenshots.length && !state.customBackgroundImage) {
       return;
     }
 
     screenshots.forEach((screenshot) => {
       revokeObjectUrl(screenshot.uploadedImage);
     });
+    revokeObjectUrl(state.customBackgroundImage);
 
     set({
       screenshots: [],
       activeScreenshotId: null,
       uploadedImage: null,
+      customBackgroundImage: null,
       screenshotLayoutPresetId: "manual",
       ...createDefaultEditorDesignSettings(),
     });
@@ -1907,6 +1917,29 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         BEAUTIFY_SETTING_LIMITS.backgroundBlur.min,
         BEAUTIFY_SETTING_LIMITS.backgroundBlur.max,
       ),
+    });
+  },
+  setCustomBackgroundImage: (uploadedImage) => {
+    set((state) => {
+      if (state.customBackgroundImage?.objectUrl !== uploadedImage.objectUrl) {
+        revokeObjectUrl(state.customBackgroundImage);
+      }
+
+      return {
+        customBackgroundImage: uploadedImage,
+        backgroundType: "image",
+        backgroundValue: "",
+        backgroundPresetId: "custom",
+      };
+    });
+  },
+  clearCustomBackgroundImage: () => {
+    set((state) => {
+      revokeObjectUrl(state.customBackgroundImage);
+
+      return {
+        customBackgroundImage: null,
+      };
     });
   },
   setSolidBackground: (color) => {
@@ -2159,10 +2192,15 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
   resetBeautifySettings: () => {
-    set({
-      ...createDefaultBeautifySettings(),
-      lastBeautifyPresetId: null,
-      screenshotLayoutPresetId: "manual",
+    set((state) => {
+      revokeObjectUrl(state.customBackgroundImage);
+
+      return {
+        ...createDefaultBeautifySettings(),
+        customBackgroundImage: null,
+        lastBeautifyPresetId: null,
+        screenshotLayoutPresetId: "manual",
+      };
     });
   },
   toggleBrowserFrame: () => {
@@ -2820,11 +2858,14 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set(createDefaultExportSettings());
   },
   resetActiveScreenshotDesign: () => {
-    const activeScreenshot = getActiveScreenshot(get());
+    const state = get();
+    const activeScreenshot = getActiveScreenshot(state);
 
     if (!activeScreenshot) {
       return;
     }
+
+    revokeObjectUrl(state.customBackgroundImage);
 
     set({
       ...createDefaultBeautifySettings(),
@@ -2834,6 +2875,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ...createDefaultTiltSettings(),
       ...createDefaultExportSettings(),
       activeTextLayerId: null,
+      customBackgroundImage: null,
       exportFileName: createExportFileNameFromImage(
         activeScreenshot.uploadedImage,
       ),
@@ -2842,15 +2884,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
   resetEditorForNewUpload: () => {
-    set({
-      ...createDefaultBeautifySettings(),
-      ...createDefaultBrowserFrameSettings(),
-      ...createDefaultDeviceMockupSettings(),
-      ...createDefaultTextOverlaySettings(),
-      ...createDefaultTiltSettings(),
-      activeTextLayerId: null,
-      lastBeautifyPresetId: null,
-      screenshotLayoutPresetId: "manual",
+    set((state) => {
+      revokeObjectUrl(state.customBackgroundImage);
+
+      return {
+        ...createDefaultBeautifySettings(),
+        ...createDefaultBrowserFrameSettings(),
+        ...createDefaultDeviceMockupSettings(),
+        ...createDefaultTextOverlaySettings(),
+        ...createDefaultTiltSettings(),
+        activeTextLayerId: null,
+        customBackgroundImage: null,
+        lastBeautifyPresetId: null,
+        screenshotLayoutPresetId: "manual",
+      };
     });
   },
 }));

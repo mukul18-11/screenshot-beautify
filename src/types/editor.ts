@@ -1,4 +1,9 @@
-export type BackgroundType = "gradient" | "solid" | "mesh" | "image-blur";
+export type BackgroundType =
+  | "gradient"
+  | "solid"
+  | "mesh"
+  | "image"
+  | "image-blur";
 
 export type BackgroundPatternId =
   | "none"

@@ -198,7 +198,7 @@ type ScreenshotWheelEvent = {
 };
 
 const BACKGROUND_NOISE_TEXTURE =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.58'/%3E%3C/svg%3E\")";
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.85' intercept='-0.42'/%3E%3CfeFuncG type='linear' slope='1.85' intercept='-0.42'/%3E%3CfeFuncB type='linear' slope='1.85' intercept='-0.42'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='0.78'/%3E%3C/svg%3E\")";
 
 function getContentLayoutClasses(textPosition: TextPosition) {
   if (textPosition === "left" || textPosition === "right") {
@@ -825,6 +825,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     );
     const backgroundType = useEditorStore((state) => state.backgroundType);
     const backgroundValue = useEditorStore((state) => state.backgroundValue);
+    const customBackgroundImage = useEditorStore(
+      (state) => state.customBackgroundImage,
+    );
     const backgroundPatternId = useEditorStore(
       (state) => state.backgroundPatternId,
     );
@@ -1013,12 +1016,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         BEAUTIFY_SETTING_LIMITS.backgroundBlur.max,
       ) * 0.32,
     );
+    const backgroundNoiseValue = clampValue(
+      backgroundNoise,
+      BEAUTIFY_SETTING_LIMITS.backgroundNoise.min,
+      BEAUTIFY_SETTING_LIMITS.backgroundNoise.max,
+    );
     const backgroundNoiseOpacity =
-      clampValue(
-        backgroundNoise,
-        BEAUTIFY_SETTING_LIMITS.backgroundNoise.min,
-        BEAUTIFY_SETTING_LIMITS.backgroundNoise.max,
-      ) * 0.0042;
+      backgroundNoiseValue <= 0
+        ? 0
+        : 0.08 + Math.pow(backgroundNoiseValue / 100, 0.82) * 0.44;
     const backgroundEffectScale =
       backgroundBlurPixels > 0
         ? Math.max(1.04, 1 + backgroundBlurPixels / 240)
@@ -3206,7 +3212,16 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   : undefined,
             }}
           >
-            {backgroundType === "image-blur" && canvasBackgroundImage ? (
+            {backgroundType === "image" && customBackgroundImage ? (
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(${customBackgroundImage.objectUrl})`,
+                  backgroundPosition: "center",
+                  backgroundSize: "cover",
+                }}
+              />
+            ) : backgroundType === "image-blur" && canvasBackgroundImage ? (
               <>
                 <div
                   className="absolute inset-0 h-full w-full scale-110 opacity-75 blur-3xl saturate-125"
@@ -3236,7 +3251,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
             className="pointer-events-none absolute inset-0 rounded-[inherit] mix-blend-overlay"
             style={{
               backgroundImage: BACKGROUND_NOISE_TEXTURE,
-              backgroundSize: "180px 180px",
+              backgroundSize: "128px 128px",
               opacity: backgroundNoiseOpacity,
             }}
             aria-hidden="true"
