@@ -7,15 +7,12 @@ import {
   Download,
   FileImage,
   LayoutDashboard,
-  RefreshCw,
   ShieldCheck,
   Sparkles,
   Smartphone,
-  Trash2,
   Type,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { toast } from "sonner";
 
 import BackgroundControls from "@/components/editor/BackgroundControls";
 import BrowserFrameControls from "@/components/editor/BrowserFrameControls";
@@ -27,18 +24,11 @@ import ResetControls from "@/components/editor/ResetControls";
 import ScreenshotLayoutControls from "@/components/editor/ScreenshotLayoutControls";
 import TextOverlayControls from "@/components/editor/TextOverlayControls";
 import TiltControls from "@/components/editor/TiltControls";
-import { Button } from "@/components/ui/button";
-import { formatFileSize } from "@/lib/format-file-size";
 import { cn } from "@/lib/utils";
-import { useImageUpload } from "@/hooks/useImageUpload";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 
 type EditorSettingsPanelProps = {
   uploadedImage: UploadedImage | null;
-};
-
-type ImageInfoSectionProps = {
-  uploadedImage: UploadedImage;
 };
 
 const SETTINGS_SECTIONS = [
@@ -80,14 +70,6 @@ const SETTINGS_SECTIONS = [
 ] as const;
 
 type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]["id"];
-
-function getReadableFileType(type: string) {
-  if (type === "image/jpeg") {
-    return "JPEG";
-  }
-
-  return type.replace("image/", "").toUpperCase();
-}
 
 function getSettingsSection(sectionId: SettingsSectionId) {
   return (
@@ -195,98 +177,6 @@ function SettingsSectionContent({
       <ExportControls uploadedImage={uploadedImage} />
       <ResetControls />
     </>
-  );
-}
-
-function ImageInfoSection({ uploadedImage }: ImageInfoSectionProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const {
-    accept,
-    clearError,
-    clearUploadedImage,
-    errorMessage,
-    getInputProps,
-    isUploading,
-    open,
-  } = useImageUpload({ mode: "replace" });
-
-  function handleRemoveImage() {
-    clearError();
-    clearUploadedImage();
-    toast.success("Screenshot removed");
-  }
-
-  return (
-    <motion.section
-      initial={{ opacity: 1, y: 0 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
-      transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-100 pb-4 dark:border-white/8"
-    >
-      <input
-        {...getInputProps({
-          accept,
-          "aria-label": "Replace screenshot image from settings panel",
-        })}
-      />
-
-      <div className="flex items-center gap-3 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] p-2.5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-          <FileImage className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[13px] font-semibold text-[var(--editor-ink)] dark:text-white">
-            {uploadedImage.name}
-          </h3>
-          <p className="text-[11px] text-[var(--editor-muted)] dark:text-slate-500">
-            {uploadedImage.width}×{uploadedImage.height} ·{" "}
-            {formatFileSize(uploadedImage.size)} ·{" "}
-            {getReadableFileType(uploadedImage.type)}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={isUploading}
-          onClick={open}
-          className="h-7 gap-1.5 px-2 text-xs text-[var(--editor-muted)] hover:text-[var(--editor-ink)]"
-        >
-          <RefreshCw className="h-3 w-3" aria-hidden="true" />
-          Replace
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={isUploading}
-          onClick={handleRemoveImage}
-          className="h-7 gap-1.5 px-2 text-xs text-[var(--editor-soft)] hover:text-rose-600"
-        >
-          <Trash2 className="h-3 w-3" aria-hidden="true" />
-          Remove
-        </Button>
-      </div>
-
-      <AnimatePresence>
-        {errorMessage && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            role="alert"
-            className="mt-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-600 dark:bg-rose-400/10 dark:text-rose-200"
-          >
-            {errorMessage}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </motion.section>
   );
 }
 
@@ -402,7 +292,6 @@ export default function EditorSettingsPanel({
               ref={settingsScrollRef}
               className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 lg:order-first"
             >
-              <ImageInfoSection uploadedImage={uploadedImage} />
               <AnimatePresence initial={false}>
                 <motion.div
                   key={activeSection}
