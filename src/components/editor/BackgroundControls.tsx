@@ -793,78 +793,9 @@ export default function BackgroundControls() {
           initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="mt-3 space-y-3 rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.04]"
+          className="mt-2 space-y-2.5 rounded-xl border border-slate-200/70 bg-white/70 p-2.5 dark:border-white/10 dark:bg-white/[0.04]"
         >
-          <div
-            className="h-12 rounded-lg border border-white/60 shadow-inner dark:border-white/10"
-            style={{ background: customGradient }}
-            aria-hidden="true"
-          />
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="custom-background-color-a"
-                className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
-              >
-                Color A
-              </Label>
-              <input
-                id="custom-background-color-a"
-                type="color"
-                value={customConfig.colorA}
-                onChange={(event) => {
-                  setLiveCustomConfig({
-                    ...customConfig,
-                    colorA: event.target.value,
-                  });
-                }}
-                className="h-9 w-full cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="custom-background-color-b"
-                className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
-              >
-                Color B
-              </Label>
-              <input
-                id="custom-background-color-b"
-                type="color"
-                value={customConfig.colorB}
-                onChange={(event) => {
-                  setLiveCustomConfig({
-                    ...customConfig,
-                    colorB: event.target.value,
-                  });
-                }}
-                className="h-9 w-full cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="custom-background-color-c"
-                className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
-              >
-                Base
-              </Label>
-              <input
-                id="custom-background-color-c"
-                type="color"
-                value={customConfig.colorC}
-                onChange={(event) => {
-                  setLiveCustomConfig({
-                    ...customConfig,
-                    colorC: event.target.value,
-                  });
-                }}
-                className="h-9 w-full cursor-pointer rounded-md border border-slate-200/80 bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.08]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 rounded-lg bg-slate-100 p-1 dark:bg-white/[0.08]">
+          <div className="flex rounded-lg bg-slate-100/80 p-0.5 dark:bg-white/[0.06]">
             {getCustomPatternOptions(customConfig.patternId).map((option) => (
               <button
                 key={option.id}
@@ -876,9 +807,9 @@ export default function BackgroundControls() {
                   })
                 }
                 className={cn(
-                  "h-8 rounded-md text-[12px] font-semibold transition",
+                  "flex-1 py-1 rounded-md text-[11px] font-semibold transition-all duration-150",
                   customConfig.patternId === option.id
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white"
                     : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white",
                 )}
                 aria-pressed={customConfig.patternId === option.id}
@@ -888,10 +819,78 @@ export default function BackgroundControls() {
             ))}
           </div>
 
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50/50 p-2 dark:border-white/5 dark:bg-white/[0.02]">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 shrink-0">Color A</span>
+              <div className="relative h-6 w-9 shrink-0 cursor-pointer overflow-hidden rounded-md border border-slate-200/80 bg-white dark:border-white/10 dark:bg-white/[0.08]">
+                <input
+                  id="custom-background-color-a"
+                  type="color"
+                  value={customConfig.colorA}
+                  onChange={(event) => {
+                    setLiveCustomConfig({
+                      ...customConfig,
+                      colorA: event.target.value,
+                    });
+                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer border-0 opacity-0"
+                />
+                <div
+                  className="h-full w-full rounded-[4px]"
+                  style={{ backgroundColor: customConfig.colorA }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 shrink-0">Color B</span>
+              <div className="relative h-6 w-9 shrink-0 cursor-pointer overflow-hidden rounded-md border border-slate-200/80 bg-white dark:border-white/10 dark:bg-white/[0.08]">
+                <input
+                  id="custom-background-color-b"
+                  type="color"
+                  value={customConfig.colorB}
+                  onChange={(event) => {
+                    setLiveCustomConfig({
+                      ...customConfig,
+                      colorB: event.target.value,
+                    });
+                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer border-0 opacity-0"
+                />
+                <div
+                  className="h-full w-full rounded-[4px]"
+                  style={{ backgroundColor: customConfig.colorB }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 shrink-0">Base</span>
+              <div className="relative h-6 w-9 shrink-0 cursor-pointer overflow-hidden rounded-md border border-slate-200/80 bg-white dark:border-white/10 dark:bg-white/[0.08]">
+                <input
+                  id="custom-background-color-c"
+                  type="color"
+                  value={customConfig.colorC}
+                  onChange={(event) => {
+                    setLiveCustomConfig({
+                      ...customConfig,
+                      colorC: event.target.value,
+                    });
+                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer border-0 opacity-0"
+                />
+                <div
+                  className="h-full w-full rounded-[4px]"
+                  style={{ backgroundColor: customConfig.colorC }}
+                />
+              </div>
+            </div>
+          </div>
+
           {customConfig.patternId === "linear" && (
             <EditorSliderRow
               label="Angle"
-              labelClassName="text-slate-600 dark:text-slate-300"
+              labelClassName="text-slate-500 dark:text-slate-400 text-[11px] font-medium"
               min={0}
               max={360}
               step={1}
