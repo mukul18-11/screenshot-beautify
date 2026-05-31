@@ -266,7 +266,7 @@ export default function ScreenshotTray({
             event.stopPropagation();
             onRemove?.();
           }}
-          className="h-8 w-8 rounded-lg bg-white/65 text-slate-400 shadow-sm hover:bg-white hover:text-rose-600 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-rose-450"
+          className="h-8 w-8 rounded-lg bg-white/65 text-slate-400 shadow-sm hover:bg-white hover:text-rose-600 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-rose-400"
         >
           {activeScreenshotId ? (
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />

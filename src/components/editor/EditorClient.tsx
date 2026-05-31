@@ -157,9 +157,9 @@ export default function EditorClient() {
                 title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               >
                 {theme === "dark" ? (
-                  <Sun className="h-4.5 w-4.5 text-amber-500 animate-[spin_60s_linear_infinite]" aria-hidden="true" />
+                  <Sun className="h-4 w-4 text-amber-500 animate-[spin_60s_linear_infinite]" aria-hidden="true" />
                 ) : (
-                  <Moon className="h-4.5 w-4.5 text-indigo-500" aria-hidden="true" />
+                  <Moon className="h-4 w-4 text-indigo-500" aria-hidden="true" />
                 )}
               </button>
               <div className="flex items-center gap-1.5 rounded-full border border-[var(--editor-border)] bg-white/5 px-3 py-1.5 text-[11px] font-bold text-[var(--editor-muted)] shadow-sm">

@@ -20,7 +20,7 @@ export default function Footer() {
               aria-label="Screenshot Beautifier home"
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-md dark:bg-white dark:text-slate-950">
-                <Sparkles className="h-4.5 w-4.5" aria-hidden="true" />
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
               </span>
               <span className="text-sm font-display font-bold tracking-tight text-slate-950 dark:text-white">
                 Screenshot Beautifier
@@ -221,7 +221,7 @@ export default function Footer() {
         <div className="mt-12 border-t border-slate-100 pt-8 dark:border-white/10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              <Globe className="h-3.5 w-3.5 text-slate-300 dark:text-slate-650" />
+              <Globe className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
               <span>Designed for Builders Worldwide</span>
             </div>
             <p className="max-w-2xl text-[11px] leading-relaxed text-slate-400 font-medium dark:text-slate-500">

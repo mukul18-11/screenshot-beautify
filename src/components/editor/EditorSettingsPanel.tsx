@@ -15,6 +15,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import BackgroundControls from "@/components/editor/BackgroundControls";
+import BeautifyPresetBar from "@/components/editor/BeautifyPresetBar";
 import BrowserFrameControls from "@/components/editor/BrowserFrameControls";
 import CanvasPresetSelector from "@/components/editor/CanvasPresetSelector";
 import DeviceMockupControls from "@/components/editor/DeviceMockupControls";
@@ -140,6 +141,7 @@ function SettingsSectionContent({
   if (sectionId === "style") {
     return (
       <>
+        <BeautifyPresetBar />
         <CanvasPresetSelector />
         <BackgroundControls />
         <ImageStyleControls mode="style" />

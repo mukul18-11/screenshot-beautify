@@ -1,10 +1,12 @@
 "use client";
 
 import Footer from "@/components/landing/Footer";
+import CTASection from "@/components/landing/CTASection";
 import ExampleShowcase from "@/components/landing/ExampleShowcase";
 import FAQSection, { FAQS } from "@/components/landing/FAQSection";
 import FeatureGrid from "@/components/landing/FeatureGrid";
 import HeroSection from "@/components/landing/HeroSection";
+import HowItWorks from "@/components/landing/HowItWorks";
 import LandingNav from "@/components/landing/LandingNav";
 import {
   SITE_DESCRIPTION,
@@ -96,8 +98,10 @@ export default function Home() {
         <LandingNav />
         <HeroSection />
         <ExampleShowcase />
+        <HowItWorks />
         <FeatureGrid />
         <FAQSection />
+        <CTASection />
         <Footer />
       </main>
     </>

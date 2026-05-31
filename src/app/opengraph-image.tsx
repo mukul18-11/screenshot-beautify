@@ -55,7 +55,7 @@ export default function Image() {
               display: "flex",
               fontSize: 76,
               fontWeight: 800,
-              letterSpacing: -1,
+              letterSpacing: 0,
               lineHeight: 1.02,
               maxWidth: 880,
             }}

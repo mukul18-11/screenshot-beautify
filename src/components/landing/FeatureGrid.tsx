@@ -96,7 +96,7 @@ export default function FeatureGrid() {
         <h2 className="mt-3 font-display text-3xl font-extrabold text-slate-950 sm:text-[2.25rem] tracking-tight leading-tight dark:text-white">
           Stunning graphics <span className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_1px_4px_rgba(6,182,212,0.1)]">in one clean editor</span>
         </h2>
-        <p className="mt-3 text-sm text-slate-650 dark:text-slate-400">
+        <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
           Everything you need to turn raw screenshots or visual mockups into launch-ready marketing creatives.
         </p>
       </motion.div>
@@ -131,11 +131,11 @@ export default function FeatureGrid() {
                     feature.color
                   )}
                 >
-                  <Icon className="h-4.5 w-4.5" />
+                  <Icon className="h-4 w-4" />
                 </div>
 
                 <h3 className="text-sm font-bold font-display tracking-tight text-slate-900 flex items-center gap-1.5 dark:text-white">
-                  <span className="text-[10px] text-slate-350 font-mono tracking-tighter dark:text-slate-600">0{index + 1}</span>
+                  <span className="text-[10px] text-slate-400 font-mono tracking-tighter dark:text-slate-600">0{index + 1}</span>
                   {feature.title}
                 </h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">

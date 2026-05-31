@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { motion, useReducedMotion } from "motion/react";
 
 import LandingHoverTilt from "@/components/landing/LandingHoverTilt";
@@ -97,11 +99,16 @@ function MockContent({ example }: { example: ExampleShowcaseItem }) {
         )}
       >
         {/* Premium high-fidelity screenshot or picture */}
-        <img
+        <Image
           src={example.imagePath}
           alt={example.title}
-          className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
-          loading="lazy"
+          fill
+          sizes={
+            example.layout === "mobile"
+              ? "(min-width: 1024px) 18vw, (min-width: 640px) 45vw, 90vw"
+              : "(min-width: 1024px) 35vw, (min-width: 640px) 45vw, 90vw"
+          }
+          className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
         />
 
         {/* Gradient Overlay for legibility */}
@@ -182,7 +189,7 @@ export default function ExampleCard({ example, index }: ExampleCardProps) {
           <p
             className={cn(
               "mt-1.5 max-w-[20rem] text-xs leading-relaxed",
-              isLightText ? "text-white/80" : "text-slate-650 dark:text-slate-300",
+              isLightText ? "text-white/80" : "text-slate-600 dark:text-slate-300",
             )}
           >
             {example.description}

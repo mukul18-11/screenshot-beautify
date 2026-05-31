@@ -53,7 +53,7 @@ export default function EmptyUploadState({
       transition={{ duration: 0.28, ease: "easeOut" }}
       className="flex h-full w-full items-center justify-center p-4 text-center sm:p-5"
     >
-      <div className="relative flex w-full max-w-[25rem] flex-col items-center overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/95 px-4.5 py-6 shadow-xl shadow-slate-950/[0.03] backdrop-blur-2xl sm:px-6 sm:py-6.5 dark:border-white/10 dark:bg-black dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]">
+      <div className="relative flex w-full max-w-[25rem] flex-col items-center overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/95 px-4 py-6 shadow-xl shadow-slate-950/[0.03] backdrop-blur-2xl sm:px-6 dark:border-white/10 dark:bg-black dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]">
         {/* Shimmer shining reflection layer */}
         <div
           className="pointer-events-none absolute inset-0 opacity-0 dark:opacity-100"
@@ -129,7 +129,7 @@ export default function EmptyUploadState({
             <Loader2 className="relative z-10 h-7 w-7 animate-spin" aria-hidden="true" />
           ) : (
             <UploadCloud
-              className="relative z-10 h-7.5 w-7.5 transition group-hover:-translate-y-0.5"
+              className="relative z-10 h-8 w-8 transition group-hover:-translate-y-0.5"
               aria-hidden="true"
             />
           )}

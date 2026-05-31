@@ -94,7 +94,7 @@ export default function FAQSection() {
                   aria-expanded={isOpen}
                 >
                   <span
-                    className={`font-display text-sm sm:text-[15px] font-semibold tracking-tight transition-colors duration-250 leading-snug ${
+                    className={`font-display text-sm sm:text-[15px] font-semibold tracking-tight transition-colors duration-200 leading-snug ${
                       isOpen
                         ? "text-slate-950 dark:text-white"
                         : "text-slate-900 group-hover:text-slate-950 dark:text-slate-200 dark:group-hover:text-white"
@@ -111,7 +111,7 @@ export default function FAQSection() {
                         : "bg-slate-100/90 text-slate-500 group-hover:bg-slate-200/70 group-hover:text-slate-800 dark:bg-white/10 dark:text-slate-400 dark:group-hover:bg-white/20 dark:group-hover:text-slate-200"
                     }`}
                   >
-                    <ChevronDown className="h-4.5 w-4.5" />
+                    <ChevronDown className="h-4 w-4" />
                   </div>
                 </button>
 

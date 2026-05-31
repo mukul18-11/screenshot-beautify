@@ -266,7 +266,7 @@ export const BEAUTIFY_SETTING_LIMITS = {
     step: 1,
   },
   textLetterSpacing: {
-    min: -2,
+    min: 0,
     max: 12,
     step: 0.1,
   },

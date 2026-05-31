@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
@@ -148,11 +149,14 @@ function HeroMockup() {
               
               <div className="relative flex-1 rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-col justify-center items-center overflow-hidden dark:border-slate-800 dark:bg-slate-950">
                 {/* A plain, straight screenshot image with crisp borders, fully visible, no faded overlay */}
-                <div className="w-full rounded-lg border border-slate-300 bg-white overflow-hidden shadow-sm aspect-[16/10] dark:border-slate-800 dark:bg-slate-900">
-                  <img 
+                <div className="relative w-full overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm aspect-[16/10] dark:border-slate-800 dark:bg-slate-900">
+                  <Image
                     src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" 
                     alt="Raw SaaS Dashboard" 
-                    className="w-full h-full object-cover object-top opacity-100"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 90vw"
+                    className="object-cover object-top opacity-100"
                   />
                 </div>
               </div>
@@ -216,13 +220,16 @@ function HeroMockup() {
                       </div>
                       <div className="w-6" />
                     </div>
-                    
+
                     {/* High-fidelity screenshot */}
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-50">
-                      <img 
-                        src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" 
-                        alt="Beautified SaaS Dashboard" 
-                        className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
+                      <Image
+                        src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80"
+                        alt="Beautified SaaS Dashboard"
+                        fill
+                        priority
+                        sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 90vw"
+                        className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
                       />
                     </div>
                   </div>
@@ -293,7 +300,7 @@ export default function HeroSection() {
                 className="relative group p-[1.5px] rounded-[13px] overflow-hidden bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 animate-gradient-flow inline-flex items-center justify-center shadow-xl shadow-slate-950/10"
               >
                 {/* Ambient Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 rounded-[13px] blur-md opacity-35 group-hover:opacity-75 transition-opacity duration-350 animate-gradient-flow pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 rounded-[13px] blur-md opacity-35 group-hover:opacity-75 transition-opacity duration-300 animate-gradient-flow pointer-events-none" />
 
                 <Button
                   asChild

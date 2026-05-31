@@ -201,7 +201,7 @@ export default function BackgroundControls() {
   }
 
   return (
-    <section className="border-b border-slate-100 py-4 dark:border-white/8">
+    <section className="border-b border-slate-100 py-4 dark:border-white/10">
       <h3 className="mb-3 text-[13px] font-semibold text-slate-700 dark:text-white">
         Background
       </h3>

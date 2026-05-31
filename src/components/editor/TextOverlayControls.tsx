@@ -571,7 +571,7 @@ export default function TextOverlayControls() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-100 py-4 dark:border-white/8"
+      className="border-b border-slate-100 py-4 dark:border-white/10"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">

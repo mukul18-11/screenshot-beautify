@@ -302,7 +302,7 @@ export default function BrowserFrameControls() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className="border-b border-slate-100 py-4 dark:border-white/8"
+      className="border-b border-slate-100 py-4 dark:border-white/10"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -412,7 +412,7 @@ export default function BrowserFrameControls() {
         )}
       </AnimatePresence>
 
-      <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/8">
+      <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/10">
         <div className="mb-2.5 flex items-center gap-2">
           <Layers2 className="h-4 w-4 text-slate-400" aria-hidden="true" />
           <h3 className="text-[13px] font-semibold text-slate-700 dark:text-white">
