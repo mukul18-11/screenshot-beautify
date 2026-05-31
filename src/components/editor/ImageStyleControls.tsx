@@ -164,22 +164,12 @@ export default function ImageStyleControls({
               />
             </div>
 
-            <div className="space-y-3 pl-1">
-              <EditorSliderRow
-                disabled={!imageShadow.enabled}
-                label="Blur"
-                labelClassName="text-slate-600 dark:text-slate-300"
-                min={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.min}
-                max={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.max}
-                step={BEAUTIFY_SETTING_LIMITS.imageShadowBlur.step}
-                value={imageShadow.blur}
-                suffix="px"
-                onChange={(blur) => setImageShadow({ blur })}
-              />
+            <div className="grid grid-cols-2 gap-2">
               <EditorSliderRow
                 disabled={!imageShadow.enabled}
                 label="Opacity"
                 labelClassName="text-slate-600 dark:text-slate-300"
+                variant="compactStepper"
                 min={Math.round(
                   BEAUTIFY_SETTING_LIMITS.imageShadowOpacity.min * 100,
                 )}
@@ -199,6 +189,7 @@ export default function ImageStyleControls({
                 disabled={!imageShadow.enabled}
                 label="Offset Y"
                 labelClassName="text-slate-600 dark:text-slate-300"
+                variant="compactStepper"
                 min={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.min}
                 max={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.max}
                 step={BEAUTIFY_SETTING_LIMITS.imageShadowOffsetY.step}
@@ -210,12 +201,12 @@ export default function ImageStyleControls({
 
             <Separator className="!my-3 bg-slate-100" />
 
-            <div className="space-y-3 rounded-xl border border-slate-200/75 bg-slate-50/60 p-3 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className="space-y-2.5 rounded-xl border border-slate-200/75 bg-slate-50/60 p-2.5 dark:border-white/10 dark:bg-white/[0.04]">
               <div>
                 <Label className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
                   Border style
                 </Label>
-                <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="mt-1.5 grid grid-cols-3 gap-1.5">
                   {IMAGE_BORDER_PRESETS.map((preset) => {
                     const isSelected = imageBorder.preset === preset.id;
                     const previewStyle = createImageBorderCss(
@@ -242,14 +233,14 @@ export default function ImageStyleControls({
                         aria-pressed={isSelected}
                         onClick={() => setImageBorderPreset(preset.id)}
                         className={cn(
-                          "group min-w-0 rounded-xl border p-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
+                          "group min-w-0 rounded-lg border p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
                           isSelected
                             ? "border-slate-950 bg-white shadow-sm dark:border-white dark:bg-white/10"
                             : "border-slate-200/80 bg-white/65 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/10",
                         )}
                       >
-                        <div className="mb-2 flex h-10 items-center justify-center rounded-lg bg-[linear-gradient(135deg,#ecfeff,#f8fafc_46%,#eef2ff)] dark:bg-[linear-gradient(135deg,#020617,#111827)]">
-                          <span className="relative block h-6 w-12">
+                        <div className="mb-1.5 flex h-8 items-center justify-center rounded-md bg-[linear-gradient(135deg,#ecfeff,#f8fafc_46%,#eef2ff)] dark:bg-[linear-gradient(135deg,#020617,#111827)]">
+                          <span className="relative block h-5 w-10">
                             {previewBackingLayers.map((layerStyle, index) => (
                               <span
                                 key={`${preset.id}-backing-${index}`}
@@ -261,16 +252,16 @@ export default function ImageStyleControls({
                               className="absolute inset-0 rounded-md bg-white/95 dark:bg-slate-950/95"
                               style={{
                                 ...previewStyle,
-                                borderRadius: "7px",
+                                borderRadius: "6px",
                               }}
                             />
                           </span>
                         </div>
-                        <span className="flex items-center justify-between gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-100">
+                        <span className="flex items-center justify-between gap-1 text-[10px] font-semibold leading-3 text-slate-700 dark:text-slate-100">
                           {preset.name}
                           {isSelected && (
                             <Check
-                              className="h-3 w-3 text-teal-500"
+                              className="h-2.5 w-2.5 shrink-0 text-teal-500"
                               aria-hidden="true"
                             />
                           )}
@@ -361,10 +352,6 @@ export default function ImageStyleControls({
                 </Button>
               )}
             </div>
-
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
-              Scroll on the image to zoom in. Use Pan X and Pan Y to adjust focus.
-            </p>
 
             <EditorSliderRow
               label="Zoom"

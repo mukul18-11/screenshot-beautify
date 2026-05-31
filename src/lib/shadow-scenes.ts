@@ -68,6 +68,22 @@ export const SHADOW_SCENE_PRESETS = [
     scene:
       "radial-gradient(circle at 18% 22%, rgba(15,23,42,0.68), transparent 24%), radial-gradient(circle at 78% 34%, rgba(15,23,42,0.48), transparent 25%), radial-gradient(circle at 56% 86%, rgba(15,23,42,0.6), transparent 31%)",
   },
+  {
+    id: "ambient-lift",
+    name: "Ambient",
+    preview:
+      "radial-gradient(ellipse at 50% 78%, rgba(15,23,42,0.88) 0 18%, rgba(15,23,42,0.42) 34%, transparent 62%), radial-gradient(ellipse at 50% 48%, rgba(15,23,42,0.3), transparent 58%), linear-gradient(180deg, #f8fafc, #cbd5e1)",
+    scene:
+      "radial-gradient(ellipse at 50% 74%, rgba(15,23,42,0.78) 0 14%, rgba(15,23,42,0.42) 30%, transparent 62%), radial-gradient(ellipse at 50% 48%, rgba(15,23,42,0.28), transparent 64%)",
+  },
+  {
+    id: "corner-depth",
+    name: "Corner",
+    preview:
+      "radial-gradient(circle at 14% 16%, rgba(15,23,42,0.76), transparent 34%), radial-gradient(circle at 86% 84%, rgba(15,23,42,0.72), transparent 38%), linear-gradient(135deg, #f8fafc, #cbd5e1)",
+    scene:
+      "radial-gradient(circle at 12% 14%, rgba(15,23,42,0.66), transparent 34%), radial-gradient(circle at 88% 88%, rgba(15,23,42,0.6), transparent 40%), linear-gradient(135deg, rgba(15,23,42,0.18), transparent 42%, rgba(15,23,42,0.2))",
+  },
 ] as const satisfies readonly ShadowScenePreset[];
 
 export function getShadowScenePreset(presetId: ShadowScenePresetId) {

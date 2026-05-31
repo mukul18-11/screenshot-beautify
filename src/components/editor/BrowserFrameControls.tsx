@@ -84,8 +84,8 @@ function SegmentedControl<TValue extends string>({
   value,
 }: SegmentedControlProps<TValue>) {
   return (
-    <div className={cn("space-y-1.5", disabled && "opacity-50")}>
-      <Label className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
+    <div className={cn("space-y-1", disabled && "opacity-50")}>
+      <Label className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
         {label}
       </Label>
       <div className="flex gap-1 rounded-lg bg-slate-100/80 p-0.5 dark:bg-white/[0.06]">
@@ -102,7 +102,7 @@ function SegmentedControl<TValue extends string>({
               aria-pressed={isSelected}
               onClick={() => onChange(option.value)}
               className={cn(
-                "h-7 flex-1 rounded-md px-2 text-xs font-semibold transition",
+                "h-6 flex-1 rounded-md px-2 text-[11px] font-semibold transition",
                 isSelected
                   ? "bg-white text-slate-800 shadow-sm dark:bg-slate-800 dark:text-white"
                   : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200",
@@ -200,11 +200,11 @@ function FrameStylePicker({
   value: BrowserFrameStyle;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
+    <div className="space-y-1">
+      <Label className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
         Style
       </Label>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-1.5">
         {STYLE_OPTIONS.map((option) => {
           const isSelected = option.value === value;
 
@@ -216,7 +216,7 @@ function FrameStylePicker({
               title={`${option.label} browser frame`}
               onClick={() => onChange(option.value)}
               className={cn(
-                "group min-w-0 rounded-xl border p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
+                "group min-w-0 rounded-lg border p-1 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
                 isSelected
                   ? "border-slate-950 bg-white shadow-sm dark:border-white dark:bg-white/10"
                   : "border-slate-200/80 bg-white/55 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/10",
@@ -224,11 +224,11 @@ function FrameStylePicker({
             >
               <span
                 aria-hidden="true"
-                className="block aspect-[1.72] overflow-hidden rounded-lg border border-black/5 shadow-inner dark:border-white/10"
+                className="block aspect-[1.55] overflow-hidden rounded-md border border-black/5 shadow-inner dark:border-white/10"
               >
                 <FrameStylePreview style={option.value} theme={theme} />
               </span>
-              <span className="mt-1.5 block truncate text-[11px] font-semibold text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">
+              <span className="mt-1 block truncate text-[10px] font-semibold leading-3 text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">
                 {BROWSER_FRAME_STYLES[option.value].label}
               </span>
             </button>
@@ -335,8 +335,8 @@ export default function BrowserFrameControls() {
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="space-y-3 pt-1">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2.5 pt-0.5">
+              <div className="grid grid-cols-2 gap-2">
                 <SegmentedControl
                   label="Theme"
                   value={browserFrameTheme}
@@ -354,7 +354,7 @@ export default function BrowserFrameControls() {
               <div className="flex items-center justify-between gap-3">
                 <Label
                   htmlFor="browser-frame-url-toggle"
-                  className="text-[13px] font-medium text-slate-600"
+                  className="text-[12px] font-medium text-slate-600"
                 >
                   Show URL
                 </Label>
@@ -390,10 +390,10 @@ export default function BrowserFrameControls() {
                       onChange={(event) => setBrowserFrameUrl(event.target.value)}
                       className="h-8 w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-slate-300 focus:ring-1 focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
                     />
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-2 flex items-center justify-between gap-3">
                       <Label
                         htmlFor="browser-frame-url-bold-toggle"
-                        className="text-[13px] font-medium text-slate-600 dark:text-slate-300"
+                        className="text-[12px] font-medium text-slate-600 dark:text-slate-300"
                       >
                         Bold URL
                       </Label>
@@ -412,16 +412,16 @@ export default function BrowserFrameControls() {
         )}
       </AnimatePresence>
 
-      <div className="mt-4 border-t border-slate-100 pt-4 dark:border-white/8">
-        <div className="mb-3 flex items-center gap-2">
+      <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/8">
+        <div className="mb-2.5 flex items-center gap-2">
           <Layers2 className="h-4 w-4 text-slate-400" aria-hidden="true" />
           <h3 className="text-[13px] font-semibold text-slate-700 dark:text-white">
             Shadow scene
           </h3>
         </div>
 
-        <div className="space-y-3 pt-1">
-          <div className="grid grid-cols-3 gap-2">
+        <div className="space-y-2.5 pt-0.5">
+          <div className="grid grid-cols-3 gap-1.5">
             {SHADOW_SCENE_PRESETS.map((preset) => {
               const isSelected = preset.id === shadowScenePresetId;
 
@@ -432,7 +432,7 @@ export default function BrowserFrameControls() {
                   aria-pressed={isSelected}
                   onClick={() => setShadowScenePreset(preset.id)}
                   className={cn(
-                    "group min-w-0 rounded-xl border p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
+                    "group min-w-0 rounded-lg border p-1 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
                     isSelected
                       ? "border-slate-950 bg-white shadow-sm dark:border-white dark:bg-white/10"
                       : "border-slate-200/80 bg-white/55 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/10",
@@ -440,10 +440,10 @@ export default function BrowserFrameControls() {
                 >
                   <span
                     aria-hidden="true"
-                    className="block aspect-[1.55] rounded-lg border border-black/5 bg-slate-100 shadow-inner dark:border-white/10"
+                    className="block aspect-[1.55] rounded-md border border-black/5 bg-slate-100 shadow-inner dark:border-white/10"
                     style={{ backgroundImage: preset.preview }}
                   />
-                  <span className="mt-1.5 block truncate text-[11px] font-semibold text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">
+                  <span className="mt-1 block truncate text-[10px] font-semibold leading-3 text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">
                     {preset.name}
                   </span>
                 </button>
@@ -467,7 +467,7 @@ export default function BrowserFrameControls() {
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="overflow-hidden"
               >
-                <div className="space-y-3 pb-1.5">
+                <div className="space-y-2.5 pb-1">
                   <SegmentedControl
                     label="Layer"
                     value={shadowScenePlacement}

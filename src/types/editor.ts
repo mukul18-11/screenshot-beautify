@@ -98,7 +98,9 @@ export type ShadowScenePresetId =
   | "leaf-dapple"
   | "spotlight"
   | "silk-sweep"
-  | "mesh-depth";
+  | "mesh-depth"
+  | "ambient-lift"
+  | "corner-depth";
 
 export type ShadowScenePlacement = "underlay" | "overlay";
 
