@@ -81,6 +81,33 @@ const WATCH_LIGHT_VARIANT = {
   screenBorder: "#101010",
 } as const satisfies DeviceMockupVariant;
 
+const MIDNIGHT_LAPTOP_VARIANT = {
+  id: "midnight",
+  name: "Midnight",
+  accent: "#1e222a",
+  edge: "#0f1115",
+  frame: "linear-gradient(145deg, #2b303c 0%, #0d0f13 48%, #1f232d 100%)",
+  screenBorder: "#050608",
+} as const satisfies DeviceMockupVariant;
+
+const SPACE_GRAY_LAPTOP_VARIANT = {
+  id: "space-gray",
+  name: "Space Gray",
+  accent: "#56585c",
+  edge: "#2a2b2d",
+  frame: "linear-gradient(145deg, #6c6f75 0%, #3a3b3e 48%, #515357 100%)",
+  screenBorder: "#0f1115",
+} as const satisfies DeviceMockupVariant;
+
+const STARLIGHT_LAPTOP_VARIANT = {
+  id: "starlight",
+  name: "Starlight",
+  accent: "#e5dcd3",
+  edge: "#9c9186",
+  frame: "linear-gradient(145deg, #faf6f0 0%, #c8bea6 48%, #ebe4d8 100%)",
+  screenBorder: "#1a1612",
+} as const satisfies DeviceMockupVariant;
+
 const PHONE_VARIANTS = [
   GRAPHITE_VARIANT,
   SILVER_VARIANT,
@@ -88,10 +115,12 @@ const PHONE_VARIANTS = [
   BLUE_VARIANT,
 ] as const satisfies readonly DeviceMockupVariant[];
 
-const COMPUTER_VARIANTS = [
+
+const LAPTOP_VARIANTS = [
+  MIDNIGHT_LAPTOP_VARIANT,
+  SPACE_GRAY_LAPTOP_VARIANT,
   SILVER_VARIANT,
-  GRAPHITE_VARIANT,
-  BLUE_VARIANT,
+  STARLIGHT_LAPTOP_VARIANT,
 ] as const satisfies readonly DeviceMockupVariant[];
 
 const WATCH_VARIANTS = [
@@ -233,7 +262,7 @@ export const DEVICE_MOCKUPS = [
     screenWidth: 3456,
     screenHeight: 2234,
     defaultScale: 94,
-    variants: COMPUTER_VARIANTS,
+    variants: LAPTOP_VARIANTS,
   },
   {
     id: "macbook-air-m2",
@@ -242,7 +271,7 @@ export const DEVICE_MOCKUPS = [
     screenWidth: 2560,
     screenHeight: 1664,
     defaultScale: 96,
-    variants: COMPUTER_VARIANTS,
+    variants: LAPTOP_VARIANTS,
   },
   {
     id: "macbook-air-13",
@@ -251,7 +280,7 @@ export const DEVICE_MOCKUPS = [
     screenWidth: 2560,
     screenHeight: 1600,
     defaultScale: 96,
-    variants: COMPUTER_VARIANTS,
+    variants: LAPTOP_VARIANTS,
   },
   {
     id: "imac-24",

@@ -167,46 +167,115 @@ function LaptopFrame({
 }: DeviceFrameProps & { mockup: DeviceMockup }) {
   const variant = getDeviceMockupVariant(mockup.id, variantId);
 
+  // Dynamic metallic base gradients and shadow colors matching specific Apple laptop finishes
+  const getBaseColors = (id: string) => {
+    switch (id) {
+      case "midnight":
+        return {
+          baseBg: "linear-gradient(180deg, #3d4659 0%, #151a24 15%, #0f1115 50%, #060709 100%)",
+          grooveBg: "rgba(0, 0, 0, 0.48)",
+          shadow: "rgba(0, 0, 0, 0.55)",
+          highlight: "rgba(255, 255, 255, 0.08)",
+        };
+      case "space-gray":
+      case "graphite":
+        return {
+          baseBg: "linear-gradient(180deg, #7c8188 0%, #46484c 15%, #303135 50%, #17181a 100%)",
+          grooveBg: "rgba(0, 0, 0, 0.42)",
+          shadow: "rgba(0, 0, 0, 0.45)",
+          highlight: "rgba(255, 255, 255, 0.15)",
+        };
+      case "starlight":
+        return {
+          baseBg: "linear-gradient(180deg, #f4eee2 0%, #c9c0b0 15%, #a69e90 50%, #6f685a 100%)",
+          grooveBg: "rgba(0, 0, 0, 0.35)",
+          shadow: "rgba(42, 35, 25, 0.35)",
+          highlight: "rgba(255, 255, 255, 0.25)",
+        };
+      case "blue":
+        return {
+          baseBg: "linear-gradient(180deg, #dce8f5 0%, #a2b8cc 15%, #778ea2 50%, #425262 100%)",
+          grooveBg: "rgba(0, 0, 0, 0.38)",
+          shadow: "rgba(10, 20, 35, 0.4)",
+          highlight: "rgba(255, 255, 255, 0.28)",
+        };
+      case "silver":
+      default:
+        return {
+          baseBg: "linear-gradient(180deg, #ffffff 0%, #bdc3cc 15%, #9ba1a9 50%, #5f636a 100%)",
+          grooveBg: "rgba(0, 0, 0, 0.25)",
+          shadow: "rgba(0, 0, 0, 0.25)",
+          highlight: "rgba(255, 255, 255, 0.5)",
+        };
+    }
+  };
+
+  const colors = getBaseColors(variant.id);
+
   return (
     <div className={cn("relative w-full pb-[5.8%]", className)}>
+      {/* Premium MacBook display lid featuring high-end thin metallic border and pure black glass bezel */}
       <div
-        className="relative mx-auto w-[88%] overflow-hidden p-[1.7%]"
+        className="relative mx-auto w-[88%] overflow-hidden p-[1.8%]"
         style={{
-          background: variant.frame,
-          border: "1px solid rgba(255,255,255,0.18)",
-          borderRadius: "3.5% / 5.5%",
+          backgroundColor: "#09090b", // Gorgeous premium black glass bezel
+          border: `2px solid ${variant.edge}`, // Thin colored metallic outer edge matching laptop finish
+          outline: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "2.4% / 3.6%", // Sleeker, more precise modern laptop display corners
           boxShadow: combineShadow(
             shadow,
-            "inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 -24px 48px rgba(0,0,0,0.28)",
+            "inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -12px 24px rgba(0,0,0,0.45)",
           ),
         }}
       >
         <DeviceScreen
           mockup={mockup}
-          radius="1.9% / 3%"
+          radius="1.2% / 1.8%" // Matching the screen's rounded corners inside the glass bezel
           variantId={variantId}
         >
           {children}
         </DeviceScreen>
-        <span
+
+        {/* Premium Integrated Notch */}
+        <div
           aria-hidden="true"
-          className="absolute left-1/2 top-[1.3%] z-20 h-[1%] w-[1%] -translate-x-1/2 rounded-full bg-black/70 ring-1 ring-white/15"
-        />
+          className="absolute left-1/2 top-[1.8%] z-30 h-[3.2%] w-[12%] -translate-x-1/2 rounded-b-[5px] bg-[#09090b]"
+          style={{
+            boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.05)",
+          }}
+        >
+          {/* Subtle camera lens reflection dot */}
+          <span className="absolute left-1/2 top-[40%] h-[1.5px] w-[1.5px] -translate-x-1/2 rounded-full bg-[#1e293b] ring-[0.5px] ring-white/10" />
+        </div>
       </div>
+
+      {/* Exquisite Color-Matched MacBook Base Deck */}
       <div
         aria-hidden="true"
         className="absolute bottom-[1.2%] left-1/2 h-[5.4%] w-full -translate-x-1/2"
       >
+        {/* Color-matched curved aluminum body */}
         <div
-          className="absolute inset-x-0 top-0 h-[42%] rounded-t-[999px]"
+          className="absolute inset-x-0 top-0 h-[48%] rounded-t-[999px]"
           style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.8), rgba(148,163,184,0.85) 45%, rgba(51,65,85,0.7))",
-            boxShadow: "0 16px 26px rgba(2,6,23,0.28)",
+            background: colors.baseBg,
+            boxShadow: `0 2px 1px ${colors.highlight} inset, 0 16px 28px ${colors.shadow}`,
           }}
         />
+        {/* Clean hinge recess line behind base */}
         <div
-          className="absolute left-1/2 top-0 h-[22%] w-[16%] -translate-x-1/2 rounded-b-[999px] bg-black/18"
+          className="absolute inset-x-[12%] top-0 h-[1px]"
+          style={{
+            background: "rgba(0, 0, 0, 0.4)",
+          }}
+        />
+        {/* Precise lid opening thumb indentation cutout */}
+        <div
+          className="absolute left-1/2 top-0 h-[28%] w-[16%] -translate-x-1/2 rounded-b-[999px]"
+          style={{
+            background: colors.grooveBg,
+            boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.4)",
+          }}
         />
       </div>
     </div>
