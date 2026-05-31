@@ -39,14 +39,14 @@ const SETTINGS_SECTIONS = [
     icon: Sparkles,
   },
   {
-    id: "mockup",
-    label: "Mockup",
-    icon: Smartphone,
-  },
-  {
     id: "frame",
     label: "Frame",
     icon: AppWindow,
+  },
+  {
+    id: "mockup",
+    label: "Mockup",
+    icon: Smartphone,
   },
   {
     id: "text",

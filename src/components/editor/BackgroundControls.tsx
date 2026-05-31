@@ -29,6 +29,26 @@ import {
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
 
+type InstantTooltipProps = {
+  align?: "center" | "right";
+  children: string;
+};
+
+function InstantTooltip({ align = "center", children }: InstantTooltipProps) {
+  return (
+    <span
+      className={cn(
+        "pointer-events-none absolute bottom-[calc(100%+0.45rem)] z-40 whitespace-nowrap rounded-md bg-slate-950 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-lg shadow-slate-950/20 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100 dark:bg-white dark:text-slate-950",
+        align === "right"
+          ? "right-0"
+          : "left-1/2 -translate-x-1/2",
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 function getBackgroundUploadError(file: File) {
   const validation = validateImageFile(file);
 
@@ -348,6 +368,34 @@ export default function BackgroundControls() {
           type="button"
           whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
           whileTap={{ scale: shouldReduceMotion ? 1 : 0.97 }}
+          animate={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  scale: [1, 1.025, 1],
+                  boxShadow: [
+                    "0 0 0 rgba(236, 72, 153, 0)",
+                    "0 0 24px rgba(236, 72, 153, 0.34)",
+                    "0 0 0 rgba(236, 72, 153, 0)",
+                  ],
+                }
+          }
+          transition={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  scale: {
+                    duration: 2.2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                  boxShadow: {
+                    duration: 2.2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }
+          }
           aria-expanded={isCustomOpen}
           aria-pressed={isCustomSelected}
           onClick={() => {
@@ -379,81 +427,85 @@ export default function BackgroundControls() {
             event.currentTarget.value = "";
           }}
         />
-        <motion.button
-          type="button"
-          whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
-          whileTap={{ scale: shouldReduceMotion ? 1 : 0.96 }}
-          aria-label="Upload background image"
-          aria-pressed={isCustomImageSelected}
-          disabled={isBackgroundUploading}
-          onClick={() => {
-            setBackgroundUploadError(null);
-            setIsCustomOpen(false);
-            setIsEffectsOpen(false);
-            backgroundImageInputRef.current?.click();
-          }}
-          className={cn(
-            "relative flex h-10 w-12 items-center justify-center overflow-hidden rounded-xl border transition disabled:cursor-not-allowed disabled:opacity-60",
-            isCustomImageSelected
-              ? "border-slate-800 ring-1 ring-slate-800/30 dark:border-white dark:ring-white/30"
-              : "border-slate-200/70 bg-slate-950/5 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04]",
-          )}
-          style={
-            customBackgroundImage
-              ? {
-                  backgroundImage: `url(${customBackgroundImage.objectUrl})`,
-                  backgroundPosition: "center",
-                  backgroundSize: "cover",
-                }
-              : undefined
-          }
-          title="Upload background image"
-        >
-          <span
-            className={cn(
-              "absolute inset-0",
-              customBackgroundImage ? "bg-black/25" : "bg-transparent",
-            )}
-            aria-hidden="true"
-          />
-          <ImagePlus
-            className={cn(
-              "relative h-3.5 w-3.5",
-              customBackgroundImage
-                ? "text-white"
-                : "text-slate-600 dark:text-slate-300",
-            )}
-            aria-hidden="true"
-          />
-        </motion.button>
-
-        {imageBlurPreset && (
+        <div className="group relative h-10 w-12">
           <motion.button
             type="button"
             whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
             whileTap={{ scale: shouldReduceMotion ? 1 : 0.96 }}
-            aria-label={`${imageBlurPreset.name} background`}
-            aria-pressed={backgroundPresetId === imageBlurPreset.id}
+            aria-label="Upload background image"
+            aria-pressed={isCustomImageSelected}
+            disabled={isBackgroundUploading}
             onClick={() => {
               setBackgroundUploadError(null);
-              setBackgroundPreset(imageBlurPreset.id);
               setIsCustomOpen(false);
               setIsEffectsOpen(false);
+              backgroundImageInputRef.current?.click();
             }}
             className={cn(
-              "relative flex h-10 w-12 items-center justify-center overflow-hidden rounded-xl border transition",
-              backgroundPresetId === imageBlurPreset.id
+              "relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl border transition disabled:cursor-not-allowed disabled:opacity-60",
+              isCustomImageSelected
                 ? "border-slate-800 ring-1 ring-slate-800/30 dark:border-white dark:ring-white/30"
-                : "border-slate-200/70 hover:border-slate-300 dark:border-white/10",
+                : "border-slate-200/70 bg-slate-950/5 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04]",
             )}
-            style={{ background: imageBlurPreset.cssValue }}
-            title={imageBlurPreset.name}
+            style={
+              customBackgroundImage
+                ? {
+                    backgroundImage: `url(${customBackgroundImage.objectUrl})`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                  }
+                : undefined
+            }
           >
-            <Blend
-              className="relative h-3.5 w-3.5 text-white/80"
+            <span
+              className={cn(
+                "absolute inset-0",
+                customBackgroundImage ? "bg-black/25" : "bg-transparent",
+              )}
+              aria-hidden="true"
+            />
+            <ImagePlus
+              className={cn(
+                "relative h-3.5 w-3.5",
+                customBackgroundImage
+                  ? "text-white"
+                  : "text-slate-600 dark:text-slate-300",
+              )}
               aria-hidden="true"
             />
           </motion.button>
+          <InstantTooltip>Upload background image</InstantTooltip>
+        </div>
+
+        {imageBlurPreset && (
+          <div className="group relative h-10 w-12">
+            <motion.button
+              type="button"
+              whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
+              whileTap={{ scale: shouldReduceMotion ? 1 : 0.96 }}
+              aria-label="Blur from screenshot background"
+              aria-pressed={backgroundPresetId === imageBlurPreset.id}
+              onClick={() => {
+                setBackgroundUploadError(null);
+                setBackgroundPreset(imageBlurPreset.id);
+                setIsCustomOpen(false);
+                setIsEffectsOpen(false);
+              }}
+              className={cn(
+                "relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl border transition",
+                backgroundPresetId === imageBlurPreset.id
+                  ? "border-slate-800 ring-1 ring-slate-800/30 dark:border-white dark:ring-white/30"
+                  : "border-slate-200/70 hover:border-slate-300 dark:border-white/10",
+              )}
+              style={{ background: imageBlurPreset.cssValue }}
+            >
+              <Blend
+                className="relative h-3.5 w-3.5 text-white/80"
+                aria-hidden="true"
+              />
+            </motion.button>
+            <InstantTooltip align="right">Blur from screenshot</InstantTooltip>
+          </div>
         )}
       </div>
 

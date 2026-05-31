@@ -99,7 +99,15 @@ export function createImageBorderCss(
     };
   }
 
-  const width = Math.max(1, Math.round(border.width));
+  const width = Math.round(border.width);
+
+  if (width <= 0) {
+    return {
+      border: "none",
+      boxShadow: baseBoxShadow,
+    };
+  }
+
   const color = border.color;
 
   if (border.preset === "outline") {
@@ -229,7 +237,12 @@ export function createImageBorderBackingLayers(
     return [];
   }
 
-  const width = Math.max(1, Math.round(border.width));
+  const width = Math.round(border.width);
+
+  if (width <= 0) {
+    return [];
+  }
+
   const layerRadius = `${Math.max(0, radius)}px`;
   const paperSurface = `linear-gradient(180deg, ${rgba(border.color, 0.92)}, ${rgba(border.color, 0.74)})`;
   const layerBorder = `${width}px solid ${rgba(border.color, 0.72)}`;

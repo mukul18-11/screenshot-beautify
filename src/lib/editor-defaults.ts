@@ -28,9 +28,9 @@ export const DEFAULT_IMAGE_SHADOW: ImageShadow = {
 };
 
 export const DEFAULT_IMAGE_BORDER: ImageBorder = {
-  enabled: false,
-  preset: "none",
-  width: 1,
+  enabled: true,
+  preset: "glass-light",
+  width: 12,
   color: "#ffffff",
 };
 
@@ -236,8 +236,8 @@ export const BEAUTIFY_SETTING_LIMITS = {
     step: 1,
   },
   imageBorderWidth: {
-    min: 1,
-    max: 12,
+    min: 0,
+    max: 24,
     step: 1,
   },
   shadowSceneOpacity: {
