@@ -95,10 +95,11 @@ export default function ImageStyleControls({
 
       <div className="space-y-4">
         {showStyleControls && (
-          <>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
             <EditorSliderRow
               label="Padding"
               labelClassName="text-slate-600 dark:text-slate-300"
+              variant="compactStepper"
               min={BEAUTIFY_SETTING_LIMITS.imagePadding.min}
               max={BEAUTIFY_SETTING_LIMITS.imagePadding.max}
               step={BEAUTIFY_SETTING_LIMITS.imagePadding.step}
@@ -107,8 +108,9 @@ export default function ImageStyleControls({
               onChange={setImagePadding}
             />
             <EditorSliderRow
-              label="Corner radius"
+              label="Radius"
               labelClassName="text-slate-600 dark:text-slate-300"
+              variant="compactStepper"
               min={BEAUTIFY_SETTING_LIMITS.imageRadius.min}
               max={BEAUTIFY_SETTING_LIMITS.imageRadius.max}
               step={BEAUTIFY_SETTING_LIMITS.imageRadius.step}
@@ -119,6 +121,7 @@ export default function ImageStyleControls({
             <EditorSliderRow
               label="Scale"
               labelClassName="text-slate-600 dark:text-slate-300"
+              variant="compactStepper"
               min={BEAUTIFY_SETTING_LIMITS.imageScale.min}
               max={BEAUTIFY_SETTING_LIMITS.imageScale.max}
               step={BEAUTIFY_SETTING_LIMITS.imageScale.step}
@@ -129,6 +132,7 @@ export default function ImageStyleControls({
             <EditorSliderRow
               label="Rotate"
               labelClassName="text-slate-600 dark:text-slate-300"
+              variant="compactStepper"
               min={BEAUTIFY_SETTING_LIMITS.rotateZ.min}
               max={BEAUTIFY_SETTING_LIMITS.rotateZ.max}
               step={BEAUTIFY_SETTING_LIMITS.rotateZ.step}
@@ -136,7 +140,7 @@ export default function ImageStyleControls({
               suffix="deg"
               onChange={setRotateZ}
             />
-          </>
+          </div>
         )}
 
         {showStyleControls && showEffectControls && (
