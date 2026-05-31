@@ -1,5 +1,6 @@
 import { getBackgroundPreset } from "@/lib/background-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
+import { DEFAULT_CUSTOM_BACKGROUND_CONFIG } from "@/lib/custom-backgrounds";
 import type {
   BeautifySettings,
   BrowserFrameSettings,
@@ -52,6 +53,9 @@ export const DEFAULT_BEAUTIFY_SETTINGS: BeautifySettings = {
   backgroundPatternIntensity: 25,
   backgroundNoise: 0,
   backgroundBlur: 0,
+  customBackgroundConfig: {
+    ...DEFAULT_CUSTOM_BACKGROUND_CONFIG,
+  },
   imagePadding: 96,
   imageRadius: 24,
   imageScale: 92,

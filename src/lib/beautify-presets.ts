@@ -1,5 +1,9 @@
 import { getBackgroundPreset } from "@/lib/background-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
+import {
+  DEFAULT_CUSTOM_BACKGROUND_CONFIG,
+  getEditablePresetCustomBackgroundConfig,
+} from "@/lib/custom-backgrounds";
 import { DEFAULT_IMAGE_BORDER } from "@/lib/editor-defaults";
 import type { BeautifySettings, ImageShadow } from "@/types/editor";
 
@@ -122,6 +126,10 @@ export function createBeautifyPresetSettings(
   const preset = getBeautifyPreset(presetId);
   const canvasPreset = getCanvasPreset(preset.canvasPresetId);
   const backgroundPreset = getBackgroundPreset(preset.backgroundPresetId);
+  const customBackgroundConfig =
+    getEditablePresetCustomBackgroundConfig(backgroundPreset.id) ?? {
+      ...DEFAULT_CUSTOM_BACKGROUND_CONFIG,
+    };
 
   return {
     canvasPreset: canvasPreset.id,
@@ -135,6 +143,7 @@ export function createBeautifyPresetSettings(
     backgroundPatternIntensity: 25,
     backgroundNoise: 0,
     backgroundBlur: 0,
+    customBackgroundConfig,
     imagePadding: preset.imagePadding,
     imageRadius: preset.imageRadius,
     imageScale: preset.imageScale,

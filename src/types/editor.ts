@@ -12,6 +12,24 @@ export type BackgroundPatternId =
   | "diagonal-lines"
   | "micro-grain";
 
+export type CustomBackgroundPatternId =
+  | "arc-ribbons"
+  | "contours"
+  | "grid-glow"
+  | "linear"
+  | "liquid-chrome"
+  | "radial"
+  | "spotlight"
+  | "velvet-storm";
+
+export type CustomBackgroundConfig = {
+  patternId: CustomBackgroundPatternId;
+  colorA: string;
+  colorB: string;
+  colorC: string;
+  angle: number;
+};
+
 export type BrowserFrameTheme = "light" | "dark";
 
 export type BrowserFrameStyle = "macos" | "minimal" | "safari" | "chrome" | "arc";
@@ -262,6 +280,7 @@ export type BeautifySettings = {
   backgroundPatternIntensity: number;
   backgroundNoise: number;
   backgroundBlur: number;
+  customBackgroundConfig: CustomBackgroundConfig;
   imagePadding: number;
   imageRadius: number;
   imageScale: number;

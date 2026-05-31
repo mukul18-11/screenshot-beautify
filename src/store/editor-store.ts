@@ -6,6 +6,12 @@ import { getBackgroundPreset } from "@/lib/background-presets";
 import { createBeautifyPresetSettings } from "@/lib/beautify-presets";
 import { getCanvasPreset } from "@/lib/canvas-presets";
 import {
+  cloneCustomBackgroundConfig,
+  createCustomGradient,
+  getCustomBackgroundType,
+  getEditablePresetCustomBackgroundConfig,
+} from "@/lib/custom-backgrounds";
+import {
   BEAUTIFY_SETTING_LIMITS,
   DEFAULT_BEAUTIFY_SETTINGS,
   DEFAULT_BROWSER_FRAME_SETTINGS,
@@ -40,6 +46,7 @@ import type {
   BrowserFrameSettings,
   BrowserFrameStyle,
   BrowserFrameTheme,
+  CustomBackgroundConfig,
   CustomTextLayer,
   CustomTextLayerId,
   DefaultTextLayerId,
@@ -88,6 +95,7 @@ type HistoryGlobalSettings = Pick<
   | "backgroundPatternIntensity"
   | "backgroundNoise"
   | "backgroundBlur"
+  | "customBackgroundConfig"
   | "imagePadding"
   | "textOverlayEnabled"
   | "headlineText"
@@ -241,13 +249,11 @@ type EditorStore = EditorDesignSettings & {
     setBackgroundPatternIntensity: (intensity: number) => void;
     setBackgroundNoise: (noise: number) => void;
     setBackgroundBlur: (blur: number) => void;
+    setCustomBackgroundConfig: (config: CustomBackgroundConfig) => void;
+    applyCustomBackgroundConfig: (config?: CustomBackgroundConfig) => void;
     setCustomBackgroundImage: (uploadedImage: UploadedImage) => void;
     clearCustomBackgroundImage: () => void;
     setSolidBackground: (color: string) => void;
-    setGradientBackground: (
-      cssValue: string,
-      backgroundType: Extract<BackgroundType, "gradient" | "mesh">,
-    ) => void;
     setImagePadding: (value: number) => void;
     setImageRadius: (value: number) => void;
     setImageScale: (value: number) => void;
@@ -391,6 +397,9 @@ function createDefaultBeautifySettings(): BeautifySettings {
     imageBorder: {
       ...DEFAULT_BEAUTIFY_SETTINGS.imageBorder,
     },
+    customBackgroundConfig: cloneCustomBackgroundConfig(
+      DEFAULT_BEAUTIFY_SETTINGS.customBackgroundConfig,
+    ),
   };
 }
 
@@ -477,6 +486,9 @@ function cloneEditorDesignSettings(
     imageBorder: {
       ...settings.imageBorder,
     },
+    customBackgroundConfig: cloneCustomBackgroundConfig(
+      settings.customBackgroundConfig,
+    ),
     customTextLayers: cloneCustomTextLayers(settings.customTextLayers),
     textLayerStyles: cloneTextLayerStyles(settings.textLayerStyles),
   };
@@ -539,6 +551,9 @@ function getEditorDesignSettingsFromState(
     backgroundPatternIntensity: state.backgroundPatternIntensity,
     backgroundNoise: state.backgroundNoise,
     backgroundBlur: state.backgroundBlur,
+    customBackgroundConfig: cloneCustomBackgroundConfig(
+      state.customBackgroundConfig,
+    ),
     imagePadding: state.imagePadding,
     imageRadius: state.imageRadius,
     imageScale: state.imageScale,
@@ -638,6 +653,9 @@ function getHistoryGlobalSettingsFromState(
     backgroundPatternIntensity: state.backgroundPatternIntensity,
     backgroundNoise: state.backgroundNoise,
     backgroundBlur: state.backgroundBlur,
+    customBackgroundConfig: cloneCustomBackgroundConfig(
+      state.customBackgroundConfig,
+    ),
     imagePadding: state.imagePadding,
     textOverlayEnabled: state.textOverlayEnabled,
     headlineText: state.headlineText,
@@ -955,6 +973,18 @@ function getBackgroundState(presetId: string): {
   };
 }
 
+function getCustomBackgroundState(config: CustomBackgroundConfig): {
+  backgroundType: Extract<BackgroundType, "gradient" | "mesh">;
+  backgroundValue: string;
+  backgroundPresetId: string;
+} {
+  return {
+    backgroundType: getCustomBackgroundType(config),
+    backgroundValue: createCustomGradient(config),
+    backgroundPresetId: "custom",
+  };
+}
+
 function getLayerSettingsPatch(settings: EditorDesignSettings) {
   return {
     imageRadius: settings.imageRadius,
@@ -1180,11 +1210,28 @@ function didScreenshotLibraryChange(
   });
 }
 
+function didCustomBackgroundConfigChange(
+  previousConfig: CustomBackgroundConfig,
+  nextConfig: CustomBackgroundConfig,
+) {
+  return (
+    previousConfig.patternId !== nextConfig.patternId ||
+    previousConfig.colorA !== nextConfig.colorA ||
+    previousConfig.colorB !== nextConfig.colorB ||
+    previousConfig.colorC !== nextConfig.colorC ||
+    previousConfig.angle !== nextConfig.angle
+  );
+}
+
 function didHistoryGlobalSettingsChange(
   previousSettings: HistoryGlobalSettings,
   nextSettings: HistoryGlobalSettings,
 ) {
   if (
+    didCustomBackgroundConfigChange(
+      previousSettings.customBackgroundConfig,
+      nextSettings.customBackgroundConfig,
+    ) ||
     didTextLayerStylesChange(
       previousSettings.textLayerStyles,
       nextSettings.textLayerStyles,
@@ -1933,7 +1980,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
   setBackgroundPreset: (presetId) => {
-    set(getBackgroundState(presetId));
+    const customBackgroundConfig =
+      getEditablePresetCustomBackgroundConfig(presetId);
+
+    set({
+      ...getBackgroundState(presetId),
+      ...(customBackgroundConfig ? { customBackgroundConfig } : {}),
+    });
   },
   setBackgroundPattern: (patternId) => {
     set({ backgroundPatternId: patternId });
@@ -1968,6 +2021,32 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ),
     });
   },
+  setCustomBackgroundConfig: (config) => {
+    const customBackgroundConfig = cloneCustomBackgroundConfig(config);
+
+    set((state) => {
+      const shouldApplyCustomBackground =
+        state.backgroundPresetId === "custom" &&
+        state.backgroundType !== "image";
+
+      return {
+        customBackgroundConfig,
+        ...(shouldApplyCustomBackground
+          ? getCustomBackgroundState(customBackgroundConfig)
+          : {}),
+      };
+    });
+  },
+  applyCustomBackgroundConfig: (config) => {
+    const customBackgroundConfig = cloneCustomBackgroundConfig(
+      config ?? get().customBackgroundConfig,
+    );
+
+    set({
+      customBackgroundConfig,
+      ...getCustomBackgroundState(customBackgroundConfig),
+    });
+  },
   setCustomBackgroundImage: (uploadedImage) => {
     set((state) => {
       if (state.customBackgroundImage?.objectUrl !== uploadedImage.objectUrl) {
@@ -1995,13 +2074,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       backgroundType: "solid",
       backgroundValue: color,
-      backgroundPresetId: "custom",
-    });
-  },
-  setGradientBackground: (cssValue, backgroundType) => {
-    set({
-      backgroundType,
-      backgroundValue: cssValue,
       backgroundPresetId: "custom",
     });
   },
