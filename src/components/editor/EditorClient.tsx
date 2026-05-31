@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import AccountMenu from "@/components/auth/AccountMenu";
 import CanvasPreview from "@/components/editor/CanvasPreview";
 import EditorSettingsPanel from "@/components/editor/EditorSettingsPanel";
 import { ExportProvider } from "@/components/editor/ExportProvider";
@@ -123,6 +124,7 @@ export default function EditorClient() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <AccountMenu />
               {uploadedImage && (
                 <>
                   <button

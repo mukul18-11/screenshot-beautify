@@ -10,8 +10,12 @@ import {
 } from "react";
 
 import ExportRenderer from "@/components/editor/ExportRenderer";
+import { authorizeLocalExport, createClientExportId } from "@/lib/entitlements";
 import { copyPngToClipboard, exportPng } from "@/lib/export-image";
+import { getExportPixelSize } from "@/lib/export-utils";
 import { useEditorStore } from "@/store/editor-store";
+import type { ExportScale } from "@/types/editor";
+import type { ExportAction, ExportAuthorization } from "@/types/entitlements";
 
 type ExportContextValue = {
   copyCurrentPng: () => Promise<void>;
@@ -19,6 +23,83 @@ type ExportContextValue = {
 };
 
 const ExportContext = createContext<ExportContextValue | null>(null);
+
+const PRO_REQUIRED_EXPORT_MESSAGE =
+  "Upgrade is required to export with the selected features.";
+const EXPORT_AUTHORIZATION_ERROR_MESSAGE = "Unable to authorize export.";
+
+async function prepareExport({
+  action,
+  clientExportId,
+  requestedScale,
+}: {
+  action: ExportAction;
+  clientExportId: string;
+  requestedScale: ExportScale;
+}): Promise<ExportAuthorization> {
+  const response = await fetch("/api/export/prepare", {
+    body: JSON.stringify({
+      action,
+      clientExportId,
+      requestedScale,
+      usedFeatureKeys: [],
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error(EXPORT_AUTHORIZATION_ERROR_MESSAGE);
+  }
+
+  const payload = (await response.json()) as {
+    authorization?: ExportAuthorization;
+  };
+
+  return (
+    payload.authorization ??
+    authorizeLocalExport({
+      action,
+      clientExportId,
+      requestedScale,
+      usedFeatureKeys: [],
+    })
+  );
+}
+
+async function completeExport({
+  exportAttemptId,
+  failureCode,
+  outputPixelHeight,
+  outputPixelWidth,
+  status,
+}: {
+  exportAttemptId: string | null;
+  failureCode?: string;
+  outputPixelHeight: number;
+  outputPixelWidth: number;
+  status: "failed" | "succeeded";
+}) {
+  if (!exportAttemptId) {
+    return;
+  }
+
+  await fetch("/api/export/complete", {
+    body: JSON.stringify({
+      exportAttemptId,
+      failureCode,
+      outputPixelHeight,
+      outputPixelWidth,
+      status,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  }).catch(() => undefined);
+}
 
 type ExportProviderProps = {
   children: ReactNode;
@@ -71,13 +152,46 @@ export function ExportProvider({ children }: ExportProviderProps) {
     const exportNode = getExportNode();
 
     await runExportTask(async () => {
-      await exportPng({
-        fileName: exportFileName,
-        height: canvasHeight,
-        node: exportNode,
-        scale: exportScale,
-        width: canvasWidth,
+      const clientExportId = createClientExportId();
+      const authorization = await prepareExport({
+        action: "download",
+        clientExportId,
+        requestedScale: exportScale,
       });
+      const outputSize = getExportPixelSize(
+        canvasWidth,
+        canvasHeight,
+        exportScale,
+      );
+
+      if (!authorization.allowed) {
+        throw new Error(PRO_REQUIRED_EXPORT_MESSAGE);
+      }
+
+      try {
+        await exportPng({
+          fileName: exportFileName,
+          height: canvasHeight,
+          node: exportNode,
+          scale: exportScale,
+          width: canvasWidth,
+        });
+        await completeExport({
+          exportAttemptId: authorization.exportAttemptId,
+          outputPixelHeight: outputSize.height,
+          outputPixelWidth: outputSize.width,
+          status: "succeeded",
+        });
+      } catch (error) {
+        await completeExport({
+          exportAttemptId: authorization.exportAttemptId,
+          failureCode: error instanceof Error ? error.message : "unknown",
+          outputPixelHeight: outputSize.height,
+          outputPixelWidth: outputSize.width,
+          status: "failed",
+        });
+        throw error;
+      }
     });
   }, [
     canvasHeight,
@@ -92,12 +206,45 @@ export function ExportProvider({ children }: ExportProviderProps) {
     const exportNode = getExportNode();
 
     await runExportTask(async () => {
-      await copyPngToClipboard({
-        height: canvasHeight,
-        node: exportNode,
-        scale: exportScale,
-        width: canvasWidth,
+      const clientExportId = createClientExportId();
+      const authorization = await prepareExport({
+        action: "copy",
+        clientExportId,
+        requestedScale: exportScale,
       });
+      const outputSize = getExportPixelSize(
+        canvasWidth,
+        canvasHeight,
+        exportScale,
+      );
+
+      if (!authorization.allowed) {
+        throw new Error(PRO_REQUIRED_EXPORT_MESSAGE);
+      }
+
+      try {
+        await copyPngToClipboard({
+          height: canvasHeight,
+          node: exportNode,
+          scale: exportScale,
+          width: canvasWidth,
+        });
+        await completeExport({
+          exportAttemptId: authorization.exportAttemptId,
+          outputPixelHeight: outputSize.height,
+          outputPixelWidth: outputSize.width,
+          status: "succeeded",
+        });
+      } catch (error) {
+        await completeExport({
+          exportAttemptId: authorization.exportAttemptId,
+          failureCode: error instanceof Error ? error.message : "unknown",
+          outputPixelHeight: outputSize.height,
+          outputPixelWidth: outputSize.width,
+          status: "failed",
+        });
+        throw error;
+      }
     });
   }, [
     canvasHeight,

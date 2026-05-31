@@ -1,405 +1,260 @@
-Snapingly Launch Plan
-Generated: 2026-05-25
+Snapingly Paid Local-Only Launch Plan
+Updated: 2026-05-31
 Project: /Users/mukulkumar/Desktop/Projects/screen-shot-design
 
 Purpose
 =======
 
-This file is the operating plan for taking the current Screenshot Beautifier app
-live as Snapingly with auth, subscriptions, free limits, watermarking, export
-gating, Supabase, Dodo Payments, and production security.
+This is the operating plan for taking the current local-only Screenshot
+Beautifier app live as Snapingly with a free tier, paid entitlements, watermark
+gating, Supabase Auth/Postgres, and Dodo Payments.
 
-This is intentionally a plan, not implementation code. Use it as the sequence of
-prompts and decisions for future Codex sessions.
+This plan is intentionally staged. The first executable milestone must not
+pretend Supabase or Dodo are already connected. Build the local contracts and
+watermark behavior first, then connect real auth, database, and payments later.
 
 
-Core Assumptions
-================
+Current Decisions
+=================
 
-1. Brand/domain:
+1. Brand:
    - Product name: Snapingly.
-   - Target domain: snapingly.com, unless you buy a different domain.
-   - Existing copy that says Screenshot Beautifier should eventually become
-     Snapingly.
+   - Target domain: snapingly.com unless a different domain is purchased.
+   - Existing Screenshot Beautifier copy should eventually become Snapingly.
 
-2. Pricing:
-   - Free plan: account required at export time; limited to 10 watermarked
-     exports per calendar month.
-   - Pro monthly: 4.99 USD/month.
-   - Pro yearly: 39 USD/year.
-   - Founder monthly: 2.99 USD/month for the first 100 paying users.
-   - Founder yearly: 19 USD/year for the first 100 paying users.
-   - Assumption: founder pricing is permanent while that subscription remains
-     active. If you want "first billing period only" instead, change the Dodo
-     product/discount setup before implementation.
+2. Privacy:
+   - Screenshots stay local in the browser.
+   - Never send screenshot files, blobs, base64, object URLs, rendered PNGs, or
+     image data to Supabase, Dodo, route handlers, webhooks, logs, or third
+     parties.
+   - Supabase may store account, subscription, quota, export authorization, and
+     non-sensitive export metadata only.
 
-3. Auth:
-   - Supabase Auth.
-   - Google sign-in.
-   - Email OTP sign-in. Prefer passwordless OTP/magic code over passwords for
-     launch because it lowers support and password security scope.
-   - Sign-up/sign-in should appear when the user tries to export, not before
-     editing.
+3. Monetization:
+   - Free and anonymous users are treated as the free plan.
+   - Free exports include a bottom-right "Made with Snapingly" watermark.
+   - Paid users can remove the watermark later.
+   - Pricing is TBD. Do not hardcode prices yet.
+   - Exact paid feature packaging is TBD. Only one paid entitlement is locked
+     for now: removing the Snapingly watermark.
 
-4. Payments:
-   - Dodo Payments is the payment processor.
-   - Dodo hosted checkout is preferred for launch.
-   - Dodo webhooks are the source of truth for paid access.
-   - The Dodo return URL is not trusted for activating a subscription.
-
-5. Privacy:
-   - Current app promise is local-only screenshot handling.
-   - For the recommended launch version, screenshots still do not get uploaded
-     or stored. Supabase stores account, subscription, quota, and export metadata
-     only.
-   - If you later choose server-side rendering for stronger DRM, the privacy
-     copy must change because the image must be sent to a server during export.
-
-6. Architecture:
-   - Keep the existing Next.js App Router app.
-   - Use Next.js route handlers as the backend for checkout creation, billing
-     portal creation, export authorization, and webhooks.
-   - Use Supabase Postgres as the database.
-   - Do not add a separate MERN backend for launch.
+4. Backend:
+   - Use Next.js App Router route handlers as the backend layer.
+   - Use Supabase Auth and Supabase Postgres when connected later.
+   - Use Dodo hosted checkout and webhooks when connected later.
+   - Do not add MERN, MongoDB, a separate Express API, analytics, telemetry, AI
+     APIs, saved projects, share links, GIF export, video export, Three.js, or
+     WebGL for this launch path.
 
 
-Important Pushback: MERN Is Not The Best Fit Here
-=================================================
+Important Backend Direction
+===========================
 
-You mentioned MERN for the backend. For this app, MERN would add a second backend
-and a second database even though Supabase already gives you Postgres, auth, JWTs,
-RLS, migrations, and secure server-side access.
+Do not build a MERN backend for launch. Supabase already provides Auth,
+Postgres, RLS, migrations, service-role access, and server-aware sessions. A
+separate Node/Express/Mongo stack would add operational work without improving
+the first paid launch.
 
 Recommended launch architecture:
 
 Browser:
-  - Upload/edit preview remains client-side.
-  - Export UI asks server for authorization before producing PNG.
-  - Free users see and export with Snapingly watermark.
-  - Pro users export without watermark and can use 4x/pro features.
+  - Upload, edit, preview, and PNG generation remain client-side.
+  - Local/mock export authorization is used until Supabase is connected.
+  - Free entitlement shows and exports the Snapingly watermark.
+  - No image payload leaves the browser.
 
-Next.js app:
+Next.js:
   - Server Components and Client Components for UI.
-  - Route handlers under src/app/api/* for backend calls.
-  - Auth callback route for Supabase OAuth/OTP.
-  - Webhook route for Dodo.
+  - Future route handlers under src/app/api/* for export authorization, billing
+    status, checkout, portal, and Dodo webhooks.
+  - Server routes validate the authenticated user from Supabase when auth is
+    connected.
 
-Supabase:
+Supabase, later:
   - Auth users.
-  - Postgres tables for profiles, subscriptions, quota, founder slots, checkout
-    sessions, export events, and webhook events.
-  - RLS enabled on exposed tables.
-  - Service role key used only inside server routes or secured server functions.
+  - Postgres tables for profiles, subscriptions, checkout sessions, export
+    attempts, monthly usage, and webhook events.
+  - RLS enabled on public tables.
+  - Service role key used only in server routes.
 
-Dodo Payments:
+Dodo Payments, later:
   - Hosted checkout sessions.
-  - Subscription lifecycle webhooks.
-  - Customer portal for cancellation, invoice access, and payment method updates.
-
-Only consider a separate Node/Express backend later if:
-  - You need long-running server-side image rendering workers.
-  - You outgrow serverless function limits.
-  - You need a dedicated queue/worker setup.
-
-Do not use MongoDB unless there is a real document-storage need. User/account and
-billing state is relational and fits Postgres better.
+  - Subscription lifecycle webhooks are the source of truth for paid access.
+  - Customer portal for cancellation, invoices, and payment method updates.
 
 
-Critical Security Truth About Frontend Export
-=============================================
+Frontend Export Security Reality
+================================
 
-Because the current export is generated in the browser with html-to-image, no
-backend call can make watermark removal cryptographically impossible.
+The current export is generated in the browser with html-to-image. That is the
+right privacy tradeoff for launch, but it is not unbreakable DRM.
 
-What a backend can enforce:
-  - Whether the official UI enables 4x export.
-  - Whether the official UI should include a watermark.
-  - Whether a user has monthly free quota remaining.
-  - Whether paid status is active.
-  - Whether a premium feature can be exported.
-  - Server-side audit records for normal users.
+What the backend can enforce for normal users:
+  - Whether the official UI includes the watermark.
+  - Whether a user has monthly quota remaining after auth is connected.
+  - Whether a user has webhook-confirmed paid access.
+  - Whether selected feature keys are allowed for the current entitlement.
+  - Non-sensitive export audit records.
 
-What a backend cannot fully prevent if screenshots stay local:
-  - A technical user modifying local JavaScript in DevTools.
-  - A user cloning the app and removing the watermark.
-  - A user manually recreating a similar export outside your app.
+What the backend cannot fully prevent while screenshots stay local:
+  - A technical user changing local JavaScript.
+  - A cloned app with the watermark removed.
+  - A user recreating a similar visual elsewhere.
 
-Recommended launch decision:
-  - Use server-authorized client export for v1 paid launch.
-  - Accept that this is a product gate, not DRM.
-  - Keep the strong privacy promise: screenshots stay in the browser.
-  - Add server-side rendering only if abuse becomes real enough to justify the
-    extra infrastructure and weaker privacy story.
-
-High-security alternative:
-  - Add /api/export/render.
-  - Upload the screenshot blob and design settings at export time.
-  - Render the PNG server-side.
-  - Return the final PNG.
-  - Delete temporary files immediately.
-  - Never persist the uploaded screenshot.
-  - Update privacy policy and in-app copy to say exports are processed
-    transiently on the server.
-  - This is more complex and may require a browser renderer/worker, not just a
-    simple Supabase Edge Function.
+Launch decision:
+  - Accept product-level gating, not DRM.
+  - Keep the strong local-only privacy story.
+  - Consider server-side rendering only later if abuse justifies sending images
+    transiently to a server and changing the privacy copy.
 
 
-Recommended Free vs Pro Packaging
-=================================
+First Executable Milestone
+==========================
 
-Free plan:
-  - Account required only when trying to export.
-  - 10 exports per month.
-  - Watermark always included in exported artwork.
-  - Watermark visible in preview so the user is not surprised.
-  - Export scale limited to 1x and 2x.
-  - 4x visible but marked Pro.
-  - Premium quick styles/features visible but marked Pro.
-  - If a Pro feature is used, free export should be blocked with a clear upgrade
-    modal rather than silently changing the design.
+Goal:
+  - Add the local entitlement and export authorization contracts.
+  - Render a bottom-right "Made with Snapingly" watermark for the free
+    entitlement in both preview and hidden export renderer.
+  - Keep all export work in the browser.
+  - Do not install Supabase, Dodo, or payment dependencies yet.
 
-Pro plan:
-  - No watermark.
-  - 1x, 2x, and 4x export.
-  - Premium quick styles allowed.
-  - Premium visual effects allowed.
-  - Higher or unlimited monthly exports. Suggested launch position:
-    "Unlimited exports for normal use" with a fair-use clause in Terms.
+Implementation:
+  - Add a feature catalog with FeatureKey.
+  - Add EntitlementPlanKey with "free" and "pro".
+  - Add ExportAuthorization with allowed, entitlement, requiresWatermark,
+    watermarkText, blockedFeatureKeys, quota, and reason.
+  - Add local/mock authorization that returns free entitlement by default.
+  - Add a reusable watermark renderer inside the final artwork source of truth.
+  - Use the same artwork path for preview and export.
 
-Features to mark as Pro:
-  - 4x export.
-  - Remove watermark.
-  - Premium quick style pack.
-  - Premium background pack.
-  - Premium text effect pack.
-
-Features to keep free:
-  - Upload/paste/edit.
-  - Core quick styles.
-  - Canvas presets.
-  - Browser frame.
-  - Basic text overlays.
-  - 1x and 2x export with watermark.
-
-Why this packaging works:
-  - Users can feel the value before payment.
-  - The free tier markets the product through watermark.
-  - Paid value is clear: remove watermark, unlock high-res, unlock premium
-    polish.
-  - The app stays simple and does not become a heavy design suite.
+Acceptance criteria:
+  - Preview shows "Made with Snapingly" for free/local entitlement.
+  - Downloaded/copied PNG includes the same watermark.
+  - No screenshot data is sent to a backend.
+  - npm run lint passes.
+  - npm run typecheck passes.
 
 
-User Flow
-=========
+Entitlement Contracts
+=====================
 
-1. User lands on snapingly.com.
-2. User clicks editor CTA.
-3. User uploads/pastes a screenshot.
-4. User edits freely without an account.
-5. User chooses export settings.
-6. User clicks Download PNG or Copy PNG.
-7. If not signed in:
-   - Open auth modal.
-   - Offer Google sign-in.
-   - Offer email OTP.
-   - Keep current editor state in memory.
-   - After auth success, resume export flow.
-8. If signed in free:
-   - Server checks free quota.
-   - Server checks selected export scale and premium features.
-   - If allowed, return "watermark required" export authorization.
-   - Client exports with Snapingly watermark.
-9. If signed in Pro:
-   - Server checks active subscription from Supabase.
-   - If active, return "no watermark" export authorization.
-   - Client exports at selected scale, including 4x.
-10. If user needs Pro:
-   - Show upgrade modal.
-   - Monthly, yearly, and founder pricing if founder seats remain.
-   - User chooses plan.
-   - Server creates Dodo checkout session.
-   - Browser redirects to Dodo hosted checkout.
-11. After checkout:
-   - User returns to /billing/return.
-   - Return page shows "confirming payment".
-   - App polls /api/billing/status.
-   - Dodo webhook updates subscription state.
-   - User gets Pro export access only after webhook-confirmed status.
+FeatureKey:
+  - "watermark.remove" is the only locked paid feature for now.
+  - Future feature keys may cover export scale, premium quick styles, premium
+    backgrounds, premium text effects, or other packaging once decided.
+
+EntitlementPlanKey:
+  - "free"
+  - "pro"
+
+ExportAuthorization:
+  - exportAttemptId: string | null
+  - allowed: boolean
+  - reason: null | "auth_required" | "quota_exceeded" | "pro_required"
+  - entitlement: "free" | "pro"
+  - requiresWatermark: boolean
+  - watermarkText: "Made with Snapingly" | null
+  - maxScale: current allowed scale cap for the entitlement
+  - blockedFeatureKeys: FeatureKey[]
+  - quota: null until Supabase quota is connected, then monthly usage details
+
+Local/mock behavior:
+  - Treat current users as free.
+  - Allow export.
+  - Require watermark.
+  - Do not perform quota checks yet.
+  - Do not require auth yet.
 
 
 Watermark Rules
 ===============
 
-Watermark brand:
-  - Text: Snapingly
-  - Optional longer text: Made with Snapingly
-  - Placement: frame/artwork right bottom.
-  - Opacity: 50%.
-  - Must be visible in preview for free users.
-  - Must be included in export for free users.
-  - Must not cover important screenshot content more than necessary.
+Text:
+  - Made with Snapingly
 
-Design:
-  - Small, tasteful, premium.
-  - White or black depending on background contrast.
-  - 50% opacity, but preserve minimum readability.
-  - Position inside final artwork, not outside the exported canvas.
-  - Avoid making it look cheap.
+Placement:
+  - Bottom right inside the final artwork canvas.
+  - Never outside the exported canvas.
+  - Keep clear of the canvas edge with responsive padding.
 
-Implementation idea:
-  - Add a Watermark component used by CanvasArtwork.
-  - CanvasArtwork already has mode="preview" and mode="export"; use the same
-    source of truth for both.
-  - Watermark visibility comes from entitlement/export authorization state, not
-    arbitrary local UI state.
+Visual style:
+  - Small, tasteful, and premium.
+  - Semi-transparent, but readable.
+  - Use a subtle pill/backdrop treatment so it remains visible across light,
+    dark, gradient, and image-blur backgrounds.
+  - Do not let it look like an editing control.
 
-
-Export Authorization Design
-===========================
-
-Recommended endpoints:
-
-1. POST /api/export/prepare
-   Purpose:
-     - Validate authenticated user.
-     - Check subscription status.
-     - Check monthly free quota.
-     - Check requested export scale.
-     - Check whether selected design includes Pro-only features.
-     - Create an export attempt record.
-     - Return export rules to the client.
-
-   Request body:
-     - requestedScale: 1 | 2 | 4
-     - action: "download" | "copy"
-     - usedFeatureKeys: string[]
-     - canvasPresetId
-     - backgroundPresetId
-     - browserFrameEnabled
-     - imageCount
-     - clientExportId: random UUID generated client-side for idempotency
-
-   Do not send:
-     - Screenshot file.
-     - Object URL.
-     - Base64 image.
-
-   Response:
-     - exportAttemptId
-     - allowed: boolean
-     - reason: null | "auth_required" | "quota_exceeded" | "pro_required"
-     - entitlement: "free" | "pro"
-     - requiresWatermark: boolean
-     - watermarkText: "Snapingly"
-     - maxScale: 1 | 2 | 4
-     - blockedFeatureKeys: string[]
-     - quota: { used, limit, periodStart, periodEnd }
-
-2. POST /api/export/complete
-   Purpose:
-     - Mark the prepared export attempt as succeeded or failed.
-     - Store non-sensitive export metadata.
-
-   Request body:
-     - exportAttemptId
-     - status: "succeeded" | "failed"
-     - failureCode if failed
-     - outputScale
-     - outputPixelWidth
-     - outputPixelHeight
-
-3. Optional future endpoint: POST /api/export/render
-   Purpose:
-     - Stronger enforcement through server-side PNG generation.
-     - Only add this if you accept temporary image upload and more backend
-       complexity.
-
-Quota counting:
-  - For free users, count quota at prepare time once an export attempt is
-    allowed. This prevents users from preparing infinite exports and never
-    calling complete.
-  - Allow retry of the same exportAttemptId if the client export fails due to a
-    recoverable browser error.
-  - Store only metadata, not images.
+Behavior:
+  - Show in preview for free/local entitlement.
+  - Include in hidden export renderer for free/local entitlement.
+  - Paid users can remove it later through "watermark.remove".
+  - Do not let quick styles remove, replace, upload, persist, or rewrite the
+    watermark.
 
 
-Auth Plan With Supabase
-=======================
+Future API Contracts
+====================
 
-Supabase packages likely needed:
-  - @supabase/supabase-js
-  - @supabase/ssr
+Add these only when Supabase/Dodo setup is ready.
 
-Auth routes/components:
-  - src/app/auth/callback/route.ts
-  - src/components/auth/AuthModal.tsx
-  - src/components/auth/AuthProvider.tsx or equivalent session provider
-  - src/lib/supabase/client.ts
-  - src/lib/supabase/server.ts
-  - src/lib/supabase/middleware.ts if middleware is needed for session refresh
+POST /api/export/prepare
+  Purpose:
+    - Validate Supabase-authenticated user.
+    - Check subscription status.
+    - Check monthly free quota.
+    - Check requested export scale and used feature keys.
+    - Create an export attempt record.
+    - Return export rules.
 
-Auth methods:
-  - Google OAuth.
-  - Email OTP.
+  Request body:
+    - requestedScale
+    - action: "download" | "copy"
+    - usedFeatureKeys
+    - clientExportId
+    - non-sensitive design identifiers, if needed
 
-Supabase dashboard setup:
-  - Authentication > Providers > Google:
-    - Enable Google provider.
-    - Add Google client ID.
-    - Add Google client secret.
-  - Authentication > URL Configuration:
-    - Site URL: https://snapingly.com
-    - Redirect URLs:
-      - https://snapingly.com/auth/callback
-      - http://localhost:3000/auth/callback
-      - Vercel preview URL pattern only if needed during testing.
-    - Use exact production URLs where possible.
-  - Authentication > Email Templates:
-    - Customize OTP email with Snapingly branding.
-    - Make the OTP email short and clear.
-  - Authentication > SMTP:
-    - Configure custom SMTP before production.
-    - Do not rely on Supabase default email service for production.
-    - Use SPF, DKIM, and DMARC on the sending domain.
+  Never send:
+    - Screenshot file.
+    - Blob.
+    - Object URL.
+    - Base64 image.
+    - Rendered PNG.
 
-Email OTP behavior:
-  - User enters email.
-  - Supabase sends OTP code.
-  - User enters OTP.
-  - Session is established.
-  - Auth modal closes.
-  - Export flow resumes.
+POST /api/export/complete
+  Purpose:
+    - Mark the prepared export attempt as succeeded or failed.
+    - Store non-sensitive output metadata such as scale and pixel size.
 
-Google OAuth behavior:
-  - User clicks Continue with Google.
-  - Supabase redirects to Google.
-  - Google redirects back to /auth/callback.
-  - Callback exchanges code for session.
-  - User returns to editor.
-  - Export flow resumes if possible.
+GET /api/billing/status
+  Purpose:
+    - Return current plan, paid access, quota, and whether watermark removal is
+      allowed.
 
-Important auth notes:
-  - Do not store Supabase access tokens manually in localStorage.
-  - Use Supabase SSR/cookie flow for server-aware auth.
-  - On the server, validate the user from Supabase, not from user-provided email
-    or client state.
-  - Test same email using Google and email OTP. Decide whether accounts link as
-    desired before launch.
-  - Do not create a passwords flow unless you actually want password reset,
-    password breach, and support scope.
+POST /api/billing/checkout
+  Purpose:
+    - Create a Dodo hosted checkout session server-side after products/prices
+      are finalized.
+
+POST /api/billing/portal
+  Purpose:
+    - Create or redirect to the Dodo customer portal for active customers.
+
+POST /api/webhooks/dodo
+  Purpose:
+    - Verify Dodo webhook signatures.
+    - Process subscription lifecycle events idempotently.
+    - Update local subscription state.
 
 
 Database Schema Plan
 ====================
 
-Use Supabase migrations. Do not hand-edit production DB tables randomly from the
-dashboard after launch.
-
-Recommended tables:
+Use Supabase migrations when the project is connected. Do not hand-edit
+production tables casually from the dashboard.
 
 1. public.profiles
    Purpose:
-     - Public app profile linked to auth.users.
+     - App profile linked to auth.users.
 
    Columns:
      - id uuid primary key references auth.users(id) on delete cascade
@@ -407,14 +262,9 @@ Recommended tables:
      - full_name text
      - avatar_url text
      - dodo_customer_id text unique
-     - founder_customer boolean default false
+     - account_status text not null default "active"
      - created_at timestamptz default now()
      - updated_at timestamptz default now()
-
-   RLS:
-     - User can select own profile.
-     - User can update safe own fields only if needed.
-     - Server/service role can manage billing fields.
 
 2. public.subscriptions
    Purpose:
@@ -427,30 +277,14 @@ Recommended tables:
      - dodo_customer_id text
      - dodo_product_id text
      - plan_key text not null
-       Values: "monthly", "yearly", "founder_monthly", "founder_yearly"
      - status text not null
-       Values mirror Dodo, for example: "active", "on_hold", "cancelled",
-       "expired", "failed"
      - current_period_start timestamptz
      - current_period_end timestamptz
      - cancel_at_period_end boolean default false
      - cancelled_at timestamptz
-     - cancellation_feedback text
-     - cancellation_comment text
      - raw_payload jsonb
      - created_at timestamptz default now()
      - updated_at timestamptz default now()
-
-   Indexes:
-     - unique dodo_subscription_id
-     - index user_id
-     - index status
-     - index current_period_end
-
-   RLS:
-     - User can select own subscription rows.
-     - User cannot insert/update/delete directly.
-     - Webhook/server updates through service role only.
 
 3. public.checkout_sessions
    Purpose:
@@ -463,82 +297,39 @@ Recommended tables:
      - plan_key text not null
      - dodo_product_id text not null
      - checkout_url text
-     - founder_offer boolean default false
      - status text not null default "created"
-       Values: "created", "returned", "completed", "expired", "cancelled"
      - metadata jsonb
      - created_at timestamptz default now()
      - updated_at timestamptz default now()
 
-   RLS:
-     - User can select own checkout sessions if needed.
-     - User cannot insert/update/delete directly.
-
-4. public.founder_slots
+4. public.export_attempts
    Purpose:
-     - Enforce first 100 founder users server-side.
-
-   Suggested shape:
-     - slot_number integer primary key check slot_number between 1 and 100
-     - status text not null default "available"
-       Values: "available", "reserved", "claimed", "released"
-     - reserved_by uuid references auth.users(id)
-     - reserved_at timestamptz
-     - reservation_expires_at timestamptz
-     - claimed_by uuid references auth.users(id)
-     - claimed_at timestamptz
-     - dodo_checkout_session_id text
-     - dodo_subscription_id text
-
-   How it works:
-     - Pre-create 100 rows.
-     - When user starts founder checkout, reserve the lowest available slot for
-       30 minutes.
-     - If checkout succeeds, webhook marks slot claimed.
-     - If checkout is abandoned, an expired reservation can be released.
-
-   RLS:
-     - Users can only read founder availability through a server endpoint or a
-       safe view.
-     - Direct writes disabled for client.
-
-5. public.export_attempts
-   Purpose:
-     - Track export authorization and quota usage.
+     - Track export authorization and quota usage without storing images.
 
    Columns:
      - id uuid primary key default gen_random_uuid()
      - user_id uuid not null references auth.users(id) on delete cascade
      - client_export_id text not null
      - entitlement text not null
-       Values: "free", "pro"
      - action text not null
-       Values: "download", "copy"
      - requested_scale integer not null
      - allowed_scale integer not null
      - requires_watermark boolean not null
      - used_feature_keys text[] default '{}'
      - blocked_feature_keys text[] default '{}'
      - status text not null default "prepared"
-       Values: "prepared", "succeeded", "failed"
      - failure_code text
      - output_pixel_width integer
      - output_pixel_height integer
-     - period_start date not null
-     - period_end date not null
+     - period_start date
+     - period_end date
      - created_at timestamptz default now()
      - completed_at timestamptz
 
-   Constraints/indexes:
+   Constraint:
      - unique(user_id, client_export_id)
-     - index(user_id, period_start)
-     - index(created_at)
 
-   RLS:
-     - User can select own export attempts.
-     - User cannot insert/update directly.
-
-6. public.export_usage_months
+5. public.export_usage_months
    Purpose:
      - Fast monthly quota lookup.
 
@@ -551,11 +342,7 @@ Recommended tables:
      - updated_at timestamptz default now()
      - primary key(user_id, period_start)
 
-   RLS:
-     - User can select own row.
-     - Server writes only.
-
-7. public.dodo_webhook_events
+6. public.dodo_webhook_events
    Purpose:
      - Idempotency and audit log for Dodo webhooks.
 
@@ -564,195 +351,191 @@ Recommended tables:
      - event_type text not null
      - dodo_object_id text
      - processing_status text not null
-       Values: "received", "processed", "failed", "ignored"
      - payload jsonb not null
      - error_message text
      - received_at timestamptz default now()
      - processed_at timestamptz
 
-   RLS:
-     - No client access.
-     - Service role only.
-
-8. public.billing_entitlements_view or server helper function
+7. public.limited_offer_slots, optional
    Purpose:
-     - Compute whether the user is free or Pro.
+     - Only add this if a 100-seat founder/promo offer is actually launched.
 
-   Logic:
-     - Pro if latest relevant subscription is active and current_period_end is
-       null or in the future.
-     - Not Pro if status is on_hold, cancelled, expired, or failed.
-     - If cancel_at_period_end is true but still active and period end is in
-       the future, keep access until period end.
+   Notes:
+     - Do not create founder-slot complexity until the offer is real.
+     - Pricing, duration, and eligibility are TBD.
 
 
-RLS And Database Security Rules
-===============================
+RLS And Security Rules
+======================
 
 Rules:
-  - Enable RLS on every table in public.
-  - Client can read only its own rows where auth.uid() = user_id.
-  - Client cannot directly update billing state, quota, founder slots, webhook
-    events, or subscription rows.
+  - Enable RLS on every public table.
+  - Client can read only its own rows.
+  - Client cannot directly update billing state, quota, subscriptions, webhook
+    events, or limited offer slots.
   - Server route handlers use service role only when needed.
   - Never expose SUPABASE_SERVICE_ROLE_KEY in browser code.
-  - Never put billing authorization in raw_user_meta_data because users can
-    modify user metadata.
-  - If using JWT custom claims later, store authorization-relevant claims in
-    app_metadata only, and remember JWT claims are not always immediately fresh.
-  - For launch, prefer database lookup of subscription status in server routes
-    over relying only on JWT claims.
+  - Never put billing authorization in raw_user_meta_data.
+  - Prefer server-side database lookup of subscription status over stale JWT
+    claims for launch.
 
 Suggested policies:
   - profiles select: auth.uid() = id
-  - profiles update: auth.uid() = id, but only for safe profile fields if needed.
+  - profiles update: auth.uid() = id for safe profile fields only
   - subscriptions select: auth.uid() = user_id
   - checkout_sessions select: auth.uid() = user_id
   - export_attempts select: auth.uid() = user_id
   - export_usage_months select: auth.uid() = user_id
-  - No client insert/update/delete policies for billing/quota/webhook tables.
-
-Use DB constraints as security too:
-  - Unique Dodo IDs.
-  - Check allowed status values.
-  - Foreign keys to auth.users.
-  - Not-null on critical fields.
-  - Idempotency unique keys for webhook_id and client_export_id.
+  - No client insert/update/delete policies for billing, quota, webhook, or
+    payment-owned tables.
 
 
-Dodo Payments Plan
-==================
+Staged Launch Sequence
+======================
 
-Dodo setup:
-  - Create Dodo merchant account and complete account verification before launch.
-  - Create subscription products:
-    1. Snapingly Pro Monthly - 4.99 USD/month.
-    2. Snapingly Pro Yearly - 39 USD/year.
-    3. Snapingly Founder Monthly - 2.99 USD/month.
-    4. Snapingly Founder Yearly - 19 USD/year.
+Phase 1 - Local Contracts And Watermark
+---------------------------------------
 
-Why separate founder products:
-  - It avoids relying on discount-code edge cases.
-  - The server can choose founder products only while founder slots remain.
-  - It clearly preserves founder pricing for the life of the subscription.
+Success criteria:
+  - Local entitlement contracts exist.
+  - Free/local preview shows "Made with Snapingly".
+  - Free/local export includes "Made with Snapingly".
+  - No backend or payment dependency is added.
+  - lint and typecheck pass.
 
-Alternative:
-  - Use Dodo discount codes if you want discounts instead of separate products.
-  - Before coding, verify whether Dodo currently allows pre-applying discount
-    codes in checkout sessions for your exact checkout flow.
+Tasks:
+  - Add entitlement types/helpers.
+  - Add local/mock export authorization.
+  - Add watermark rendering to CanvasArtwork.
+  - Use the same artwork source for preview and export.
 
-Dodo checkout:
-  - Use hosted checkout sessions.
-  - Create checkout session only from the server.
-  - Pass product_cart with the selected Dodo product ID.
-  - Pass customer email/name from Supabase user/profile.
-  - Pass metadata:
-    - supabase_user_id
-    - plan_key
-    - founder_slot_number if reserved
-    - app: "snapingly"
-  - return_url: https://snapingly.com/billing/return
-  - cancel_url: https://snapingly.com/editor?billing=cancelled
+Phase 2 - Branding And Pricing Shell
+------------------------------------
 
-Dodo webhooks:
-  - Endpoint: POST /api/webhooks/dodo
-  - Verify webhook signature before parsing/trusting the payload.
-  - Store webhook_id for idempotency.
-  - Process subscription events:
-    - subscription.active
-    - subscription.updated
-    - subscription.on_hold
-    - subscription.renewed
-    - subscription.plan_changed
-    - subscription.cancelled
-    - subscription.failed
-    - subscription.expired
-  - Update local subscriptions table.
-  - Mark founder slot claimed when subscription becomes active.
-  - Release founder reservation on failed/expired checkout if applicable.
+Success criteria:
+  - Snapingly branding is consistent.
+  - Pricing copy is clear but uses TBD or configured values.
+  - FAQ explains local-only privacy and free watermark.
 
-Important:
-  - Do not trust frontend "payment successful" query params.
-  - Do not trust Dodo return URL alone.
-  - Only webhook-confirmed subscription state grants Pro access.
-  - Webhook processing must be idempotent because payment providers can retry
-    events.
+Tasks:
+  - Replace Screenshot Beautifier branding with Snapingly.
+  - Update metadata, sitemap, robots, Open Graph copy, landing FAQ, and footer.
+  - Add pricing page/section with final values only after they are decided.
 
-Customer portal:
-  - Add /account or account menu item after launch.
-  - Button: Manage billing.
-  - Server endpoint creates Dodo customer portal session or sends user to Dodo
-    portal.
-  - Customers can cancel, update payment method, and view invoices through Dodo.
+Phase 3 - Supabase Setup
+------------------------
+
+Prerequisites:
+  - Supabase project exists.
+  - Redirect URLs decided.
+  - Google OAuth credentials available.
+  - SMTP provider configured or selected.
+
+Success criteria:
+  - Google sign-in works.
+  - Email OTP works.
+  - Auth callback works.
+  - User can edit without signing in.
+  - Sign-in appears at export/account flow, not before editing.
+
+Tasks:
+  - Install @supabase/supabase-js and @supabase/ssr.
+  - Add Supabase client/server helpers.
+  - Add auth callback route.
+  - Add AuthModal and AccountMenu.
+  - Keep screenshots local and editor state in memory.
+
+Phase 4 - Database And Quota
+----------------------------
+
+Prerequisites:
+  - Supabase project connected.
+  - Migration workflow available.
+
+Success criteria:
+  - Tables, indexes, constraints, and RLS policies exist.
+  - Free quota can be checked and incremented without storing images.
+  - Client cannot write quota/subscription/webhook state directly.
+
+Tasks:
+  - Add migrations for core tables.
+  - Add RLS policies.
+  - Add /api/export/prepare and /api/export/complete.
+  - Count quota at prepare time for allowed free exports.
+
+Phase 5 - Dodo Billing
+----------------------
+
+Prerequisites:
+  - Dodo account verified.
+  - Prices and paid feature packaging finalized.
+  - Product IDs available.
+  - Webhook secret available.
+
+Success criteria:
+  - Checkout starts server-side.
+  - Webhook verifies signatures.
+  - Subscription table updates from webhook.
+  - Pro access is granted only from webhook-confirmed state.
+  - Return URL never grants paid access by itself.
+
+Tasks:
+  - Add Dodo env vars.
+  - Add /api/billing/checkout.
+  - Add /api/webhooks/dodo.
+  - Add /billing/return.
+  - Add /api/billing/status.
+  - Add /api/billing/portal.
+
+Phase 6 - Paid Entitlement UI
+-----------------------------
+
+Success criteria:
+  - Free users see watermark and quota state.
+  - Pro users can export without watermark.
+  - Pro-only features are blocked at export if the user is free.
+  - Upgrade prompts are clear and not noisy.
+
+Tasks:
+  - Add feature catalog entries once paid packaging is decided.
+  - Add small Pro markers where needed.
+  - Add upgrade modal.
+  - Use billing status and export authorization as the source of truth.
+
+Phase 7 - Production Hardening
+------------------------------
+
+Success criteria:
+  - lint, typecheck, and build pass.
+  - Production env vars configured.
+  - Security headers reviewed.
+  - Dodo live webhook URL configured.
+  - Supabase production checklist reviewed.
+
+Tasks:
+  - Add/review CSP and security headers.
+  - Verify no secrets in client bundle.
+  - Verify no screenshot image data in logs or database.
+  - Test production preview.
 
 
-Environment Variables
-=====================
-
-Local .env.local:
+Environment Variables For Later
+===============================
 
 Public browser-safe variables:
-  - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+  - NEXT_PUBLIC_SITE_URL=
   - NEXT_PUBLIC_SUPABASE_URL=
   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 
 Private server-only variables:
   - SUPABASE_SERVICE_ROLE_KEY=
   - DODO_PAYMENTS_API_KEY=
-  - DODO_WEBHOOK_SECRET= or DODO_WEBHOOK_KEY=
-  - DODO_ENVIRONMENT=test_mode
-  - DODO_MONTHLY_PRODUCT_ID=
-  - DODO_YEARLY_PRODUCT_ID=
-  - DODO_FOUNDER_MONTHLY_PRODUCT_ID=
-  - DODO_FOUNDER_YEARLY_PRODUCT_ID=
-  - DODO_BUSINESS_ID=
-  - APP_BASE_URL=http://localhost:3000
-
-Production environment:
-
-Public:
-  - NEXT_PUBLIC_SITE_URL=https://snapingly.com
-  - NEXT_PUBLIC_SUPABASE_URL=
-  - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-
-Private:
-  - SUPABASE_SERVICE_ROLE_KEY=
-  - DODO_PAYMENTS_API_KEY=
-  - DODO_WEBHOOK_SECRET= or DODO_WEBHOOK_KEY=
-  - DODO_ENVIRONMENT=live_mode
-  - DODO_MONTHLY_PRODUCT_ID=
-  - DODO_YEARLY_PRODUCT_ID=
-  - DODO_FOUNDER_MONTHLY_PRODUCT_ID=
-  - DODO_FOUNDER_YEARLY_PRODUCT_ID=
-  - DODO_BUSINESS_ID=
-  - APP_BASE_URL=https://snapingly.com
-
-SMTP/email provider settings:
-  - These are usually configured inside Supabase Dashboard, not necessarily in
-    the Next.js app env.
-  - Pick one provider: Resend, Postmark, AWS SES, SendGrid, Brevo, or another
-    SMTP provider.
-  - Required SMTP details:
-    - SMTP host
-    - SMTP port
-    - SMTP username
-    - SMTP password
-    - From email, for example no-reply@auth.snapingly.com
-    - Sender name: Snapingly
-  - Configure DNS:
-    - SPF
-    - DKIM
-    - DMARC
-  - Prefer a separate auth sending domain, for example auth.snapingly.com.
-
-Google OAuth settings:
-  - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are normally entered in Supabase
-    provider settings.
-  - Google authorized JavaScript origins:
-    - http://localhost:3000
-    - https://snapingly.com
-  - Google authorized redirect/callback should match the Supabase callback URL
-    shown in the Supabase Google provider settings.
+  - DODO_WEBHOOK_SECRET=
+  - DODO_ENVIRONMENT=
+  - DODO_PRO_MONTHLY_PRODUCT_ID=, only after pricing is decided
+  - DODO_PRO_YEARLY_PRODUCT_ID=, only after pricing is decided
+  - DODO_LIMITED_OFFER_PRODUCT_ID=, optional only if launched
+  - APP_BASE_URL=
 
 Never expose:
   - SUPABASE_SERVICE_ROLE_KEY
@@ -760,152 +543,6 @@ Never expose:
   - DODO_WEBHOOK_SECRET
   - SMTP password
   - Google client secret
-
-
-App Routes To Add Later
-=======================
-
-Auth:
-  - /auth/callback
-
-Billing:
-  - /pricing
-  - /billing/return
-  - /account or /settings
-
-API:
-  - POST /api/export/prepare
-  - POST /api/export/complete
-  - GET /api/billing/status
-  - POST /api/billing/checkout
-  - POST /api/billing/portal
-  - POST /api/webhooks/dodo
-
-Optional:
-  - GET /api/founder-offer/status
-  - POST /api/export/render in a later high-security export phase
-
-
-UI Changes To Make Later
-========================
-
-Landing:
-  - Replace Screenshot Beautifier branding with Snapingly.
-  - Update SITE_TITLE, SITE_DESCRIPTION, SITE_URL.
-  - Update sitemap and robots to snapingly.com.
-  - Update Open Graph image/copy.
-  - Add pricing section or pricing page.
-  - Add FAQ entries:
-    - Is my screenshot uploaded?
-    - Why do I need an account to export?
-    - What is included in Free?
-    - What is included in Pro?
-    - Can I cancel anytime?
-    - What happens to founder pricing?
-
-Editor:
-  - Add account button in editor header or top-right area.
-  - Add Export gate:
-    - If unauthenticated, open AuthModal.
-    - If authenticated free and quota available, export with watermark.
-    - If authenticated free and quota exceeded, show upgrade modal.
-    - If Pro-only features are used, show upgrade modal.
-  - Add Pro badges/golden marks:
-    - 4x export.
-    - Premium quick styles.
-    - Premium background pack.
-    - Premium text effects.
-  - Keep Pro badges small and polished. Do not make the app noisy.
-  - Preview watermark for free users.
-  - Upgrade modal should show:
-    - Monthly 4.99 USD/month.
-    - Yearly 39 USD/year.
-    - Founder monthly 2.99 USD/month if available.
-    - Founder yearly 19 USD/year if available.
-    - "First 100 users" availability.
-
-Account:
-  - Show email.
-  - Show current plan.
-  - Show free exports used this month.
-  - Show Manage billing button for paid users.
-  - Show Upgrade button for free users.
-  - Show sign out button.
-
-
-Security Checklist
-==================
-
-Auth/session:
-  - Use Supabase SSR helpers for Next.js.
-  - Server routes must read the authenticated user from Supabase session/JWT.
-  - Never accept user_id from the browser as authority.
-  - Never use raw_user_meta_data for entitlements.
-  - Keep sessions in secure cookies through Supabase SSR flow.
-
-Database:
-  - RLS enabled on every exposed table.
-  - No direct client write access to subscriptions, quotas, founder slots, or
-    webhook events.
-  - Use constraints and unique indexes for billing IDs and idempotency.
-  - Use migrations, not ad hoc production dashboard edits.
-  - Back up production database.
-  - Enable Supabase Security Advisor checks before launch.
-
-Payments:
-  - Dodo API key server-only.
-  - Webhook secret server-only.
-  - Verify webhook signature.
-  - Process webhooks idempotently.
-  - Trust webhook state, not redirect query params.
-  - Log failed webhook processing and retry safely.
-
-API:
-  - Same-origin calls for app APIs.
-  - Validate all request bodies.
-  - Rate-limit sensitive routes:
-    - /api/billing/checkout
-    - /api/export/prepare
-    - /api/export/complete
-  - Return generic errors where detailed errors could leak internals.
-  - Do not log secrets.
-  - Do not log screenshot image data.
-
-Frontend:
-  - Treat frontend gating as UX only.
-  - Server remains source of truth for quota and subscription.
-  - Keep watermark in CanvasArtwork, the export source of truth.
-  - Do not add auth/payments state to localStorage.
-  - Theme localStorage is okay because it is not sensitive.
-
-Headers:
-  - Add production security headers:
-    - Strict-Transport-Security
-    - X-Content-Type-Options: nosniff
-    - Referrer-Policy
-    - Permissions-Policy
-    - Content-Security-Policy
-  - CSP must allow only needed origins:
-    - self
-    - Supabase project URL
-    - Dodo checkout/customer portal
-    - Google OAuth/accounts where needed
-  - Test CSP carefully because auth/payment redirects can break if too strict.
-
-Secrets:
-  - Use Vercel/Supabase secret managers.
-  - Never commit .env files.
-  - Rotate secrets if accidentally exposed.
-  - Separate test and live Dodo keys.
-  - Separate development and production Supabase projects if feasible.
-
-Abuse/fraud:
-  - Free export quota requires account.
-  - Quota is per Supabase user per month.
-  - Consider rate limiting by user ID and IP hash.
-  - Do not collect more personal data than needed.
-  - For suspicious abuse, block account server-side by adding a profile status
-    field later.
 
 
 Legal And Trust Pages
@@ -918,398 +555,114 @@ Before paid launch, add:
   - Contact/support email.
 
 Privacy policy must say:
-  - What account data is stored.
-  - What payment data is handled by Dodo.
-  - Whether screenshots are uploaded.
-  - For recommended launch: screenshots are processed locally in the browser and
-    not stored by Snapingly.
+  - Screenshots are processed locally in the browser.
+  - Snapingly does not store screenshot files or exported images.
+  - Supabase stores account/quota/billing metadata.
+  - Dodo handles checkout, subscription, and payment data.
   - Export metadata may be stored for quota/security.
-  - Auth emails are sent through Supabase/custom SMTP provider.
-  - Payment checkout and billing portal are handled by Dodo.
 
 Terms should say:
-  - Free quota limits.
-  - Pro subscription billing period.
-  - Founder pricing terms.
+  - Free watermark behavior.
+  - Free quota limits after quota is connected.
+  - Pro subscription behavior after pricing is finalized.
   - Cancellation behavior.
-  - Fair-use rule for Pro exports.
-  - No guarantee that generated marketing images will improve user business
-    results.
-
-Refund policy:
-  - Decide before launch.
-  - Simple recommendation: refunds considered within 7 days for accidental
-    purchases if usage is low, subject to Dodo/payment processor rules.
+  - Fair-use language if Pro exports are positioned as unlimited.
 
 
-Launch Sequence
-===============
+Implementation Prompts
+======================
 
-Phase A - Decisions
--------------------
+Prompt 1 - Local contracts and watermark
+----------------------------------------
 
-Success criteria:
-  - Pricing finalized.
-  - Founder pricing rule finalized.
-  - Privacy stance finalized.
-  - Dodo account verified.
-  - Domain purchased.
+Read AGENTS.md and docs/snapingly-launch-plan.txt. Implement Phase 1 only:
+local entitlement contracts, local/mock export authorization, and the
+bottom-right "Made with Snapingly" watermark in both preview and export. Do not
+install Supabase or Dodo. Do not upload or store screenshots. Run lint and
+typecheck.
 
-Tasks:
-  - Buy snapingly.com.
-  - Decide whether founder pricing is permanent or first billing period only.
-  - Decide whether launch uses privacy-preserving client export or server-side
-    render export.
-  - Decide support email, for example support@snapingly.com.
-  - Decide legal/refund wording.
+Prompt 2 - Snapingly branding shell
+-----------------------------------
 
-Recommended decision:
-  - Founder pricing permanent while subscription remains active.
-  - Client-side export for launch.
-  - Server-authorized quota/watermark/product gate.
-  - Server-side render only later if needed.
+Read AGENTS.md and docs/snapingly-launch-plan.txt. Rebrand the current app to
+Snapingly and add launch/pricing shell copy without hardcoded prices. Keep
+pricing values TBD unless I provide exact prices. Run lint and typecheck.
 
-Phase B - Supabase Project
---------------------------
+Prompt 3 - Supabase auth
+------------------------
 
-Success criteria:
-  - Supabase project exists.
-  - Auth providers configured.
-  - Custom SMTP works.
-  - Database migrations are ready.
-  - RLS verified.
-
-Tasks:
-  - Create Supabase project.
-  - Configure Site URL and redirect URLs.
-  - Configure Google provider.
-  - Configure custom SMTP.
-  - Create database migrations for tables/policies.
-  - Seed founder_slots 1..100.
-  - Test OTP email delivery.
-  - Test Google login.
-
-Phase C - App Auth
-------------------
-
-Success criteria:
-  - User can sign in with Google.
-  - User can sign in with email OTP.
-  - Sign-in modal appears only at export time unless user opens account menu.
-  - Editor state survives auth flow.
-
-Tasks:
-  - Install Supabase packages.
-  - Add Supabase client/server helpers.
-  - Add auth callback route.
-  - Add AuthModal.
-  - Add AccountMenu.
-  - Add session provider/hook.
-  - Test local auth.
-
-Phase D - Dodo Billing
-----------------------
-
-Success criteria:
-  - User can start checkout from app.
-  - Checkout session is created server-side.
-  - Dodo webhook verifies signatures.
-  - Subscription table updates from webhook.
-  - Billing status endpoint reflects active Pro.
-
-Tasks:
-  - Create Dodo products.
-  - Add Dodo env vars.
-  - Install Dodo SDK and Standard Webhooks package if needed.
-  - Create /api/billing/checkout.
-  - Create /api/webhooks/dodo.
-  - Create /billing/return.
-  - Create /api/billing/status.
-  - Create /api/billing/portal.
-  - Test Dodo test mode.
-
-Phase E - Export Gate
----------------------
-
-Success criteria:
-  - Unauthenticated user is prompted to sign in on export.
-  - Free user can export only with watermark.
-  - Free user cannot export 4x.
-  - Free user cannot export with Pro-only features.
-  - Free quota stops at 10 exports/month.
-  - Pro user can export without watermark at 4x.
-
-Tasks:
-  - Add entitlement helper.
-  - Add feature catalog.
-  - Add /api/export/prepare.
-  - Add /api/export/complete.
-  - Add watermark to CanvasArtwork.
-  - Update ExportControls to call prepare before export.
-  - Update ExportProvider to use server-returned export rules.
-  - Add upgrade modal.
-  - Add Pro badges.
-  - Test export flows.
-
-Phase F - Brand, SEO, Pricing, Legal
-------------------------------------
-
-Success criteria:
-  - Snapingly branding is consistent.
-  - Pricing is visible and clear.
-  - SEO metadata points at snapingly.com.
-  - Legal/trust pages exist.
-
-Tasks:
-  - Update src/lib/site-metadata.ts.
-  - Update app metadata.
-  - Update landing hero, FAQ, CTA, footer.
-  - Add pricing route/section.
-  - Add Terms, Privacy, Refund pages.
-  - Update Open Graph image.
-  - Update sitemap/robots.
-
-Phase G - Production Hardening
-------------------------------
-
-Success criteria:
-  - Build passes.
-  - Typecheck passes.
-  - Lint passes.
-  - Security headers are set.
-  - Production env configured.
-  - Webhook live URL configured in Dodo.
-  - Supabase production checklist reviewed.
-
-Tasks:
-  - Add security headers.
-  - Review CSP.
-  - Configure Vercel env vars.
-  - Configure domain DNS.
-  - Configure Supabase production URLs.
-  - Configure Dodo live webhook URL.
-  - Run npm run lint.
-  - Run npm run typecheck.
-  - Run npm run build.
-  - Test production preview.
-
-Phase H - Launch
-----------------
-
-Success criteria:
-  - A new user can edit, sign up, pay, and export.
-  - Webhooks process correctly.
-  - Support/refund paths are clear.
-
-Tasks:
-  - Do one live low-value checkout if Dodo allows.
-  - Verify receipt and portal.
-  - Verify subscription active in Supabase.
-  - Verify no-watermark Pro export.
-  - Verify cancellation behavior.
-  - Announce launch.
-
-
-Implementation Prompts To Give Codex
-====================================
-
-Prompt 1 - Review and split tasks
----------------------------------
-
-Read AGENTS.md and docs/snapingly-launch-plan.txt. Do not code yet. Review the
-plan against the current repo and create a step-by-step implementation checklist
-for the first paid-launch milestone: Supabase auth, Dodo billing, free export
-quota, watermark gating, and Snapingly branding. Surface assumptions and
-tradeoffs before editing.
-
-
-Prompt 2 - Supabase MCP/database setup
---------------------------------------
-
-I have connected the Supabase MCP for the Snapingly project. Read AGENTS.md and
-docs/snapingly-launch-plan.txt. Inspect the current Supabase project through MCP.
-Create the database schema, indexes, RLS policies, and founder_slots seed data
-needed for the launch plan. Do not store screenshots or image data. Use
-migrations if the MCP supports them, and show me exactly what changed.
-
-
-Prompt 3 - Supabase auth in app
--------------------------------
-
-Implement Supabase Auth for this Next.js App Router app using Google OAuth and
-email OTP. Follow docs/snapingly-launch-plan.txt. Add auth callback handling,
-client/server Supabase helpers, an export-triggered AuthModal, and a small
-account menu. Do not gate editing. Do not add passwords. Do not store sensitive
+I have created the Supabase project and provided env vars. Implement Supabase
+Auth with Google OAuth and email OTP. Do not gate editing. Prompt for auth only
+from export/account flows. Do not store screenshots, image data, or sensitive
 auth state in localStorage. Run lint and typecheck.
 
-
-Prompt 4 - Dodo billing setup
------------------------------
-
-Implement Dodo Payments billing for Snapingly. Follow
-docs/snapingly-launch-plan.txt. Add server-side checkout session creation,
-webhook signature verification, idempotent webhook storage, subscription syncing,
-founder slot reservation/claiming, billing return page, billing status endpoint,
-and customer portal endpoint. Use Dodo hosted checkout. Do not grant Pro from
-return_url query params; only grant from webhook-confirmed subscription state.
-Run lint and typecheck.
-
-
-Prompt 5 - Export entitlement gate
-----------------------------------
-
-Implement export authorization for Free and Pro users. Follow
-docs/snapingly-launch-plan.txt. Add /api/export/prepare and /api/export/complete.
-Free users get 10 watermarked exports/month at 1x or 2x only. Pro users get
-no-watermark export and 4x. Add the Snapingly watermark to CanvasArtwork so it
-appears in preview and export when required. Premium features should be marked
-with a small Pro/golden indicator and blocked at export for free users. Do not
-upload or store screenshots. Run lint and typecheck.
-
-
-Prompt 6 - Snapingly rebrand and launch pages
+Prompt 4 - Supabase database and export quota
 ---------------------------------------------
 
-Rebrand the app from Screenshot Beautifier to Snapingly. Follow
-docs/snapingly-launch-plan.txt and AGENTS.md. Update metadata, SITE_URL, landing
-copy, FAQ, footer, Open Graph text, sitemap, robots, pricing section/page, and
-trust copy. Keep the product premium and simple. Do not add analytics or backend
-tracking. Run lint and typecheck.
+I have connected Supabase and am ready for migrations. Add the database schema,
+RLS policies, export prepare/complete routes, and quota tracking described in
+docs/snapingly-launch-plan.txt. Do not store screenshots or image data. Run
+lint and typecheck.
 
+Prompt 5 - Dodo billing
+-----------------------
 
-Prompt 7 - Security hardening
------------------------------
+I have finalized pricing and created Dodo products. Implement Dodo hosted
+checkout, webhook verification, subscription syncing, billing status, billing
+return page, and portal endpoint. Grant Pro only from webhook-confirmed
+subscription state. Run lint and typecheck.
 
-Review and harden the Snapingly launch implementation. Follow
-docs/snapingly-launch-plan.txt. Check environment variable exposure, RLS coverage,
-server route authorization, Dodo webhook idempotency, export quota bypasses,
-CSP/security headers, and production deployment risks. Fix only launch-blocking
-issues. Run lint, typecheck, and build.
+Prompt 6 - Paid entitlement UI
+------------------------------
 
-
-Prompt 8 - Production readiness review
---------------------------------------
-
-Do a production readiness review for Snapingly. Read AGENTS.md and
-docs/snapingly-launch-plan.txt. Inspect the repo for auth, billing, export
-gating, watermark, quota, env, metadata, legal pages, and security headers.
-Return findings first with file/line references and severity. Do not edit files
-unless I explicitly ask.
-
-
-Prompt 9 - Optional server-side render phase
---------------------------------------------
-
-Plan server-side export rendering for stronger anti-bypass protection. Read
-docs/snapingly-launch-plan.txt. Do not implement yet. Compare options: Next.js
-route handler with a renderer, separate worker, or external render service.
-Explain privacy copy changes, cost, complexity, and how screenshots would be
-deleted immediately after export.
+I have finalized the paid feature list. Add Pro markers, upgrade modal, and
+export blocking for the selected FeatureKey values. Keep the app simple and
+premium. Run lint and typecheck.
 
 
 Verification Checklist
 ======================
 
-Auth:
-  - Google sign-in works locally.
-  - Email OTP works locally.
-  - Auth callback works.
-  - Export resumes after auth.
-  - Sign out works.
-
-Free:
-  - Free user can edit without paying.
-  - Free export includes watermark.
-  - Free watermark visible before export.
-  - Free user can export 1x.
-  - Free user can export 2x.
-  - Free user cannot export 4x.
-  - Free user stops after 10 exports/month.
-  - Free user with Pro-only feature gets upgrade prompt at export.
-
-Pro:
-  - User can open checkout.
-  - Dodo test checkout completes.
-  - Webhook updates subscription.
-  - Pro user can export without watermark.
-  - Pro user can export 4x.
-  - Billing portal opens.
-  - Cancellation eventually removes access according to subscription period.
-
-Founder:
-  - Founder offer shows while slots remain.
-  - Founder checkout reserves a slot.
-  - Successful founder checkout claims a slot.
-  - Abandoned founder checkout releases reservation after expiry.
-  - Founder offer disappears after 100 claimed users.
-
-Security:
-  - RLS enabled on all public tables.
-  - Client cannot write subscription/quota/webhook tables.
-  - Service role key absent from client bundle.
-  - Dodo API key absent from client bundle.
-  - Webhook rejects invalid signatures.
-  - Webhook duplicate event does not double-update or double-claim.
-  - Export prepare rejects unauthenticated calls.
-  - Export prepare rejects quota-exceeded free user.
-  - Export prepare rejects Pro-only feature for free user.
-  - No screenshot files/base64/object URLs are stored in Supabase.
-
-Build:
+Phase 1:
+  - Preview shows "Made with Snapingly" for free/local entitlement.
+  - Downloaded PNG includes the watermark.
+  - Copied PNG includes the watermark where clipboard copy is supported.
+  - No screenshot payload is sent to a route handler or third party.
   - npm run lint
   - npm run typecheck
-  - npm run build
 
+Future Supabase:
+  - Google sign-in works.
+  - Email OTP works.
+  - Auth callback works.
+  - Export flow resumes after auth.
+  - RLS prevents direct client writes to billing/quota/webhook tables.
 
-Source Notes Checked While Writing This Plan
-===========================================
+Future Dodo:
+  - Checkout starts from server route.
+  - Webhook rejects invalid signatures.
+  - Duplicate webhook does not double-update.
+  - Active subscription grants Pro.
+  - Cancelled/expired/failed subscription removes Pro according to policy.
 
-These official docs were checked on 2026-05-25:
-  - Supabase Auth overview:
-    https://supabase.com/docs/guides/auth
-  - Supabase server-side auth/SSR:
-    https://supabase.com/docs/guides/auth/server-side
-  - Supabase email OTP:
-    https://supabase.com/docs/reference/javascript/auth-signinwithotp
-  - Supabase Google login:
-    https://supabase.com/docs/guides/auth/social-login/auth-google
-  - Supabase RLS:
-    https://supabase.com/docs/guides/database/postgres/row-level-security
-  - Supabase securing APIs:
-    https://supabase.com/docs/guides/api/securing-your-api
-  - Supabase production checklist:
-    https://supabase.com/docs/guides/platform/going-into-prod/
-  - Supabase custom SMTP:
-    https://supabase.com/docs/guides/auth/auth-smtp
-  - Supabase redirect URLs:
-    https://supabase.com/docs/guides/auth/redirect-urls
-  - Dodo Payments introduction:
-    https://docs.dodopayments.com/introduction
-  - Dodo checkout sessions:
-    https://docs.dodopayments.com/developer-resources/checkout-session
-  - Dodo subscription integration:
-    https://docs.dodopayments.com/developer-resources/subscription-integration-guide
-  - Dodo subscription webhook events:
-    https://docs.dodopayments.com/developer-resources/webhooks/intents/subscription
-  - Dodo customer portal:
-    https://docs.dodopayments.com/features/customer-portal
+Privacy:
+  - No screenshot file, blob, object URL, base64, or rendered PNG is stored in
+    Supabase.
+  - No image payload is logged.
+  - No image payload is sent to Dodo.
 
 
 Final Recommendation
 ====================
 
-Launch with:
-  - Next.js route-handler backend, not MERN.
-  - Supabase Auth and Postgres.
-  - Dodo hosted checkout and webhooks.
-  - Free account-required exports with watermark.
-  - 10 free exports/month.
-  - Pro no-watermark and 4x export.
-  - Founder pricing through separate Dodo products and a server-enforced 100-slot
-    reservation system.
-  - Privacy-preserving client-side export for v1.
-  - Clear acceptance that client-side export gating is not unbreakable DRM.
+Launch in this order:
+  - Local contracts and free watermark.
+  - Snapingly branding and pricing shell.
+  - Supabase Auth.
+  - Supabase quota/export authorization.
+  - Dodo billing after pricing is final.
+  - Paid entitlement UI after paid features are final.
 
-This gives you the best launch balance: fast to build, simple to operate, good
-privacy story, low backend complexity, and strong enough monetization controls
-for normal users.
+This keeps the product shippable, private, and simple while leaving room to
+decide exact pricing and paid feature packaging without breaking the current
+editor.

@@ -36,6 +36,7 @@ import {
   BEAUTIFY_SETTING_LIMITS,
   createImageShadowCss,
 } from "@/lib/editor-defaults";
+import { LOCAL_FREE_EXPORT_AUTHORIZATION } from "@/lib/entitlements";
 import { isPhysicalDeviceMockup } from "@/lib/device-mockups";
 import {
   clampCropInset,
@@ -65,6 +66,7 @@ import type {
   TextLayerId,
   TextPosition,
 } from "@/types/editor";
+import type { ExportAuthorization } from "@/types/entitlements";
 
 type CanvasArtworkMode = "preview" | "export";
 
@@ -180,6 +182,7 @@ type MockupTransformControlsProps = {
 
 type CanvasArtworkProps = {
   className?: string;
+  exportAuthorization?: ExportAuthorization;
   isLoading?: boolean;
   mode: CanvasArtworkMode;
   onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
@@ -199,6 +202,24 @@ type ScreenshotWheelEvent = {
 
 const BACKGROUND_NOISE_TEXTURE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.85' intercept='-0.42'/%3E%3CfeFuncG type='linear' slope='1.85' intercept='-0.42'/%3E%3CfeFuncB type='linear' slope='1.85' intercept='-0.42'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='0.78'/%3E%3C/svg%3E\")";
+
+function SnapinglyWatermark({ text }: { text: string }) {
+  return (
+    <div
+      className="pointer-events-none absolute z-30 select-none rounded-full border border-white/25 bg-slate-950/40 font-semibold leading-none text-white/80 shadow-lg shadow-slate-950/20 backdrop-blur-md"
+      style={{
+        bottom: "clamp(14px, 1.6cqw, 26px)",
+        fontSize: "clamp(10px, 0.9cqw, 13px)",
+        letterSpacing: 0,
+        padding: "clamp(5px, 0.55cqw, 8px) clamp(10px, 1.2cqw, 16px)",
+        right: "clamp(14px, 1.6cqw, 26px)",
+        textShadow: "0 1px 8px rgba(15, 23, 42, 0.42)",
+      }}
+    >
+      {text}
+    </div>
+  );
+}
 
 function getContentLayoutClasses(textPosition: TextPosition) {
   if (textPosition === "left" || textPosition === "right") {
@@ -776,6 +797,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
   function CanvasArtwork(
     {
       className,
+      exportAuthorization = LOCAL_FREE_EXPORT_AUTHORIZATION,
       isLoading = false,
       mode,
       onImageLoad,
@@ -994,6 +1016,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       (state) => state.backgroundParallaxStrength,
     );
     const isExportMode = mode === "export";
+    const watermarkText = exportAuthorization.requiresWatermark
+      ? exportAuthorization.watermarkText
+      : null;
     const canvasPadding = isExportMode
       ? `${imagePadding}px`
       : `${(imagePadding / canvasWidth) * 100}cqw`;
@@ -3340,6 +3365,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         </div>
         {renderCanvasShadowSceneLayer("overlay")}
         {customTextOverlay}
+        {watermarkText && <SnapinglyWatermark text={watermarkText} />}
       </div>
     );
   },

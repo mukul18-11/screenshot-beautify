@@ -38,6 +38,8 @@ const CLEAN_ERROR_MESSAGES = new Set([
   "Export did not produce a PNG image.",
   "No artwork is ready to export.",
   "Unable to create PNG export.",
+  "Unable to authorize export.",
+  "Upgrade is required to export with the selected features.",
 ]);
 
 function getErrorMessage(error: unknown) {

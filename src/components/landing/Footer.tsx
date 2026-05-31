@@ -33,7 +33,7 @@ export default function Footer() {
             {/* Privacy Trust Badge */}
             <div className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/50 p-2 text-[10px] font-semibold text-slate-500 dark:border-white/5 dark:bg-white/5 dark:text-slate-400">
               <Shield className="h-3.5 w-3.5 text-emerald-600" />
-              <span>100% Client-side. Privacy guaranteed.</span>
+              <span>Local editing. No screenshot uploads.</span>
             </div>
 
             {/* Social & Contact Links */}
@@ -61,7 +61,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="mailto:support@screenshotbeautifier.com"
+                href="mailto:support@snapingly.com"
                 className="transition hover:text-slate-900 dark:hover:text-white"
                 aria-label="Send an Email"
               >
@@ -236,20 +236,20 @@ export default function Footer() {
             <span>© {CURRENT_YEAR} Screenshot Beautifier. All rights reserved.</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
+            <Link href="/privacy" className="transition hover:text-slate-900 dark:hover:text-white">
               Privacy Policy
             </Link>
             <span>•</span>
-            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
+            <Link href="/terms" className="transition hover:text-slate-900 dark:hover:text-white">
               Terms of Service
             </Link>
             <span>•</span>
-            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
-              Security
+            <Link href="/cookies" className="transition hover:text-slate-900 dark:hover:text-white">
+              Cookies
             </Link>
             <span>•</span>
-            <Link href="/#faq" className="transition hover:text-slate-900 dark:hover:text-white">
-              GDPR Compliance
+            <Link href="/privacy" className="transition hover:text-slate-900 dark:hover:text-white">
+              Data Rights
             </Link>
           </div>
           <div className="flex items-center gap-1">
