@@ -232,6 +232,7 @@ export function createImageBorderCss(
 export function createImageBorderBackingLayers(
   border: ImageBorder,
   radius: number,
+  isPreview = false,
 ): CSSProperties[] {
   if (!border.enabled) {
     return [];
@@ -255,7 +256,9 @@ export function createImageBorderBackingLayers(
         borderRadius: layerRadius,
         boxShadow: "0 18px 38px rgba(15, 23, 42, 0.24)",
         opacity: 0.92,
-        transform: "translate3d(0, 14px, 0) scale(0.96)",
+        transform: isPreview
+          ? "translate3d(0, 3px, 0) scale(0.96)"
+          : "translate3d(0, 14px, 0) scale(0.96)",
       },
     ];
   }
@@ -268,7 +271,9 @@ export function createImageBorderBackingLayers(
         borderRadius: layerRadius,
         boxShadow: "0 16px 28px rgba(15, 23, 42, 0.2)",
         opacity: 0.84,
-        transform: "translate3d(12px, 16px, 0) rotate(0.6deg) scale(0.97)",
+        transform: isPreview
+          ? "translate3d(3px, 4px, 0) rotate(0.6deg) scale(0.97)"
+          : "translate3d(12px, 16px, 0) rotate(0.6deg) scale(0.97)",
       },
       {
         background: paperSurface,
@@ -276,7 +281,9 @@ export function createImageBorderBackingLayers(
         borderRadius: layerRadius,
         boxShadow: "0 12px 20px rgba(15, 23, 42, 0.14)",
         opacity: 0.64,
-        transform: "translate3d(22px, 26px, 0) rotate(1.1deg) scale(0.94)",
+        transform: isPreview
+          ? "translate3d(5px, 6px, 0) rotate(1.1deg) scale(0.94)"
+          : "translate3d(22px, 26px, 0) rotate(1.1deg) scale(0.94)",
       },
     ];
   }
@@ -289,7 +296,9 @@ export function createImageBorderBackingLayers(
         borderRadius: layerRadius,
         boxShadow: "0 18px 34px rgba(15, 23, 42, 0.22)",
         opacity: 0.9,
-        transform: "translate3d(16px, -14px, 0) rotate(1.4deg) scale(0.98)",
+        transform: isPreview
+          ? "translate3d(4px, -3px, 0) rotate(1.4deg) scale(0.98)"
+          : "translate3d(16px, -14px, 0) rotate(1.4deg) scale(0.98)",
       },
       {
         background: paperSurface,
@@ -297,7 +306,9 @@ export function createImageBorderBackingLayers(
         borderRadius: layerRadius,
         boxShadow: "0 12px 22px rgba(15, 23, 42, 0.16)",
         opacity: 0.72,
-        transform: "translate3d(30px, -24px, 0) rotate(2.6deg) scale(0.96)",
+        transform: isPreview
+          ? "translate3d(7px, -5px, 0) rotate(2.6deg) scale(0.96)"
+          : "translate3d(30px, -24px, 0) rotate(2.6deg) scale(0.96)",
       },
     ];
   }

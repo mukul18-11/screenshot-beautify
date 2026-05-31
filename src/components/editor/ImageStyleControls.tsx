@@ -212,6 +212,7 @@ export default function ImageStyleControls({
                     const previewStyle = createImageBorderCss(
                       {
                         ...imageBorder,
+                        width: 1.5,
                         enabled: preset.id !== "none",
                         preset: preset.id as ImageBorderPreset,
                       },
@@ -220,10 +221,12 @@ export default function ImageStyleControls({
                     const previewBackingLayers = createImageBorderBackingLayers(
                       {
                         ...imageBorder,
+                        width: 1.5,
                         enabled: preset.id !== "none",
                         preset: preset.id as ImageBorderPreset,
                       },
                       7,
+                      true,
                     );
 
                     return (
@@ -239,7 +242,7 @@ export default function ImageStyleControls({
                             : "border-slate-200/80 bg-white/65 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/10",
                         )}
                       >
-                        <div className="mb-1.5 flex h-8 items-center justify-center rounded-md bg-[linear-gradient(135deg,#ecfeff,#f8fafc_46%,#eef2ff)] dark:bg-[linear-gradient(135deg,#020617,#111827)]">
+                        <div className="mb-1.5 flex h-8 items-center justify-center rounded-md bg-[linear-gradient(135deg,#ecfeff,#f8fafc_46%,#eef2ff)] dark:bg-[linear-gradient(135deg,#020617,#111827)] overflow-hidden">
                           <span className="relative block h-5 w-10">
                             {previewBackingLayers.map((layerStyle, index) => (
                               <span
