@@ -180,11 +180,11 @@ export default function DeviceMockupControls({
         </p>
       </div>
 
-      <div className="-mx-1 mb-4 overflow-x-auto pb-1">
+      <div className="mb-4">
         <div
           role="tablist"
           aria-label="Mockup categories"
-          className="flex min-w-max gap-1 px-1"
+          className="grid grid-cols-2 gap-1.5 min-[420px]:grid-cols-3"
         >
           {DEVICE_MOCKUP_TABS.map((tabId) => {
             const Icon = TAB_ICONS[tabId];
@@ -198,14 +198,14 @@ export default function DeviceMockupControls({
                 aria-selected={isActive}
                 onClick={() => setActiveTab(tabId)}
                 className={cn(
-                  "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
+                  "inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/25",
                   isActive
                     ? "border-slate-950 bg-slate-950 text-white shadow-sm dark:border-white dark:bg-white dark:text-slate-950"
                     : "border-slate-200 bg-white/65 text-slate-500 hover:border-slate-300 hover:bg-white hover:text-slate-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                {TAB_LABELS[tabId]}
+                <span className="min-w-0 truncate">{TAB_LABELS[tabId]}</span>
               </button>
             );
           })}

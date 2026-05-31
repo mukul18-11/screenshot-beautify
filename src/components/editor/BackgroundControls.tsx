@@ -945,10 +945,11 @@ export default function BackgroundControls() {
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-full rounded-xl border border-slate-200/80 bg-white/95 p-3 shadow-xl shadow-slate-950/15 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/40"
           >
-            <div className="space-y-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
               <EditorSliderRow
                 label="Noise"
                 labelClassName="text-slate-600 dark:text-slate-300"
+                variant="compactStepper"
                 min={BEAUTIFY_SETTING_LIMITS.backgroundNoise.min}
                 max={BEAUTIFY_SETTING_LIMITS.backgroundNoise.max}
                 step={BEAUTIFY_SETTING_LIMITS.backgroundNoise.step}
@@ -959,6 +960,7 @@ export default function BackgroundControls() {
               <EditorSliderRow
                 label="Blur"
                 labelClassName="text-slate-600 dark:text-slate-300"
+                variant="compactStepper"
                 min={BEAUTIFY_SETTING_LIMITS.backgroundBlur.min}
                 max={BEAUTIFY_SETTING_LIMITS.backgroundBlur.max}
                 step={BEAUTIFY_SETTING_LIMITS.backgroundBlur.step}

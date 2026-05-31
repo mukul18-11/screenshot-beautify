@@ -946,6 +946,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const removeScreenshotFromCanvas = useEditorStore(
       (state) => state.removeScreenshotFromCanvas,
     );
+    const beginHistoryBatch = useEditorStore(
+      (state) => state.beginHistoryBatch,
+    );
+    const commitHistoryBatch = useEditorStore(
+      (state) => state.commitHistoryBatch,
+    );
     const setImageTransform = useEditorStore(
       (state) => state.setImageTransform,
     );
@@ -1181,10 +1187,18 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           nextOffsetY = 0;
         }
 
+        beginHistoryBatch();
         setImageZoom(nextZoom);
         setImageZoomOffset(nextOffsetX, nextOffsetY);
+        commitHistoryBatch();
       },
-      [isExportMode, setImageZoom, setImageZoomOffset],
+      [
+        beginHistoryBatch,
+        commitHistoryBatch,
+        isExportMode,
+        setImageZoom,
+        setImageZoomOffset,
+      ],
     );
 
     useEffect(() => {
@@ -1266,6 +1280,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
         textDragUpdateRef.current = null;
         transformUpdateRef.current = null;
+        useEditorStore.getState().commitHistoryBatch();
       };
     }, []);
 
@@ -1624,6 +1639,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       cancelTextDragUpdate();
       const layerOffset = getTextLayerOffset(layerId);
 
+      beginHistoryBatch();
       textDragActiveRef.current = true;
       textDragStateRef.current = {
         canvasRect: canvasShell.getBoundingClientRect(),
@@ -1791,6 +1807,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       textDragStateRef.current = null;
       setIsDraggingCanvasItem(false);
       setTextDragGuide({ horizontal: null, vertical: null });
+      commitHistoryBatch();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -1844,6 +1861,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       setIsDraggingCanvasItem(true);
       textDragActiveRef.current = false;
       cancelTextDragUpdate();
+      beginHistoryBatch();
       textDragActiveRef.current = true;
       textResizeStateRef.current = {
         anchorX: anchor.x,
@@ -1953,6 +1971,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         : null;
       textResizeStateRef.current = null;
       setIsDraggingCanvasItem(false);
+      commitHistoryBatch();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -1992,6 +2011,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       setIsDraggingCanvasItem(true);
       textDragActiveRef.current = false;
       cancelTextDragUpdate();
+      beginHistoryBatch();
       textDragActiveRef.current = true;
       textRotateStateRef.current = {
         centerX,
@@ -2069,6 +2089,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         : null;
       textRotateStateRef.current = null;
       setIsDraggingCanvasItem(false);
+      commitHistoryBatch();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -2152,6 +2173,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       setActiveTextLayerId(null);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
+      beginHistoryBatch();
       transformDragActiveRef.current = true;
       mockupDragStateRef.current = {
         canvasRect: canvasShell.getBoundingClientRect(),
@@ -2247,6 +2269,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       mockupDragStateRef.current = null;
       setIsDraggingCanvasItem(false);
+      commitHistoryBatch();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -2282,6 +2305,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       setIsDraggingCanvasItem(true);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
+      beginHistoryBatch();
       transformDragActiveRef.current = true;
       mockupResizeStateRef.current = {
         anchorX: anchor.x,
@@ -2492,6 +2516,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.stopPropagation();
       mockupResizeStateRef.current = null;
       setIsDraggingCanvasItem(false);
+      commitHistoryBatch();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -2528,6 +2553,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       setIsDraggingCanvasItem(true);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
+      beginHistoryBatch();
       transformDragActiveRef.current = true;
       mockupRotateStateRef.current = {
         centerX,
@@ -2599,6 +2625,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.stopPropagation();
       mockupRotateStateRef.current = null;
       setIsDraggingCanvasItem(false);
+      commitHistoryBatch();
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);

@@ -215,6 +215,8 @@ type EditorStore = EditorDesignSettings & {
     undo: () => void;
     redo: () => void;
     clearHistory: () => void;
+    beginHistoryBatch: () => void;
+    commitHistoryBatch: () => void;
     applyScreenshotLayout: (presetId: ScreenshotLayoutPresetId) => void;
     selectScreenshot: (screenshotId: string) => void;
     placeScreenshot: (
@@ -1428,6 +1430,8 @@ function didLayerSettingsChange(
 
 let isApplyingHistoryStateChange = false;
 let isSyncingActiveScreenshotSettings = false;
+let historyBatchDepth = 0;
+let historyBatchStartSnapshot: EditorHistorySnapshot | null = null;
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
   historyPast: [],
@@ -1498,6 +1502,51 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     try {
       set({
         historyPast: [],
+        historyFuture: [],
+      });
+    } finally {
+      isApplyingHistoryStateChange = false;
+    }
+  },
+  beginHistoryBatch: () => {
+    if (historyBatchDepth === 0) {
+      historyBatchStartSnapshot = createHistorySnapshot(get());
+    }
+
+    historyBatchDepth += 1;
+  },
+  commitHistoryBatch: () => {
+    if (historyBatchDepth <= 0) {
+      return;
+    }
+
+    historyBatchDepth -= 1;
+
+    if (historyBatchDepth > 0) {
+      return;
+    }
+
+    const previousSnapshot = historyBatchStartSnapshot;
+    historyBatchStartSnapshot = null;
+
+    if (!previousSnapshot) {
+      return;
+    }
+
+    const state = get();
+    const nextSnapshot = createHistorySnapshot(state);
+
+    if (!didHistorySnapshotChange(previousSnapshot, nextSnapshot)) {
+      return;
+    }
+
+    isApplyingHistoryStateChange = true;
+    try {
+      set({
+        historyPast: [
+          ...state.historyPast,
+          previousSnapshot,
+        ].slice(-MAX_EDITOR_HISTORY_ENTRIES),
         historyFuture: [],
       });
     } finally {
@@ -2908,6 +2957,8 @@ useEditorStore.subscribe((state, previousState) => {
   }
 
   if (didScreenshotLibraryChange(previousState, state)) {
+    historyBatchDepth = 0;
+    historyBatchStartSnapshot = null;
     isApplyingHistoryStateChange = true;
     try {
       useEditorStore.setState({
@@ -2920,21 +2971,23 @@ useEditorStore.subscribe((state, previousState) => {
     return;
   }
 
-  const previousHistorySnapshot = createHistorySnapshot(previousState);
-  const nextHistorySnapshot = createHistorySnapshot(state);
+  if (historyBatchDepth === 0) {
+    const previousHistorySnapshot = createHistorySnapshot(previousState);
+    const nextHistorySnapshot = createHistorySnapshot(state);
 
-  if (didHistorySnapshotChange(previousHistorySnapshot, nextHistorySnapshot)) {
-    isApplyingHistoryStateChange = true;
-    try {
-      useEditorStore.setState({
-        historyPast: [
-          ...state.historyPast,
-          previousHistorySnapshot,
-        ].slice(-MAX_EDITOR_HISTORY_ENTRIES),
-        historyFuture: [],
-      });
-    } finally {
-      isApplyingHistoryStateChange = false;
+    if (didHistorySnapshotChange(previousHistorySnapshot, nextHistorySnapshot)) {
+      isApplyingHistoryStateChange = true;
+      try {
+        useEditorStore.setState({
+          historyPast: [
+            ...state.historyPast,
+            previousHistorySnapshot,
+          ].slice(-MAX_EDITOR_HISTORY_ENTRIES),
+          historyFuture: [],
+        });
+      } finally {
+        isApplyingHistoryStateChange = false;
+      }
     }
   }
 

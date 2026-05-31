@@ -1,7 +1,5 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
-
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
@@ -41,16 +39,6 @@ export default function EditorSliderRow({
 }: EditorSliderRowProps) {
   const inputId = createInputId(label, idSuffix);
   const displayValue = valueFormatter ? valueFormatter(value) : String(value);
-  const decrementDisabled = disabled || value <= min;
-  const incrementDisabled = disabled || value >= max;
-
-  function clampNextValue(nextValue: number) {
-    return Math.min(max, Math.max(min, nextValue));
-  }
-
-  function handleStep(direction: -1 | 1) {
-    onChange(clampNextValue(value + step * direction));
-  }
 
   if (variant === "compactStepper") {
     return (
@@ -78,15 +66,6 @@ export default function EditorSliderRow({
         </div>
 
         <div className="mt-2 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleStep(-1)}
-            disabled={decrementDisabled}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 disabled:pointer-events-none disabled:opacity-35 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white/25"
-            aria-label={`Decrease ${label}`}
-          >
-            <Minus className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
           <Slider
             id={inputId}
             min={min}
@@ -104,15 +83,6 @@ export default function EditorSliderRow({
             aria-label={label}
             className="min-w-0 flex-1"
           />
-          <button
-            type="button"
-            onClick={() => handleStep(1)}
-            disabled={incrementDisabled}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 disabled:pointer-events-none disabled:opacity-35 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white/25"
-            aria-label={`Increase ${label}`}
-          >
-            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
         </div>
       </div>
     );
