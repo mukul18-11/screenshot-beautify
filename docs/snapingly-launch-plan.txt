@@ -433,7 +433,10 @@ Prerequisites:
 
 Success criteria:
   - Google sign-in works.
+  - Microsoft sign-in works if the Supabase Azure provider is configured.
+  - GitHub sign-in works if the Supabase GitHub provider is configured.
   - Email OTP works.
+  - Email/password login, signup, and recovery work.
   - Auth callback works.
   - User can edit without signing in.
   - Sign-in appears at export/account flow, not before editing.
@@ -442,7 +445,9 @@ Tasks:
   - Install @supabase/supabase-js and @supabase/ssr.
   - Add Supabase client/server helpers.
   - Add auth callback route.
-  - Add AuthModal and AccountMenu.
+  - Add dedicated login page and AccountMenu link.
+  - Configure the Supabase recovery email template to expose a verification
+    code/token for the in-app forgot-password flow.
   - Keep screenshots local and editor state in memory.
 
 Phase 4 - Database And Quota

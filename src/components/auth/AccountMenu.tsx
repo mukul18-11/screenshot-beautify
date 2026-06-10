@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { ChevronDown, LogOut, UserCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import AuthModal from "@/components/auth/AuthModal";
 import { getUserDisplayName } from "@/lib/auth/profile";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AccountMenu() {
   const supabase = useMemo(() => createClient(), []);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(() => Boolean(supabase));
   const [user, setUser] = useState<User | null>(null);
@@ -62,19 +61,27 @@ export default function AccountMenu() {
   }
 
   if (!user) {
-    return (
-      <>
+    if (isLoading) {
+      return (
         <button
           type="button"
-          onClick={() => setIsAuthOpen(true)}
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)] disabled:pointer-events-none disabled:opacity-55"
-          disabled={isLoading}
+          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] opacity-55"
+          disabled
         >
           <UserCircle className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Sign in</span>
         </button>
-        <AuthModal open={isAuthOpen} onOpenChange={setIsAuthOpen} />
-      </>
+      );
+    }
+
+    return (
+      <Link
+        href="/login?next=/editor"
+        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[var(--editor-border)] bg-[var(--editor-panel-muted)] px-2.5 text-[11px] font-bold text-[var(--editor-soft)] transition hover:bg-[var(--editor-border)] hover:text-[var(--editor-ink)]"
+      >
+        <UserCircle className="h-4 w-4" aria-hidden="true" />
+        <span className="hidden sm:inline">Sign in</span>
+      </Link>
     );
   }
 

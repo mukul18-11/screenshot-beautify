@@ -9,7 +9,17 @@ function getSafeNextPath(value: string | null) {
     return "/editor";
   }
 
-  return value;
+  try {
+    const url = new URL(value, "https://snapingly.local");
+
+    if (url.origin !== "https://snapingly.local") {
+      return "/editor";
+    }
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/editor";
+  }
 }
 
 function createNoStoreRedirect(requestUrl: string, path: string) {
