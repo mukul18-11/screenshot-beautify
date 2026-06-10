@@ -42,6 +42,26 @@ export default function EditorClient() {
   }, []);
 
   useEffect(() => {
+    const rootElements = [document.documentElement, document.body];
+
+    rootElements.forEach((element) => {
+      element.classList.add("editor-root");
+      element.classList.toggle("editor-root-dark", theme === "dark");
+      element.classList.toggle("editor-root-light", theme === "light");
+    });
+
+    return () => {
+      rootElements.forEach((element) => {
+        element.classList.remove(
+          "editor-root",
+          "editor-root-dark",
+          "editor-root-light",
+        );
+      });
+    };
+  }, [theme]);
+
+  useEffect(() => {
     if (!isPreviewMode) {
       return;
     }
@@ -74,7 +94,9 @@ export default function EditorClient() {
     <ExportProvider>
       <main
         className={cn(
+          "editor-shell",
           theme === "dark" && "dark",
+          theme === "dark" ? "editor-shell-dark" : "editor-shell-light",
           isPreviewActive
             ? "relative h-screen min-h-screen overflow-hidden bg-[#090909] text-white"
             : "relative min-h-screen bg-[var(--editor-bg)] text-[var(--editor-ink)] lg:h-screen lg:overflow-hidden",

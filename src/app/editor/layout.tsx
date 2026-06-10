@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Editor",
@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/editor",
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#090909",
 };
 
 export default function EditorLayout({

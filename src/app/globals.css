@@ -89,6 +89,22 @@ body {
   text-rendering: geometricPrecision;
 }
 
+html.editor-root-dark,
+body.editor-root-dark,
+html:has(.editor-shell-dark),
+body:has(.editor-shell-dark) {
+  background: #090909;
+  color-scheme: dark;
+}
+
+html.editor-root-light,
+body.editor-root-light,
+html:has(.editor-shell-light),
+body:has(.editor-shell-light) {
+  background: #ffffff;
+  color-scheme: light;
+}
+
 @keyframes gradient-flow {
   0% {
     background-position: 0% 50%;
