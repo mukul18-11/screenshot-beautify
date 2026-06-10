@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type SVGProps,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, LockKeyhole, Mail } from "lucide-react";
@@ -108,40 +114,58 @@ function validatePassword(value: string) {
   return null;
 }
 
+function GoogleLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v2.98h3.84c2.25-2.07 3.58-5.12 3.58-8.8z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.08 7.93-2.93l-3.84-2.98c-1.08.72-2.45 1.15-4.09 1.15-3.14 0-5.8-2.12-6.75-4.97H1.29v3.07C3.26 21.26 7.3 24 12 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.25 14.27A7.17 7.17 0 0 1 4.87 12c0-.79.14-1.55.38-2.27V6.66H1.29A11.93 11.93 0 0 0 0 12c0 1.93.46 3.76 1.29 5.34l3.96-3.07z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.76c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.21 15.24 0 12 0 7.3 0 3.26 2.74 1.29 6.66l3.96 3.07C6.2 6.88 8.86 4.76 12 4.76z"
+      />
+    </svg>
+  );
+}
+
+function MicrosoftLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path fill="#F25022" d="M1 1h10v10H1z" />
+      <path fill="#7FBA00" d="M13 1h10v10H13z" />
+      <path fill="#00A4EF" d="M1 13h10v10H1z" />
+      <path fill="#FFB900" d="M13 13h10v10H13z" />
+    </svg>
+  );
+}
+
+function GitHubLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M12 .3C5.37.3 0 5.67 0 12.3c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.04c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.08 1.83 2.82 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.66-.3-5.46-1.33-5.46-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.57A12.02 12.02 0 0 0 24 12.3C24 5.67 18.63.3 12 .3z" />
+    </svg>
+  );
+}
+
 function ProviderIcon({ provider }: { provider: OAuthProvider }) {
   if (provider === "github") {
-    return (
-      <span
-        className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-black text-[#101010]"
-        aria-hidden="true"
-      >
-        GH
-      </span>
-    );
+    return <GitHubLogo className="h-5 w-5 text-white" />;
   }
 
   if (provider === "azure") {
-    return (
-      <span
-        className="grid h-5 w-5 grid-cols-2 gap-0.5 overflow-hidden rounded-[3px]"
-        aria-hidden="true"
-      >
-        <span className="bg-[#f25022]" />
-        <span className="bg-[#7fba00]" />
-        <span className="bg-[#00a4ef]" />
-        <span className="bg-[#ffb900]" />
-      </span>
-    );
+    return <MicrosoftLogo className="h-5 w-5" />;
   }
 
-  return (
-    <span
-      className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-black text-[#4285f4]"
-      aria-hidden="true"
-    >
-      G
-    </span>
-  );
+  return <GoogleLogo className="h-5 w-5" />;
 }
 
 function AuthInput({
