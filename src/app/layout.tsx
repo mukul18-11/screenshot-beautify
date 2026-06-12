@@ -38,6 +38,15 @@ export const metadata: Metadata = {
   creator: "Screenshot Beautifier",
   publisher: "Screenshot Beautifier",
   category: "Design tool",
+  icons: {
+    icon: [
+      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
+      { url: "/favicon.ico?v=2", sizes: "any" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" },
+    ],
+  },
   keywords: [
     "screenshot beautifier",
     "screenshot mockup",
