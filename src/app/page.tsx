@@ -18,7 +18,7 @@ function StructuredData() {
   const webSite = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Screenshot Beautifier",
+    name: "Snapingly",
     headline: SITE_TITLE,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
@@ -32,7 +32,7 @@ function StructuredData() {
   const softwareApplication = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Screenshot Beautifier",
+    name: "Snapingly",
     applicationCategory: "DesignApplication",
     operatingSystem: "Web",
     url: SITE_URL,
@@ -94,7 +94,16 @@ export default function Home() {
   return (
     <>
       <StructuredData />
-      <main className="min-h-screen overflow-x-clip bg-white text-slate-950 dark:bg-slate-950 dark:text-white">
+      <main className="relative min-h-screen overflow-x-clip bg-white text-slate-950 dark:bg-slate-950 dark:text-white">
+        {/* Ambient page backdrop: top brand glow + film grain */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0"
+          aria-hidden="true"
+        >
+          <div className="absolute inset-x-0 top-0 h-[44rem] bg-[radial-gradient(64rem_32rem_at_50%_-14%,rgba(34,211,238,0.11),transparent_72%)] dark:bg-[radial-gradient(64rem_32rem_at_50%_-14%,rgba(34,211,238,0.09),transparent_72%)]" />
+          <div className="bg-noise absolute inset-0 opacity-[0.035] dark:opacity-[0.05]" />
+        </div>
+        <div className="relative z-10">
         <LandingNav />
         <HeroSection />
         <ExampleShowcase />
@@ -103,6 +112,7 @@ export default function Home() {
         <FAQSection />
         <CTASection />
         <Footer />
+        </div>
       </main>
     </>
   );

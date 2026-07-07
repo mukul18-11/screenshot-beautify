@@ -90,7 +90,7 @@ export const COMPARISONS: Comparison[] = [
       },
       {
         criterion: "Account required",
-        snapingly: "No sign-up needed to edit",
+        snapingly: "Free account — sign up in seconds with Google, GitHub, or email",
         competitor: "Free account required to save and export files",
       },
       {
@@ -142,7 +142,7 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Do I need a Figma account to make a screenshot mockup with Snapingly?",
         answer:
-          "No. Snapingly requires no account to edit — you paste or upload an image and start styling it immediately in the browser.",
+          "No Figma account needed. You just need a free Snapingly account — sign up in seconds, then paste or upload an image and start styling it immediately in the browser.",
       },
       {
         question: "Does Snapingly support browser frames like Figma mockup plugins do?",
@@ -246,7 +246,7 @@ export const COMPARISONS: Comparison[] = [
       {
         heading: "Cost and account overhead",
         body: [
-          "Canva's most useful screenshot-adjacent elements — premium frames, mockup graphics, brand kits — often sit behind a Canva Pro subscription. Snapingly is free to use directly in the browser with no account required to start editing.",
+          "Canva's most useful screenshot-adjacent elements — premium frames, mockup graphics, brand kits — often sit behind a Canva Pro subscription. Snapingly runs directly in the browser with just a free account — no paid subscription needed.",
         ],
       },
       {
@@ -296,7 +296,7 @@ export const COMPARISONS: Comparison[] = [
       "The screenshot contains private data — dashboards, financial figures, internal tools, unreleased features",
       "You want the result instantly without waiting on a server round trip",
       "You don't want your image sitting in a third-party server's storage or logs",
-      "You're doing quick, one-off exports without creating an account",
+      "You're doing quick, one-off exports with a free account — no subscription required",
     ],
     bestForCompetitor: [
       "You need server-side rendering features that are genuinely hard to do in a browser, like heavy batch automation via API",

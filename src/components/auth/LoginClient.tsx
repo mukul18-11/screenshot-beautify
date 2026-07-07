@@ -9,9 +9,10 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 
+import { SnapinglyMark } from "@/components/brand/SnapinglyLogo";
 import { getSafeNextPath } from "@/lib/auth/next-path";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -560,9 +561,10 @@ export default function LoginClient() {
             className="flex items-center gap-3 text-sm font-black text-white"
             aria-label="Snapingly home"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 via-orange-400 to-teal-400 text-slate-950 shadow-lg shadow-black/20">
-              <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-            </span>
+            <SnapinglyMark
+              size={36}
+              className="shrink-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+            />
             <span className="hidden sm:inline">Snapingly</span>
           </Link>
           <Link

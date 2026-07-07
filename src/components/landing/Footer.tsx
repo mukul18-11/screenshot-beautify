@@ -1,30 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Shield, Heart, Globe, BookOpen } from "lucide-react";
+import { Shield, Heart, Globe, BookOpen } from "lucide-react";
+
+import { SnapinglyLogo } from "@/components/brand/SnapinglyLogo";
 
 export default function Footer() {
   const CURRENT_YEAR = new Date().getFullYear();
 
   return (
-    <footer className="w-full border-t border-slate-100 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-400">
+    <footer className="relative w-full overflow-hidden border-t border-slate-100 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-400">
+      {/* Gradient hairline along the top edge */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"
+        aria-hidden="true"
+      />
+      {/* Oversized ghost wordmark */}
+      <div
+        className="pointer-events-none absolute inset-x-0 -bottom-10 hidden select-none justify-center overflow-hidden lg:flex"
+        aria-hidden="true"
+      >
+        <span className="whitespace-nowrap font-display text-[11rem] font-black leading-none tracking-[-0.05em] text-slate-950/[0.025] dark:text-white/[0.025]">
+          Snapingly
+        </span>
+      </div>
+
       {/* Primary Footer Directory */}
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3 lg:grid-cols-5">
           
           {/* Column 1: Brand Profile & Security Trust */}
           <div className="flex flex-col gap-4 md:col-span-3 lg:col-span-1">
             <Link
               href="/"
-              className="flex items-center gap-2.5 text-slate-950 dark:text-slate-100"
-              aria-label="Screenshot Beautifier home"
+              className="text-slate-950 dark:text-slate-100"
+              aria-label="Snapingly home"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-md dark:bg-white dark:text-slate-950">
-                <Sparkles className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="text-sm font-display font-bold tracking-tight text-slate-950 dark:text-white">
-                Screenshot Beautifier
-              </span>
+              <SnapinglyLogo size="sm" />
             </Link>
             <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
               The premium, local-first utility for turning raw screenshots into high-impact launch creatives in one click.
@@ -233,7 +245,7 @@ export default function Footer() {
         {/* Footer Base Legal & Credits */}
         <div className="mt-8 border-t border-slate-100 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px] font-medium text-slate-400 dark:border-white/10 dark:text-slate-500">
           <div>
-            <span>© {CURRENT_YEAR} Screenshot Beautifier. All rights reserved.</span>
+            <span>© {CURRENT_YEAR} Snapingly. All rights reserved.</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
             <Link href="/privacy" className="transition hover:text-slate-900 dark:hover:text-white">

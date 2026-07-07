@@ -28,26 +28,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_TITLE,
-    template: "%s — Screenshot Beautifier",
+    template: "%s — Snapingly",
   },
   description: SITE_DESCRIPTION,
   alternates: {
     canonical: "/",
   },
-  authors: [{ name: "Screenshot Beautifier" }],
-  creator: "Screenshot Beautifier",
-  publisher: "Screenshot Beautifier",
+  authors: [{ name: "Snapingly" }],
+  creator: "Snapingly",
+  publisher: "Snapingly",
   category: "Design tool",
-  icons: {
-    icon: [
-      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
-      { url: "/favicon.ico?v=2", sizes: "any" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" },
-    ],
-  },
   keywords: [
+    "snapingly",
     "screenshot beautifier",
     "screenshot mockup",
     "screenshot mockup generator",
@@ -63,7 +55,7 @@ export const metadata: Metadata = {
     "client-side screenshot editor",
     "launch graphics",
   ],
-  applicationName: "Screenshot Beautifier",
+  applicationName: "Snapingly",
   robots: {
     index: true,
     follow: true,
@@ -80,14 +72,14 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     type: "website",
     url: "/",
-    siteName: "Screenshot Beautifier",
+    siteName: "Snapingly",
     locale: "en_US",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Screenshot Beautifier product mockup",
+        alt: "Snapingly — turn screenshots into launch-ready visuals",
       },
     ],
   },

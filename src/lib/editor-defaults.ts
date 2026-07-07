@@ -179,7 +179,7 @@ export const DEFAULT_TILT_SETTINGS: TiltSettings = {
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   exportScale: 2,
-  exportFileName: "screenshot-beautifier",
+  exportFileName: "snapingly-export",
   isExporting: false,
   lastExportedAt: null,
 };

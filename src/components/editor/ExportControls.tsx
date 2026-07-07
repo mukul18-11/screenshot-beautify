@@ -256,7 +256,7 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
             type="text"
             value={exportFileName}
             onChange={(event) => setExportFileName(event.target.value)}
-            placeholder="screenshot-beautifier"
+            placeholder="snapingly-export"
             className="mt-2 h-10 w-full rounded-xl border border-slate-200/80 bg-white/80 px-3 text-sm font-medium text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-950/10 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-white/25 dark:focus:ring-white/10"
           />
         </div>

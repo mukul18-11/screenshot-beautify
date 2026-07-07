@@ -9,12 +9,12 @@ import {
   Minimize2,
   Moon,
   RotateCcw,
-  Sparkles,
   Sun,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import AccountMenu from "@/components/auth/AccountMenu";
+import { SnapinglyMark } from "@/components/brand/SnapinglyLogo";
 import CanvasPreview from "@/components/editor/CanvasPreview";
 import EditorSettingsPanel from "@/components/editor/EditorSettingsPanel";
 import { ExportProvider } from "@/components/editor/ExportProvider";
@@ -131,16 +131,17 @@ export default function EditorClient() {
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-950 shadow-lg shadow-slate-950/15">
-                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                </div>
+              <div className="flex items-center gap-2.5">
+                <SnapinglyMark
+                  size={36}
+                  className="shrink-0 drop-shadow-[0_2px_8px_rgba(2,6,23,0.25)]"
+                />
                 <div>
                   <span className="block text-sm font-bold font-display tracking-tight text-[var(--editor-ink)]">
-                    Screenshot Beautifier
+                    Snapingly
                   </span>
                   <span className="hidden text-[11px] font-semibold text-[var(--editor-muted)] sm:block">
-                    Launch visuals, <span className="bg-gradient-to-r from-teal-500 via-cyan-500 via-indigo-500 via-sky-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent font-bold animate-gradient-flow">made locally</span>
+                    Launch visuals, <span className="text-gradient-brand font-bold">made locally</span>
                   </span>
                 </div>
               </div>

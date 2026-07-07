@@ -48,6 +48,10 @@ const config: Config = {
       boxShadow: {
         soft: "0 24px 80px -40px rgba(15, 23, 42, 0.45)",
       },
+      backgroundImage: {
+        "gradient-brand":
+          "linear-gradient(135deg, #2dd4bf, #22d3ee 50%, #6366f1)",
+      },
       fontFamily: {
         sans: ["var(--font-app-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         display: ["var(--font-app-display)", "var(--font-app-sans)", "ui-sans-serif", "system-ui", "sans-serif"],

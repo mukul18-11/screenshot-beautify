@@ -4,62 +4,53 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import LandingHoverTilt from "@/components/landing/LandingHoverTilt";
 
-const textContainerVariants = {
-  hidden: { opacity: 1 },
+const textContainerVariants: Variants = {
+  hidden: {},
   show: {
-    opacity: 1,
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.09,
       delayChildren: 0.05,
     },
   },
-} as const;
+};
 
-const textItemVariants = {
-  hidden: { opacity: 1, y: 0 },
+const textItemVariants: Variants = {
+  hidden: { opacity: 0, y: 18 },
   show: {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
-      stiffness: 90,
-      damping: 16,
+      duration: 0.55,
+      ease: [0.21, 0.47, 0.32, 0.98],
     },
   },
-} as const;
-
-const itemVariants = {
-  hidden: { opacity: 1, y: 0 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 18,
-    },
-  },
-} as const;
+};
 
 function HeroMockup() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={{ opacity: 1, y: 0, scale: 1 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.65, delay: 0.15, type: "spring", stiffness: 60, damping: 14 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
       className="relative mx-auto w-full max-w-4xl lg:max-w-none"
       aria-hidden="true"
     >
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-[radial-gradient(circle_at_14%_16%,rgba(20,184,166,0.38),transparent_28%),radial-gradient(circle_at_86%_14%,rgba(251,146,60,0.32),transparent_28%),radial-gradient(circle_at_78%_86%,rgba(236,72,153,0.22),transparent_30%),linear-gradient(135deg,#0f172a_0%,#111827_48%,#164e63_100%)] p-3 shadow-2xl shadow-slate-950/25 sm:p-5 lg:p-6">
+      {/* Soft ambient glow bleeding out behind the panel */}
+      <div className="pointer-events-none absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(34,211,238,0.14),transparent_70%)] blur-2xl" />
+
+      <div className="shadow-elevated-dark relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[radial-gradient(circle_at_14%_16%,rgba(20,184,166,0.38),transparent_28%),radial-gradient(circle_at_86%_14%,rgba(251,146,60,0.32),transparent_28%),radial-gradient(circle_at_78%_86%,rgba(236,72,153,0.22),transparent_30%),linear-gradient(135deg,#0f172a_0%,#111827_48%,#164e63_100%)] p-3 sm:p-5 lg:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:24px_24px] opacity-30" />
-        
+        <div className="bg-noise pointer-events-none absolute inset-0 opacity-[0.06]" />
+        {/* Top-edge light catch */}
+        <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
+
         {/* Animated ambient backdrop glows */}
         <motion.div
           animate={shouldReduceMotion ? undefined : {
@@ -69,7 +60,7 @@ function HeroMockup() {
             y: [0, -10, 0],
           }}
           transition={{
-            duration: 6,
+            duration: 11,
             repeat: Infinity,
             ease: "easeInOut",
           }}
@@ -83,7 +74,7 @@ function HeroMockup() {
             y: [0, 15, 0],
           }}
           transition={{
-            duration: 8,
+            duration: 13,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 1,
@@ -92,20 +83,20 @@ function HeroMockup() {
         />
 
         <div className="relative">
-          <motion.div 
+          <motion.div
             variants={textContainerVariants}
-            initial="hidden"
+            initial={shouldReduceMotion ? false : "hidden"}
             animate="show"
             className="mb-5 flex flex-col gap-4 text-white sm:flex-row sm:items-end sm:justify-between"
           >
             <div>
-              <motion.div 
+              <motion.div
                 variants={textItemVariants}
                 className="mb-3 inline-flex rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-xl"
               >
                 QUICK STYLE PREVIEW
               </motion.div>
-              <motion.p 
+              <motion.p
                 variants={textItemVariants}
                 className="max-w-[34rem] font-display text-2xl font-bold leading-[1.04] sm:text-[2.45rem] lg:text-[2.65rem]"
               >
@@ -115,7 +106,7 @@ function HeroMockup() {
                 </span>
               </motion.p>
             </div>
-            <motion.div 
+            <motion.div
               variants={textItemVariants}
               className="flex shrink-0 items-end justify-start lg:justify-end"
             >
@@ -129,7 +120,6 @@ function HeroMockup() {
           <div className="relative grid gap-6 md:grid-cols-2 items-stretch mt-4">
             {/* Left Card: Before (Raw, Boring Screenshot) */}
             <motion.div
-              initial={{ opacity: 1, y: 0 }}
               whileHover={{ y: -4 }}
               transition={{
                 duration: 0.3,
@@ -146,13 +136,13 @@ function HeroMockup() {
                   Before
                 </span>
               </div>
-              
+
               <div className="relative flex-1 rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-col justify-center items-center overflow-hidden dark:border-slate-800 dark:bg-slate-950">
                 {/* A plain, straight screenshot image with crisp borders, fully visible, no faded overlay */}
                 <div className="relative w-full overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm aspect-[16/10] dark:border-slate-800 dark:bg-slate-900">
                   <Image
-                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" 
-                    alt="Raw SaaS Dashboard" 
+                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80"
+                    alt="Raw SaaS Dashboard"
                     fill
                     priority
                     sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 90vw"
@@ -248,29 +238,35 @@ export default function HeroSection() {
 
   return (
     <section className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] w-full max-w-6xl items-center gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.78fr_1.12fr] lg:gap-10 lg:py-12">
+      {/* Dot grid fading out behind the copy column */}
+      <div
+        className="pointer-events-none absolute -top-14 left-1/2 -z-10 h-[36rem] w-screen max-w-[90rem] -translate-x-1/2 bg-[radial-gradient(rgba(15,23,42,0.09)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_65%_55%_at_38%_35%,black_20%,transparent_75%)] [-webkit-mask-image:radial-gradient(ellipse_65%_55%_at_38%_35%,black_20%,transparent_75%)] dark:bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1px)]"
+        aria-hidden="true"
+      />
+
       <div className="text-center lg:text-left">
         <motion.div
           variants={textContainerVariants}
-          initial="hidden"
+          initial={shouldReduceMotion ? false : "hidden"}
           animate="show"
           className="mx-auto max-w-3xl lg:mx-0"
         >
-          <motion.div 
+          <motion.div
             variants={textItemVariants}
-            className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-white/70 bg-white/65 px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur-xl lg:mx-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300"
+            className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200/90 bg-white/70 px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur-xl lg:mx-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300"
           >
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
             <span className="truncate">Your screenshots never leave your browser.</span>
           </motion.div>
-          
-          <motion.h1 
+
+          <motion.h1
             variants={textItemVariants}
-            className="text-balance font-display text-4xl font-extrabold leading-[1.03] tracking-tight text-slate-950 sm:text-5xl lg:text-[4.25rem] dark:text-white"
+            className="text-balance font-display text-4xl font-extrabold leading-[1.03] tracking-[-0.03em] text-slate-950 sm:text-5xl lg:text-[4.25rem] dark:text-white"
           >
-            Screenshot Beautifier turns boring screenshots into <span className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent font-black tracking-tighter drop-shadow-[0_2px_10px_rgba(6,182,212,0.1)]">launch-ready visuals</span>
+            Snapingly turns raw screenshots into <span className="text-gradient-brand font-black">launch-ready visuals</span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             variants={textItemVariants}
             className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0 dark:text-slate-400"
           >
@@ -278,81 +274,65 @@ export default function HeroSection() {
             frames, text, and tasteful depth, then export a sharp PNG for X,
             LinkedIn, Product Hunt, decks, or landing pages.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             variants={textItemVariants}
             className="mt-7 flex flex-col items-center gap-3 sm:flex-row lg:justify-start"
           >
             <motion.div
-              whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
+              whileHover={{ y: shouldReduceMotion ? 0 : -2 }}
               whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
-              className="inline-block"
+              className="group relative inline-flex items-center justify-center overflow-hidden rounded-[13px] bg-gradient-brand p-[1.5px] shadow-lg shadow-cyan-500/10"
             >
-              <motion.div
-                animate={shouldReduceMotion ? undefined : {
-                  scale: [1, 1.03, 1],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="relative group p-[1.5px] rounded-[13px] overflow-hidden bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 animate-gradient-flow inline-flex items-center justify-center shadow-xl shadow-slate-950/10"
-              >
-                {/* Ambient Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-400 to-indigo-500 rounded-[13px] blur-md opacity-35 group-hover:opacity-75 transition-opacity duration-300 animate-gradient-flow pointer-events-none" />
+              {/* Hover-only ambient glow */}
+              <div className="pointer-events-none absolute inset-0 rounded-[13px] bg-gradient-brand opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-60" />
 
-                <Button
-                  asChild
-                  size="lg"
-                  className="relative z-10 bg-slate-950 text-white hover:bg-slate-900 border-none flex items-center gap-2 group rounded-xl shadow-none dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
-                >
-                  <Link href="/editor">
-                    Start beautifying
-                    <motion.span
-                      variants={{
-                        hidden: { x: 0 },
-                        hover: { x: 4 }
-                      }}
-                      transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                    >
-                      <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
-                    </motion.span>
-                  </Link>
-                </Button>
-              </motion.div>
+              <Button
+                asChild
+                size="lg"
+                className="relative z-10 flex items-center gap-2 rounded-xl border-none bg-slate-950 text-white shadow-none hover:bg-slate-900 dark:bg-slate-950 dark:hover:bg-slate-900"
+              >
+                <Link href="/editor">
+                  Start beautifying
+                  <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+                </Link>
+              </Button>
             </motion.div>
-            
+
             <motion.div
-              whileHover={{ y: shouldReduceMotion ? 0 : -3 }}
+              whileHover={{ y: shouldReduceMotion ? 0 : -2 }}
               whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
             >
               <Button
                 asChild
                 size="lg"
                 variant="secondary"
-                className="border border-white/70 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/15 dark:hover:text-white"
+                className="border border-slate-200/90 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/15 dark:hover:text-white"
               >
                 <Link href="#examples">View examples</Link>
               </Button>
             </motion.div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={textItemVariants}
-            className="mt-6 grid gap-3 text-left text-sm font-medium text-slate-600 sm:grid-cols-3 dark:text-slate-300"
+            className="mt-7 flex flex-wrap items-center justify-center gap-x-0 gap-y-2 text-sm font-medium text-slate-600 lg:justify-start dark:text-slate-300"
           >
-            {["No account", "No upload server", "PNG export"].map((item) => (
-              <motion.div 
-                key={item} 
-                className="flex items-center gap-2"
-                variants={itemVariants}
-              >
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+            {["Free sign-up", "No upload server", "PNG export"].map((item, index) => (
+              <span key={item} className="flex items-center">
+                {index > 0 ? (
+                  <span
+                    className="mx-4 hidden h-4 w-px bg-slate-200 sm:block dark:bg-white/10"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <span className="flex items-center gap-2 pr-4 sm:pr-0">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  {item}
                 </span>
-                {item}
-              </motion.div>
+              </span>
             ))}
           </motion.div>
         </motion.div>

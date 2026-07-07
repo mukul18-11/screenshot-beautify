@@ -1,6 +1,9 @@
 "use client";
 
+import { Workflow } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+
+import SectionHeading from "@/components/landing/SectionHeading";
 
 const STEPS = [
   {
@@ -27,61 +30,69 @@ export default function HowItWorks() {
   return (
     <section
       id="workflow"
-      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16"
+      className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
     >
-      <div className="max-w-xl">
-        <p className="text-sm font-semibold text-cyan-700 uppercase tracking-wider dark:text-cyan-300">
-          How it works
-        </p>
-        <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-[2.25rem] leading-tight dark:text-white">
-          Raw to launch visual{" "}
-          <span className="bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent font-extrabold">
-            in four simple steps
-          </span>
-        </h2>
-      </div>
+      <SectionHeading
+        eyebrow="How it works"
+        icon={Workflow}
+        align="left"
+        title={
+          <>
+            Raw to launch visual{" "}
+            <span className="text-gradient-brand font-black">
+              in four simple steps
+            </span>
+          </>
+        }
+      />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-        {STEPS.map((step, index) => (
-          <motion.div
-            key={step.title}
-            initial={{ opacity: 1, y: 0 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover="hover"
-            variants={{
-              hover: {
-                y: shouldReduceMotion ? 0 : -5,
-                borderColor: "rgba(14, 116, 144, 0.25)",
-                boxShadow: "0 12px 20px -5px rgba(0, 0, 0, 0.03)",
-              },
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 120,
-              damping: 18,
-              delay: shouldReduceMotion ? 0 : index * 0.04,
-            }}
-            className="relative cursor-default rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 dark:border-white/10 dark:bg-white/[0.06]"
-          >
+      <div className="relative mt-10">
+        {/* Gradient connector line running behind the step chips */}
+        <div
+          className="pointer-events-none absolute left-8 right-8 top-9 hidden h-px bg-gradient-to-r from-teal-400/40 via-cyan-400/40 to-indigo-500/40 md:block"
+          aria-hidden="true"
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          {STEPS.map((step, index) => (
             <motion.div
-              variants={{
-                hover: {
-                  scale: 1.08,
-                  backgroundColor: "rgb(14, 116, 144)",
-                },
+              key={step.title}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 16 }}
+              whileInView={
+                shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+              }
+              viewport={{ once: true, margin: "-60px" }}
+              whileHover={
+                shouldReduceMotion
+                  ? undefined
+                  : {
+                      y: -5,
+                      boxShadow:
+                        "0 1px 2px rgb(2 6 23 / 0.06), 0 8px 24px -8px rgb(2 6 23 / 0.12), 0 24px 64px -24px rgb(2 6 23 / 0.2)",
+                    }
+              }
+              transition={{
+                duration: 0.5,
+                delay: shouldReduceMotion ? 0 : index * 0.08,
+                ease: [0.21, 0.47, 0.32, 0.98],
               }}
-              className="mb-4 flex h-8 w-8 select-none items-center justify-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-md shadow-slate-950/10 transition-colors duration-200 dark:bg-white dark:text-slate-950"
+              className="relative cursor-default rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
             >
-              {index + 1}
+              {/* Number chip with gradient ring */}
+              <div className="relative mb-4 inline-flex rounded-full bg-gradient-brand p-px shadow-md shadow-cyan-500/15">
+                <span className="flex h-8 w-8 select-none items-center justify-center rounded-full bg-slate-950 text-xs font-bold text-white dark:bg-slate-950">
+                  {index + 1}
+                </span>
+              </div>
+              <h3 className="text-sm font-bold font-display tracking-tight text-slate-950 dark:text-white">
+                {step.title}
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-300">
+                {step.description}
+              </p>
             </motion.div>
-            <h3 className="text-sm font-bold font-display tracking-tight text-slate-950 dark:text-white">
-              {step.title}
-            </h3>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-300">
-              {step.description}
-            </p>
-          </motion.div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

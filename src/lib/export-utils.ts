@@ -1,6 +1,6 @@
 import type { ExportScale } from "@/types/editor";
 
-const DEFAULT_EXPORT_FILE_NAME = "screenshot-beautifier";
+const DEFAULT_EXPORT_FILE_NAME = "snapingly-export";
 const UNSAFE_FILE_NAME_CHARACTERS = /[<>:"/\\|?*\u0000-\u001F\u007F]/g;
 const PNG_EXTENSION_PATTERN = /\.png$/i;
 

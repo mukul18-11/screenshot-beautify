@@ -58,7 +58,7 @@ function BrowserBar({ theme, id }: { theme: "light" | "dark"; id: string }) {
       ? "x.com/creator-analytics"
       : id === "developer-code"
       ? "MainContent.tsx"
-      : "beautifier.sh";
+      : "snapingly.sh";
 
   return (
     <div

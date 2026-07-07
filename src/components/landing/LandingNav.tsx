@@ -3,10 +3,17 @@
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
 
-import { ArrowRight, Sparkles } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { ArrowRight } from "lucide-react";
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+} from "motion/react";
 
+import { SnapinglyLogo } from "@/components/brand/SnapinglyLogo";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "#examples", label: "Examples" },
@@ -18,6 +25,12 @@ const NAV_ITEMS = [
 export default function LandingNav() {
   const shouldReduceMotion = useReducedMotion();
   const [activeItem, setActiveItem] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 24);
+  });
 
   function handleSectionClick(
     event: MouseEvent<HTMLAnchorElement>,
@@ -40,22 +53,32 @@ export default function LandingNav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-950/5 bg-white/72 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/72">
+    <header
+      className={cn(
+        "sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
+        isScrolled
+          ? "border-b border-slate-950/5 bg-white/72 shadow-[0_8px_24px_-16px_rgba(2,6,23,0.16)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/72"
+          : "border-b border-transparent bg-transparent",
+      )}
+    >
+      {/* Gradient hairline under the chrome once scrolled */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent transition-opacity duration-300",
+          isScrolled ? "opacity-100" : "opacity-0",
+        )}
+        aria-hidden="true"
+      />
       <nav
         className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6"
         aria-label="Primary navigation"
       >
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-3 text-slate-950 dark:text-white"
-          aria-label="Screenshot Beautifier home"
+          className="min-w-0 text-slate-950 dark:text-white"
+          aria-label="Snapingly home"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 transition-transform duration-300 hover:scale-105 dark:bg-white dark:text-slate-950 dark:shadow-white/5">
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <span className="truncate text-sm font-display font-bold tracking-tight text-slate-950 dark:text-white">
-            Screenshot Beautifier
-          </span>
+          <SnapinglyLogo size="sm" />
         </Link>
 
         <div
@@ -87,7 +110,7 @@ export default function LandingNav() {
         <Button
           asChild
           size="sm"
-          className="bg-slate-950 text-white hover:bg-slate-900 flex items-center gap-1.5 rounded-lg shadow-sm dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+          className="inner-highlight flex items-center gap-1.5 rounded-lg bg-slate-950 text-white shadow-sm hover:bg-slate-900 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
         >
           <Link href="/editor">
             Open editor
