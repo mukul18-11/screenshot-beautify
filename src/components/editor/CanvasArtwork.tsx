@@ -1846,6 +1846,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
+
+      if (event.pointerType === "touch") {
+        // Same reasoning as the mockup layer: deselect after every touch
+        // gesture so the layer returns to touch-pan-y and never permanently
+        // blocks single-finger scrolling over its area.
+        setActiveTextLayerId(null);
+      }
     }
 
     function handleTextLayerClickCapture(
@@ -2328,6 +2335,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (shouldRemoveFromCanvas) {
         removeScreenshotFromCanvas(dragState.screenshotId);
+        setIsMockupSelected(false);
+      } else if (event.pointerType === "touch") {
+        // Deselecting after every touch gesture returns the mockup body to
+        // touch-pan-y so the page can always be scrolled again by the next
+        // touch. Without this, a selected mockup stays touch-none forever
+        // and permanently blocks single-finger scrolling over its area.
         setIsMockupSelected(false);
       }
     }

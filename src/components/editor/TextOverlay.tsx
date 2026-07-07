@@ -461,7 +461,7 @@ function TextLayerResizeControls({
           type="button"
           aria-label={`Rotate ${layerId} text`}
           title="Rotate text"
-          className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
+          className="pointer-events-auto flex h-12 w-12 touch-none items-center justify-center rounded-full border border-blue-500/60 bg-white text-slate-700 shadow-sm shadow-slate-950/20 outline-none transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-300"
           onPointerCancel={(event) => {
             event.stopPropagation();
             onRotatePointerCancel?.(layerId, event);

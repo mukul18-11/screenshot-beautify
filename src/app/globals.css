@@ -241,4 +241,7 @@ body:has(.editor-shell-light) {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+  /* Removes the ~300ms tap delay and stops rapid taps from being
+     interpreted as a double-tap-zoom gesture on mobile. */
+  touch-action: manipulation;
 }
