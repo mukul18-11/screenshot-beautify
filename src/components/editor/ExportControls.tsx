@@ -8,6 +8,7 @@ import {
   Download,
   Info,
   Loader2,
+  LogIn,
   ShieldCheck,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
@@ -16,6 +17,7 @@ import { toast } from "sonner";
 import { useExportImage } from "@/components/editor/ExportProvider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { EXPORT_LAYOUT_ERROR_MESSAGE } from "@/lib/export-image";
 import { getExportPixelSize } from "@/lib/export-utils";
 import { cn } from "@/lib/utils";
@@ -58,6 +60,8 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
   const shouldReduceMotion = useReducedMotion();
   const exportActionInFlightRef = useRef(false);
   const { copyCurrentPng, exportCurrentPng } = useExportImage();
+  const { isConfigured, isLoading: isAuthLoading, user } = useAuthStatus();
+  const needsSignIn = isConfigured && !isAuthLoading && !user;
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
   const exportScale = useEditorStore((state) => state.exportScale);
@@ -76,8 +80,18 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
   const isExportDisabled = !uploadedImage || isExporting;
   const shouldShowHighResHint = exportScale >= 4;
 
+  function promptSignIn() {
+    window.open("/login?next=/editor", "_blank", "noopener,noreferrer");
+    toast.info("Sign in to export — opened in a new tab.");
+  }
+
   async function handleDownloadPng() {
     if (!uploadedImage || isExporting || exportActionInFlightRef.current) {
+      return;
+    }
+
+    if (needsSignIn) {
+      promptSignIn();
       return;
     }
 
@@ -95,6 +109,11 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
 
   async function handleCopyImage() {
     if (!uploadedImage || isExporting || exportActionInFlightRef.current) {
+      return;
+    }
+
+    if (needsSignIn) {
+      promptSignIn();
       return;
     }
 
@@ -245,6 +264,13 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
         {!uploadedImage && (
           <p className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100">
             Upload a screenshot to export.
+          </p>
+        )}
+
+        {uploadedImage && needsSignIn && (
+          <p className="flex items-start gap-1.5 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100">
+            <LogIn className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Sign in to export or copy your design.
           </p>
         )}
 

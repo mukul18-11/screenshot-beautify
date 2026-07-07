@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { hasForbiddenImagePayload } from "@/lib/api/image-payload-guard";
+import { getAuthenticatedUser } from "@/lib/api/require-user";
 import { authorizeLocalExport } from "@/lib/entitlements";
-import { createClient } from "@/lib/supabase/server";
 import type { ExportScale } from "@/types/editor";
 import type { ExportAction, FeatureKey } from "@/types/entitlements";
 
@@ -71,9 +71,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createClient();
-  const userResult = supabase ? await supabase.auth.getUser() : null;
-  const user = userResult?.data.user ?? null;
+  const { configured, user } = await getAuthenticatedUser();
+
+  if (configured && !user) {
+    return createNoStoreJson(
+      { error: "Authentication required." },
+      { status: 401 },
+    );
+  }
+
   const authorization = authorizeLocalExport({
     action,
     clientExportId,

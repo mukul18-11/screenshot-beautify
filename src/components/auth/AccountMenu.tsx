@@ -1,48 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 import { ChevronDown, LogOut, UserCircle } from "lucide-react";
 import { toast } from "sonner";
 
+import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { getUserDisplayName } from "@/lib/auth/profile";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AccountMenu() {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(() => Boolean(supabase));
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    if (!supabase) {
-      return;
-    }
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (!isMounted) {
-        return;
-      }
-
-      setUser(data.user);
-      setIsLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
+  const { isLoading, user } = useAuthStatus();
 
   async function handleSignOut() {
     if (!supabase) {
@@ -58,6 +30,8 @@ export default function AccountMenu() {
 
     setIsMenuOpen(false);
     toast.success("Signed out");
+    router.replace("/login");
+    router.refresh();
   }
 
   if (!user) {

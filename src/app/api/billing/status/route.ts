@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { getAuthenticatedUser } from "@/lib/api/require-user";
 import { getUserAvatarUrl, getUserDisplayName } from "@/lib/auth/profile";
 import { LOCAL_FREE_EXPORT_AUTHORIZATION } from "@/lib/entitlements";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +13,14 @@ function createNoStoreJson(body: unknown, init?: ResponseInit) {
 }
 
 export async function GET() {
-  const supabase = await createClient();
-  const userResult = supabase ? await supabase.auth.getUser() : null;
-  const user = userResult?.data.user ?? null;
+  const { configured, user } = await getAuthenticatedUser();
+
+  if (configured && !user) {
+    return createNoStoreJson(
+      { error: "Authentication required." },
+      { status: 401 },
+    );
+  }
 
   return createNoStoreJson({
     authenticated: Boolean(user),

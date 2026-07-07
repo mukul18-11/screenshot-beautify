@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasForbiddenImagePayload } from "@/lib/api/image-payload-guard";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/api/require-user";
 
 export const dynamic = "force-dynamic";
 
@@ -53,14 +53,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createClient();
-  const userResult = supabase ? await supabase.auth.getUser() : null;
+  const { configured, user } = await getAuthenticatedUser();
+
+  if (configured && !user) {
+    return createNoStoreJson(
+      { error: "Authentication required." },
+      { status: 401 },
+    );
+  }
 
   return createNoStoreJson({
     exportAttemptId,
     failureCode: typeof failureCode === "string" ? failureCode : null,
     ok: true,
     status,
-    userId: userResult?.data.user?.id ?? null,
+    userId: user?.id ?? null,
   });
 }

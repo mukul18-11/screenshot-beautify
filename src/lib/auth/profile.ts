@@ -34,16 +34,20 @@ export async function syncUserProfile(supabase: SupabaseClient, user: User) {
     return;
   }
 
-  await supabase.from("profiles").upsert(
-    {
+  // The handle_new_user trigger inserts the profile row on signup, so this
+  // only needs to refresh the user-editable columns (the column-level grant
+  // on profiles excludes everything else, including id).
+  const { error } = await supabase
+    .from("profiles")
+    .update({
       avatar_url: getUserAvatarUrl(user),
       email,
       full_name: getUserDisplayName(user),
-      id: user.id,
       updated_at: new Date().toISOString(),
-    },
-    {
-      onConflict: "id",
-    },
-  );
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    console.warn("syncUserProfile failed:", error.message);
+  }
 }

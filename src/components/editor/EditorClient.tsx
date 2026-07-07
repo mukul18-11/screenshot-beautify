@@ -122,7 +122,7 @@ export default function EditorClient() {
           </div>
         ) : (
         <div className="relative z-10 flex min-h-screen flex-col lg:h-full lg:min-h-0">
-          <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
+          <header className="relative z-30 flex h-16 shrink-0 items-center justify-between border-b border-[var(--editor-border)] bg-[var(--editor-panel)]/90 px-4 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl sm:px-5 lg:px-6">
             <div className="flex items-center gap-3">
               <Link
                 href="/"

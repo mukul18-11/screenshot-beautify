@@ -12,21 +12,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, LockKeyhole, Mail } from "lucide-react";
 import { toast } from "sonner";
 
+import { getSafeNextPath } from "@/lib/auth/next-path";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import AuthInput from "@/components/auth/AuthInput";
 
 type AuthView = "forgot" | "options" | "password";
 type PasswordMode = "login" | "signup";
-type RecoveryStep = "code" | "email" | "password";
 type OAuthProvider = "azure" | "github" | "google";
-type ActiveAction =
-  | "login"
-  | "recovery-code"
-  | "recovery-email"
-  | "recovery-password"
-  | "signup"
-  | OAuthProvider
-  | null;
+type ActiveAction = "login" | "recovery-email" | "signup" | OAuthProvider | null;
 type Notice = {
   tone: "error" | "success";
   text: string;
@@ -53,39 +47,12 @@ const OAUTH_OPTIONS: Array<{
   },
 ];
 
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/editor";
-  }
-
-  try {
-    const url = new URL(value, "https://snapingly.local");
-
-    if (url.origin !== "https://snapingly.local") {
-      return "/editor";
-    }
-
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return "/editor";
-  }
-}
-
 function getAuthCallbackUrl(nextPath: string) {
   const params = new URLSearchParams({
     next: nextPath,
   });
 
   return `${window.location.origin}/auth/callback?${params.toString()}`;
-}
-
-function getRecoveryReturnPath(nextPath: string) {
-  const params = new URLSearchParams({
-    next: nextPath,
-    view: "recovery",
-  });
-
-  return `/login?${params.toString()}`;
 }
 
 function validateEmail(value: string) {
@@ -168,41 +135,6 @@ function ProviderIcon({ provider }: { provider: OAuthProvider }) {
   return <GoogleLogo className="h-5 w-5" />;
 }
 
-function AuthInput({
-  autoComplete,
-  id,
-  label,
-  onChange,
-  placeholder,
-  type,
-  value,
-}: {
-  autoComplete: string;
-  id: string;
-  label: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  type: string;
-  value: string;
-}) {
-  return (
-    <div className="grid gap-2">
-      <label htmlFor={id} className="sr-only">
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        autoComplete={autoComplete}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="h-14 rounded-[1.35rem] border border-white/[0.06] bg-white/[0.10] px-5 text-base font-semibold text-white outline-none transition placeholder:text-white/45 focus:border-teal-300/40 focus:bg-white/[0.13] focus:ring-4 focus:ring-teal-400/10"
-      />
-    </div>
-  );
-}
-
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -211,26 +143,24 @@ export default function LoginClient() {
     () => getSafeNextPath(searchParams.get("next")),
     [searchParams],
   );
-  const isRecoveryReturn = searchParams.get("view") === "recovery";
-  const [authView, setAuthView] = useState<AuthView>(() =>
-    isRecoveryReturn ? "forgot" : "options",
-  );
+  const [authView, setAuthView] = useState<AuthView>("options");
   const [passwordMode, setPasswordMode] = useState<PasswordMode>("login");
-  const [recoveryStep, setRecoveryStep] = useState<RecoveryStep>(() =>
-    isRecoveryReturn ? "password" : "email",
-  );
   const [activeAction, setActiveAction] = useState<ActiveAction>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(() =>
     Boolean(supabase),
   );
-  const [notice, setNotice] = useState<Notice>(null);
+  const [notice, setNotice] = useState<Notice>(() =>
+    searchParams.get("auth") === "error"
+      ? {
+          tone: "error",
+          text: "Sign-in failed or the link expired. Please try again.",
+        }
+      : null,
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [recoveryEmail, setRecoveryEmail] = useState("");
-  const [recoveryCode, setRecoveryCode] = useState("");
-  const [recoveryPassword, setRecoveryPassword] = useState("");
-  const [recoveryConfirmPassword, setRecoveryConfirmPassword] = useState("");
   const isConfigured = Boolean(supabase);
   const isBusy = isCheckingSession || activeAction !== null;
 
@@ -246,7 +176,7 @@ export default function LoginClient() {
         return;
       }
 
-      if (data.user && !isRecoveryReturn) {
+      if (data.user) {
         router.replace(nextPath);
         return;
       }
@@ -257,7 +187,7 @@ export default function LoginClient() {
     return () => {
       isMounted = false;
     };
-  }, [isRecoveryReturn, nextPath, router, supabase]);
+  }, [nextPath, router, supabase]);
 
   function requireSupabase() {
     if (!supabase) {
@@ -377,7 +307,7 @@ export default function LoginClient() {
     });
   }
 
-  async function handleSendRecoveryCode(event: FormEvent<HTMLFormElement>) {
+  async function handleSendResetLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const client = requireSupabase();
@@ -396,11 +326,10 @@ export default function LoginClient() {
     setNotice(null);
     setActiveAction("recovery-email");
 
-    // Supabase must use a recovery email template that exposes the OTP token.
     const { error } = await client.auth.resetPasswordForEmail(
       recoveryEmail.trim(),
       {
-        redirectTo: getAuthCallbackUrl(getRecoveryReturnPath(nextPath)),
+        redirectTo: getAuthCallbackUrl("/reset-password"),
       },
     );
 
@@ -411,89 +340,10 @@ export default function LoginClient() {
       return;
     }
 
-    setRecoveryStep("code");
     setNotice({
       tone: "success",
-      text: "Check your email and enter the verification code.",
+      text: "Check your email for a password reset link.",
     });
-  }
-
-  async function handleVerifyRecoveryCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const client = requireSupabase();
-
-    if (!client) {
-      return;
-    }
-
-    if (!recoveryCode.trim()) {
-      setNotice({ tone: "error", text: "Enter the verification code." });
-      return;
-    }
-
-    setNotice(null);
-    setActiveAction("recovery-code");
-
-    const { error } = await client.auth.verifyOtp({
-      email: recoveryEmail.trim(),
-      token: recoveryCode.trim(),
-      type: "recovery",
-    });
-
-    setActiveAction(null);
-
-    if (error) {
-      setNotice({ tone: "error", text: error.message });
-      return;
-    }
-
-    setRecoveryStep("password");
-    setNotice({
-      tone: "success",
-      text: "Code verified. Set a new password.",
-    });
-  }
-
-  async function handleUpdateRecoveredPassword(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
-    const client = requireSupabase();
-
-    if (!client) {
-      return;
-    }
-
-    const passwordError = validatePassword(recoveryPassword);
-
-    if (passwordError) {
-      setNotice({ tone: "error", text: passwordError });
-      return;
-    }
-
-    if (recoveryPassword !== recoveryConfirmPassword) {
-      setNotice({ tone: "error", text: "Passwords do not match." });
-      return;
-    }
-
-    setNotice(null);
-    setActiveAction("recovery-password");
-
-    const { error } = await client.auth.updateUser({
-      password: recoveryPassword,
-    });
-
-    setActiveAction(null);
-
-    if (error) {
-      setNotice({ tone: "error", text: error.message });
-      return;
-    }
-
-    toast.success("Password updated");
-    router.replace(nextPath);
   }
 
   function renderNotice() {
@@ -636,7 +486,6 @@ export default function LoginClient() {
             type="button"
             onClick={() => {
               setAuthView("forgot");
-              setRecoveryStep("email");
               setRecoveryEmail(email);
               setNotice(null);
             }}
@@ -650,9 +499,6 @@ export default function LoginClient() {
   }
 
   function renderRecoveryForm() {
-    const isEmailStep = recoveryStep === "email";
-    const isCodeStep = recoveryStep === "code";
-
     return (
       <div className="rounded-[1.75rem] border border-white/[0.08] bg-[#151515] p-5 shadow-2xl shadow-black/35 sm:p-6">
         <div className="flex items-start justify-between gap-4">
@@ -661,11 +507,8 @@ export default function LoginClient() {
               Forgot Password
             </h2>
             <p className="mt-3 text-sm font-semibold leading-6 text-white/55">
-              {isEmailStep
-                ? "Enter your email address and we will send you a verification code."
-                : isCodeStep
-                  ? "Enter the verification code from your email."
-                  : "Choose a new password for your account."}
+              Enter your email address and we will send you a password reset
+              link.
             </p>
           </div>
           <button
@@ -682,98 +525,27 @@ export default function LoginClient() {
         </div>
 
         <div className="mt-6">
-          {isEmailStep && (
-            <form className="space-y-4" onSubmit={handleSendRecoveryCode}>
-              <AuthInput
-                id="recovery-email"
-                label="Email"
-                type="email"
-                autoComplete="email"
-                value={recoveryEmail}
-                onChange={setRecoveryEmail}
-                placeholder="username@example.com"
-              />
-              <button
-                type="submit"
-                disabled={!isConfigured || isBusy}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-[1.35rem] bg-teal-500/70 px-5 text-base font-bold text-white shadow-lg shadow-teal-950/25 transition hover:bg-teal-400/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-300/20 disabled:pointer-events-none disabled:opacity-55"
-              >
-                {activeAction === "recovery-email" && (
-                  <Loader2
-                    className="h-5 w-5 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                Send Verification Code
-              </button>
-            </form>
-          )}
-
-          {isCodeStep && (
-            <form className="space-y-4" onSubmit={handleVerifyRecoveryCode}>
-              <AuthInput
-                id="recovery-code"
-                label="Verification code"
-                type="text"
-                autoComplete="one-time-code"
-                value={recoveryCode}
-                onChange={setRecoveryCode}
-                placeholder="Verification code"
-              />
-              <button
-                type="submit"
-                disabled={!isConfigured || isBusy}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-[1.35rem] bg-teal-500/70 px-5 text-base font-bold text-white shadow-lg shadow-teal-950/25 transition hover:bg-teal-400/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-300/20 disabled:pointer-events-none disabled:opacity-55"
-              >
-                {activeAction === "recovery-code" && (
-                  <Loader2
-                    className="h-5 w-5 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                Verify Code
-              </button>
-            </form>
-          )}
-
-          {recoveryStep === "password" && (
-            <form
-              className="space-y-4"
-              onSubmit={handleUpdateRecoveredPassword}
+          <form className="space-y-4" onSubmit={handleSendResetLink}>
+            <AuthInput
+              id="recovery-email"
+              label="Email"
+              type="email"
+              autoComplete="email"
+              value={recoveryEmail}
+              onChange={setRecoveryEmail}
+              placeholder="username@example.com"
+            />
+            <button
+              type="submit"
+              disabled={!isConfigured || isBusy}
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-[1.35rem] bg-teal-500/70 px-5 text-base font-bold text-white shadow-lg shadow-teal-950/25 transition hover:bg-teal-400/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-300/20 disabled:pointer-events-none disabled:opacity-55"
             >
-              <AuthInput
-                id="recovery-new-password"
-                label="New password"
-                type="password"
-                autoComplete="new-password"
-                value={recoveryPassword}
-                onChange={setRecoveryPassword}
-                placeholder="New password"
-              />
-              <AuthInput
-                id="recovery-confirm-password"
-                label="Confirm password"
-                type="password"
-                autoComplete="new-password"
-                value={recoveryConfirmPassword}
-                onChange={setRecoveryConfirmPassword}
-                placeholder="Confirm password"
-              />
-              <button
-                type="submit"
-                disabled={!isConfigured || isBusy}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-[1.35rem] bg-teal-500/70 px-5 text-base font-bold text-white shadow-lg shadow-teal-950/25 transition hover:bg-teal-400/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-300/20 disabled:pointer-events-none disabled:opacity-55"
-              >
-                {activeAction === "recovery-password" && (
-                  <Loader2
-                    className="h-5 w-5 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                Update Password
-              </button>
-            </form>
-          )}
+              {activeAction === "recovery-email" && (
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+              )}
+              Send Reset Link
+            </button>
+          </form>
         </div>
       </div>
     );

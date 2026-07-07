@@ -1,26 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { getSafeNextPath } from "@/lib/auth/next-path";
 import { syncUserProfile } from "@/lib/auth/profile";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
-
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/editor";
-  }
-
-  try {
-    const url = new URL(value, "https://snapingly.local");
-
-    if (url.origin !== "https://snapingly.local") {
-      return "/editor";
-    }
-
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return "/editor";
-  }
-}
 
 function createNoStoreRedirect(requestUrl: string, path: string) {
   const response = NextResponse.redirect(new URL(path, requestUrl));
@@ -37,16 +20,20 @@ export async function GET(request: Request) {
     return createNoStoreRedirect(request.url, `${next}?auth=not_configured`);
   }
 
+  // Errors surface on the login page — `next` is guarded now, so redirecting
+  // there would just bounce back to /login and lose the error signal.
+  const errorPath = `/login?auth=error&next=${encodeURIComponent(next)}`;
+
   const supabase = await createClient();
 
   if (!supabase || !code) {
-    return createNoStoreRedirect(request.url, `${next}?auth=error`);
+    return createNoStoreRedirect(request.url, errorPath);
   }
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return createNoStoreRedirect(request.url, `${next}?auth=error`);
+    return createNoStoreRedirect(request.url, errorPath);
   }
 
   const {
