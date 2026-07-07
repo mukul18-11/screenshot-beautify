@@ -2712,6 +2712,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.stopPropagation();
       setIsMockupSelected(true);
       setActiveTextLayerId(null);
+      setIsDraggingCanvasItem(true);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
       beginHistoryBatch();

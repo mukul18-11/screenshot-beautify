@@ -82,16 +82,24 @@ export default function TiltedMockupWrapper({
     ],
   );
   const baseTransform = useMemo(
-    () => buildTiltTransform(tiltSettings),
+    () => (tiltSettings.tiltEnabled ? buildTiltTransform(tiltSettings) : "none"),
     [tiltSettings],
   );
-  const canHoverTilt = tiltSettings.hoverTiltEnabled && !shouldReduceMotion;
+  const canHoverTilt =
+    tiltSettings.tiltEnabled &&
+    tiltSettings.hoverTiltEnabled &&
+    !shouldReduceMotion;
 
   const applyTransform = useCallback(
     (hoverRotateX = 0, hoverRotateY = 0) => {
       const element = wrapperRef.current;
 
       if (!element) {
+        return;
+      }
+
+      if (!tiltSettings.tiltEnabled) {
+        element.style.transform = "none";
         return;
       }
 
@@ -152,10 +160,6 @@ export default function TiltedMockupWrapper({
     scheduleTransform();
   }
 
-  if (!tiltSettings.tiltEnabled) {
-    return <>{children}</>;
-  }
-
   return (
     <div
       ref={wrapperRef}
@@ -167,11 +171,11 @@ export default function TiltedMockupWrapper({
         ...style,
         transform: baseTransform,
         transformStyle: "preserve-3d",
-        transition: shouldReduceMotion || isTransforming
+        transition: shouldReduceMotion || isTransforming || !tiltSettings.tiltEnabled
           ? undefined
           : "transform 250ms ease-out",
         willChange:
-          tiltSettings.tiltEnabled || tiltSettings.hoverTiltEnabled
+          tiltSettings.tiltEnabled
             ? "transform"
             : undefined,
       }}

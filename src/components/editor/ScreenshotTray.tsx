@@ -51,7 +51,7 @@ export default function ScreenshotTray({
   const isBusy = isUploading || isExporting;
 
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/75 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 dark:shadow-slate-950/20">
+    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[var(--editor-panel)]/90 dark:shadow-slate-950/20">
       <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain">
         <div
           role="list"
@@ -118,12 +118,12 @@ export default function ScreenshotTray({
                     scale: shouldReduceMotion || isBusy ? 1 : 0.98,
                   }}
                   className={cn(
-                    "group relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border bg-slate-100 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:bg-slate-900",
+                    "group relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border bg-slate-100 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-blue-400/30 dark:bg-zinc-900",
                     isSelected
-                      ? "border-slate-950 ring-2 ring-slate-950/10 dark:border-white dark:ring-white/10"
+                      ? "border-blue-500 ring-2 ring-blue-500/20 dark:border-sky-400/80 dark:ring-sky-400/20"
                       : isPlaced
-                        ? "border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/30"
-                        : "border-dashed border-slate-300 hover:border-slate-500 dark:border-dashed dark:border-white/10 dark:hover:border-white/30",
+                        ? "border-slate-200 hover:border-slate-300 dark:border-slate-700/80 dark:hover:border-sky-500/40"
+                        : "border-dashed border-slate-300 hover:border-slate-500 dark:border-dashed dark:border-slate-700/80 dark:hover:border-sky-500/40",
                   )}
                 >
                   <span
@@ -138,21 +138,21 @@ export default function ScreenshotTray({
                   {!isPlaced && (
                     <span
                       aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 bg-white/15"
+                      className="pointer-events-none absolute inset-0 bg-slate-950/10 dark:bg-slate-950/35"
                     />
                   )}
                   <span
                     className={cn(
                       "absolute left-1.5 top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold shadow-sm",
                       isSelected
-                        ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-                        : "bg-white/85 text-slate-600 dark:bg-slate-950/85 dark:text-slate-300",
+                        ? "bg-blue-500 text-white dark:bg-sky-500 dark:text-white"
+                        : "bg-white/85 text-slate-600 dark:bg-zinc-950/85 dark:text-slate-300",
                     )}
                   >
                     {index + 1}
                   </span>
                   {isSelected && (
-                    <span className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-inset ring-slate-950 dark:ring-white" />
+                    <span className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-inset ring-blue-500/85 dark:ring-sky-400/80" />
                   )}
                   {isPlaced && (
                     <span className="absolute bottom-1.5 right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
@@ -180,7 +180,7 @@ export default function ScreenshotTray({
                 whileTap={{
                   scale: shouldReduceMotion || isBusy ? 1 : 0.98,
                 }}
-                className="flex h-14 w-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/65 text-slate-500 outline-none transition hover:border-slate-400 hover:bg-white hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950/20 disabled:pointer-events-none disabled:opacity-45"
+                className="flex h-14 w-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/65 text-slate-500 outline-none transition hover:border-slate-400 hover:bg-white hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-blue-400/30 disabled:pointer-events-none disabled:opacity-45 dark:border-slate-700/80 dark:bg-zinc-900/70 dark:text-slate-400 dark:hover:border-sky-500/40 dark:hover:bg-zinc-900 dark:hover:text-sky-300"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
               </motion.button>

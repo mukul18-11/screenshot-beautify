@@ -284,7 +284,7 @@ export default function EditorSettingsPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="flex min-h-0 flex-col lg:h-[calc(100%-3rem)] lg:grid lg:grid-cols-[minmax(0,1fr)_5.25rem]"
+            className="flex flex-col lg:h-[calc(100%-3rem)] lg:min-h-0 lg:grid lg:grid-cols-[minmax(0,1fr)_5.25rem]"
           >
             <SettingsSectionNav
               activeSection={activeSection}
@@ -292,7 +292,7 @@ export default function EditorSettingsPanel({
             />
             <div
               ref={settingsScrollRef}
-              className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 lg:order-first"
+              className="touch-pan-y px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 lg:order-first lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:py-4"
             >
               <AnimatePresence initial={false}>
                 <motion.div
