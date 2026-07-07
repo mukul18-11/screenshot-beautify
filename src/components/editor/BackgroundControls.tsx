@@ -368,34 +368,6 @@ export default function BackgroundControls() {
           type="button"
           whileHover={{ y: shouldReduceMotion ? 0 : -1 }}
           whileTap={{ scale: shouldReduceMotion ? 1 : 0.97 }}
-          animate={
-            shouldReduceMotion
-              ? undefined
-              : {
-                  scale: [1, 1.025, 1],
-                  boxShadow: [
-                    "0 0 0 rgba(236, 72, 153, 0)",
-                    "0 0 24px rgba(236, 72, 153, 0.34)",
-                    "0 0 0 rgba(236, 72, 153, 0)",
-                  ],
-                }
-          }
-          transition={
-            shouldReduceMotion
-              ? undefined
-              : {
-                  scale: {
-                    duration: 2.2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
-                  boxShadow: {
-                    duration: 2.2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
-                }
-          }
           aria-expanded={isCustomOpen}
           aria-pressed={isCustomSelected}
           onClick={() => {
