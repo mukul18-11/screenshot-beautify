@@ -188,27 +188,27 @@ export default function Footer() {
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5 text-xs font-medium">
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
+                <Link href="/compare/figma-mockups" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Figma Mockups
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
+                <Link href="/compare/canva-templates" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Canva Templates
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
+                <Link href="/compare/cloud-generators" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Cloud Generators
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
+                <Link href="/compare/manual-crop-tools" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Manual Crop Tools
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="transition hover:text-slate-950 dark:hover:text-white">
+                <Link href="/compare/browser-devtools" className="transition hover:text-slate-950 dark:hover:text-white">
                   vs Browser DevTools
                 </Link>
               </li>
