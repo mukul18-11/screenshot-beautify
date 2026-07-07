@@ -1640,6 +1640,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
+      const wasLayerAlreadyActive = activeTextLayerId === layerId;
+
       setActiveTextLayerId(layerId);
       setIsMockupSelected(false);
 
@@ -1657,6 +1659,13 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         eventTarget instanceof HTMLElement &&
         eventTarget.closest("[contenteditable='true']")
       ) {
+        return;
+      }
+
+      // On touch, the first tap only selects the layer so the gesture can
+      // still scroll the page (the layer keeps touch-action: pan-y until it
+      // is active). Dragging starts from the next touch.
+      if (event.pointerType === "touch" && !wasLayerAlreadyActive) {
         return;
       }
 

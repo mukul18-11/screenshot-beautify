@@ -12,7 +12,9 @@ const Slider = React.forwardRef<
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
-      "relative flex w-full touch-none select-none items-center disabled:pointer-events-none disabled:opacity-50",
+      // touch-pan-y keeps vertical swipes scrolling the page on mobile while
+      // horizontal drags still adjust the slider.
+      "relative flex w-full touch-pan-y select-none items-center disabled:pointer-events-none disabled:opacity-50",
       className,
     )}
     {...props}

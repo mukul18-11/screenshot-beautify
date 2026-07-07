@@ -884,6 +884,12 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     ...createLayerWidthStyle(subtitleWidth, placementBounds),
   } satisfies CSSProperties;
 
+  // An inactive layer keeps vertical page scrolling alive on touch devices;
+  // full 2D dragging is enabled once the layer is selected.
+  function getLayerTouchActionClass(layerId: TextLayerId) {
+    return activeLayerId === layerId ? "touch-none" : "touch-pan-y";
+  }
+
   function createLayerInteractionProps(layerId: TextLayerId) {
     return {
       onClickCapture(event: MouseEvent<HTMLDivElement>) {
@@ -921,7 +927,8 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           {...createLayerInteractionProps("badge")}
           data-text-layer-id="badge"
           className={cn(
-            "pointer-events-auto relative max-w-full touch-none",
+            "pointer-events-auto relative max-w-full",
+            getLayerTouchActionClass("badge"),
             isMovable && "cursor-move select-none",
           )}
           style={badgeLayerStyleProperties}
@@ -970,7 +977,8 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           {...createLayerInteractionProps("headline")}
           data-text-layer-id="headline"
           className={cn(
-            "pointer-events-auto relative max-w-full touch-none",
+            "pointer-events-auto relative max-w-full",
+            getLayerTouchActionClass("headline"),
             isMovable && "cursor-move select-none",
           )}
           style={headlineLayerStyleProperties}
@@ -1014,7 +1022,8 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           {...createLayerInteractionProps("subtitle")}
           data-text-layer-id="subtitle"
           className={cn(
-            "pointer-events-auto relative max-w-full touch-none",
+            "pointer-events-auto relative max-w-full",
+            getLayerTouchActionClass("subtitle"),
             isMovable && "cursor-move select-none",
           )}
           style={subtitleLayerStyleProperties}
@@ -1080,8 +1089,9 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
             data-text-layer-id={layer.id}
             className={cn(
               isCanvasOverlay
-                ? "pointer-events-auto absolute left-1/2 top-1/2 touch-none"
-                : "pointer-events-auto relative max-w-full touch-none",
+                ? "pointer-events-auto absolute left-1/2 top-1/2"
+                : "pointer-events-auto relative max-w-full",
+              getLayerTouchActionClass(layer.id),
               isMovable && "cursor-move select-none",
             )}
             style={customLayerStyleProperties}
