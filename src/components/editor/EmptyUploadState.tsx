@@ -4,7 +4,6 @@ import {
   ArrowUpFromLine,
   FileImage,
   Loader2,
-  ShieldCheck,
   Sparkles,
   UploadCloud,
 } from "lucide-react";
@@ -178,13 +177,6 @@ export default function EmptyUploadState({
           <span className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200/80 bg-slate-50/80 px-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-300">
             <FileImage className="h-3.5 w-3.5" aria-hidden="true" />
             PNG, JPG, WebP
-          </span>
-          <span className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200/80 bg-slate-50/80 px-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-300">
-            <ShieldCheck
-              className="h-3.5 w-3.5 text-[var(--editor-teal)]"
-              aria-hidden="true"
-            />
-            Local only
           </span>
         </div>
       </div>

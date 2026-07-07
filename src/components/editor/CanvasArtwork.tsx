@@ -2178,8 +2178,9 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      event.preventDefault();
-      event.stopPropagation();
+      const wasMockupAlreadySelected =
+        isMockupSelected && targetScreenshotId === activeScreenshotId;
+
       if (targetScreenshotId !== activeScreenshotId) {
         selectScreenshot(targetScreenshotId);
       }
@@ -2196,6 +2197,17 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       setIsMockupSelected(true);
       setActiveTextLayerId(null);
+
+      // On touch, the first tap only selects the mockup so the gesture can
+      // still scroll the page (the layer keeps touch-action: pan-y until it
+      // is selected). Dragging starts from the next touch.
+      if (event.pointerType === "touch" && !wasMockupAlreadySelected) {
+        event.stopPropagation();
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
       beginHistoryBatch();
@@ -2212,7 +2224,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         startOffsetY: state.imageOffsetY,
       };
 
-      setIsDraggingCanvasItem(true);
       event.currentTarget.setPointerCapture(event.pointerId);
     }
 
@@ -2229,6 +2240,12 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
         return;
+      }
+
+      if (!dragState.moved) {
+        // Deferred from pointerdown: this re-renders the whole canvas tree,
+        // which caused a visible freeze at touch time on mobile.
+        setIsDraggingCanvasItem(true);
       }
 
       dragState.moved = true;
@@ -2327,7 +2344,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.preventDefault();
       event.stopPropagation();
       setIsMockupSelected(true);
-      setIsDraggingCanvasItem(true);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
       beginHistoryBatch();
@@ -2366,6 +2382,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
         return;
+      }
+
+      if (!dragState.moved) {
+        setIsDraggingCanvasItem(true);
       }
 
       dragState.moved = true;
@@ -2575,7 +2595,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       event.stopPropagation();
       setIsMockupSelected(true);
       setActiveTextLayerId(null);
-      setIsDraggingCanvasItem(true);
       transformDragActiveRef.current = false;
       cancelTransformUpdate();
       beginHistoryBatch();
@@ -2611,6 +2630,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
         return;
+      }
+
+      if (!dragState.moved) {
+        setIsDraggingCanvasItem(true);
       }
 
       dragState.moved = true;
@@ -2901,7 +2924,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           ref={isActiveLayer ? mockupFrameRef : undefined}
           data-screenshot-layer-id={screenshot.id}
           className={cn(
-            "absolute flex touch-none select-none",
+            "absolute flex select-none",
+            // On touch devices an unselected mockup must not swallow page
+            // scrolling; full 2D dragging is enabled once it is selected.
+            isActiveLayer && isMockupSelected ? "touch-none" : "touch-pan-y",
             screenshotShellClasses,
             !isExportMode && "cursor-grab active:cursor-grabbing",
           )}

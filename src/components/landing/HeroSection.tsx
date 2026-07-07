@@ -106,15 +106,6 @@ function HeroMockup() {
                 </span>
               </motion.p>
             </div>
-            <motion.div
-              variants={textItemVariants}
-              className="flex shrink-0 items-end justify-start lg:justify-end"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white/80 backdrop-blur-xl">
-                <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                Local-only export
-              </div>
-            </motion.div>
           </motion.div>
 
           <div className="relative grid gap-6 md:grid-cols-2 items-stretch mt-4">

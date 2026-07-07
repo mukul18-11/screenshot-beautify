@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Eye,
-  Lock,
   Minimize2,
   Moon,
   RotateCcw,
@@ -187,10 +186,6 @@ export default function EditorClient() {
                   <Moon className="h-4 w-4 text-indigo-500" aria-hidden="true" />
                 )}
               </button>
-              <div className="flex items-center gap-1.5 rounded-full border border-[var(--editor-border)] bg-white/5 px-3 py-1.5 text-[11px] font-bold text-[var(--editor-muted)] shadow-sm">
-                <Lock className="h-3 w-3" aria-hidden="true" />
-                Local only · Private
-              </div>
             </div>
           </header>
 
