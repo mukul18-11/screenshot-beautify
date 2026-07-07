@@ -826,6 +826,15 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformFrameRef = useRef<number | null>(null);
     const transformDragActiveRef = useRef(false);
     const transformUpdateRef = useRef<(() => void) | null>(null);
+    // When a touch gesture on an already-selected mockup/text layer turns
+    // out to be a vertical swipe (not a deliberate drag), we hand the
+    // gesture off to a manual page-scroll instead of moving the layer, since
+    // native scrolling can't take over mid-gesture once touch-action is
+    // "none" for a touch-selected layer.
+    const touchScrollHandoffRef = useRef<{
+      pointerId: number;
+      lastClientY: number;
+    } | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
     const [screenshotSlotSize, setScreenshotSlotSize] =
@@ -1727,6 +1736,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       layerId: TextLayerId,
       event: PointerEvent<HTMLElement>,
     ) {
+      const scrollHandoff = touchScrollHandoffRef.current;
+
+      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
+        window.scrollBy(0, scrollHandoff.lastClientY - event.clientY);
+        scrollHandoff.lastClientY = event.clientY;
+        return;
+      }
+
       const dragState = textDragStateRef.current;
 
       if (
@@ -1742,6 +1759,29 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const dragDistance = Math.hypot(deltaX, deltaY);
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      if (
+        !dragState.moved &&
+        event.pointerType === "touch" &&
+        Math.abs(deltaY) > Math.abs(deltaX)
+      ) {
+        // A predominantly vertical touch swipe over an already-active text
+        // layer means the user wants to scroll the page, not drag the text.
+        // Native scrolling can't take over mid-gesture (touch-action was
+        // already "none" for this layer when the touch started), so we hand
+        // the rest of this gesture off to a manual scroll instead.
+        textDragActiveRef.current = false;
+        cancelTextDragUpdate();
+        textDragStateRef.current = null;
+        setIsDraggingCanvasItem(false);
+        setActiveTextLayerId(null);
+        touchScrollHandoffRef.current = {
+          pointerId: event.pointerId,
+          lastClientY: event.clientY,
+        };
+        window.scrollBy(0, -deltaY);
         return;
       }
 
@@ -1823,6 +1863,18 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       layerId: TextLayerId,
       event: PointerEvent<HTMLElement>,
     ) {
+      const scrollHandoff = touchScrollHandoffRef.current;
+
+      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
+        touchScrollHandoffRef.current = null;
+
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+
+        return;
+      }
+
       const dragState = textDragStateRef.current;
       textDragActiveRef.current = false;
       cancelTextDragUpdate();
@@ -2244,6 +2296,14 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }
 
     function handleMockupPointerMove(event: PointerEvent<HTMLDivElement>) {
+      const scrollHandoff = touchScrollHandoffRef.current;
+
+      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
+        window.scrollBy(0, scrollHandoff.lastClientY - event.clientY);
+        scrollHandoff.lastClientY = event.clientY;
+        return;
+      }
+
       const dragState = mockupDragStateRef.current;
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -2255,6 +2315,29 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const dragDistance = Math.hypot(deltaX, deltaY);
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      if (
+        !dragState.moved &&
+        event.pointerType === "touch" &&
+        Math.abs(deltaY) > Math.abs(deltaX)
+      ) {
+        // A predominantly vertical touch swipe over an already-selected
+        // layer means the user wants to scroll the page, not drag the
+        // mockup. Native scrolling can't take over mid-gesture (touch-action
+        // was already "none" for this layer when the touch started), so we
+        // hand the rest of this gesture off to a manual scroll instead.
+        transformDragActiveRef.current = false;
+        cancelTransformUpdate();
+        mockupDragStateRef.current = null;
+        setIsDraggingCanvasItem(false);
+        setIsMockupSelected(false);
+        touchScrollHandoffRef.current = {
+          pointerId: event.pointerId,
+          lastClientY: event.clientY,
+        };
+        window.scrollBy(0, -deltaY);
         return;
       }
 
@@ -2305,6 +2388,18 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }
 
     function handleMockupPointerEnd(event: PointerEvent<HTMLDivElement>) {
+      const scrollHandoff = touchScrollHandoffRef.current;
+
+      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
+        touchScrollHandoffRef.current = null;
+
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+
+        return;
+      }
+
       const dragState = mockupDragStateRef.current;
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
