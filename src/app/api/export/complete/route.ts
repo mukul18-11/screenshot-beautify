@@ -62,6 +62,17 @@ export async function POST(request: Request) {
     );
   }
 
+  if (status === "failed") {
+    console.error("[export] client-reported failure", {
+      exportAttemptId,
+      failureCode: typeof failureCode === "string" ? failureCode : null,
+      outputPixelHeight,
+      outputPixelWidth,
+      userAgent: request.headers.get("user-agent"),
+      userId: user?.id ?? null,
+    });
+  }
+
   return createNoStoreJson({
     exportAttemptId,
     failureCode: typeof failureCode === "string" ? failureCode : null,

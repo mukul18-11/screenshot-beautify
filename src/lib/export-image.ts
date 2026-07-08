@@ -18,6 +18,8 @@ export const EXPORT_LAYOUT_ERROR_MESSAGE =
   "Export renderer did not match the selected canvas size.";
 export const EXPORT_TOO_LARGE_MESSAGE =
   "This export is too large for this device. Lower the export scale or canvas size.";
+export const EXPORT_RENDER_ERROR_MESSAGE =
+  "Unable to prepare artwork for export.";
 const EXPORT_LAYOUT_TOLERANCE_PX = 1;
 const CSS_URL_PATTERN = /url\((['"]?)(.*?)\1\)/g;
 const MAX_RASTERIZED_RESOURCE_DIMENSION = 4096;
@@ -806,17 +808,27 @@ export async function createExportPngBlob({
 
   try {
     await waitForBackgroundImages(node);
-    svgDataUrl = await toSvg(node, {
-      cacheBust,
-      filter: shouldIncludeExportNode,
-      height,
-      onImageErrorHandler: handleExportImageError,
-      width,
-      style: {
-        height: `${height}px`,
-        width: `${width}px`,
-      },
-    });
+
+    try {
+      svgDataUrl = await toSvg(node, {
+        cacheBust,
+        filter: shouldIncludeExportNode,
+        height,
+        onImageErrorHandler: handleExportImageError,
+        width,
+        style: {
+          height: `${height}px`,
+          width: `${width}px`,
+        },
+      });
+    } catch (error) {
+      // html-to-image's toSvg() can throw raw, uncataloged errors (e.g. a
+      // URIError from encodeURIComponent on malformed text, or a TypeError
+      // from its own unguarded font-loading failure handler) that would
+      // otherwise surface as an unhelpful generic "Export failed" message.
+      console.error("[export] toSvg failed", error);
+      throw new Error(EXPORT_RENDER_ERROR_MESSAGE);
+    }
   } finally {
     restoreInlinedResources();
   }

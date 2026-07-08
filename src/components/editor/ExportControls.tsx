@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import {
   EXPORT_LAYOUT_ERROR_MESSAGE,
+  EXPORT_RENDER_ERROR_MESSAGE,
   EXPORT_TOO_LARGE_MESSAGE,
 } from "@/lib/export-image";
 import { getExportPixelSize, getMaxSafeExportScale } from "@/lib/export-utils";
@@ -36,9 +37,11 @@ const CLEAN_ERROR_MESSAGES = new Set([
   "An image could not be loaded for export.",
   "Copying images is not supported in this browser. Please download the PNG instead.",
   "Could not copy image. Try downloading instead.",
+  "Could not reach the server. Check your connection and try again.",
   "Export already in progress.",
   "Export dimensions did not match the selected scale.",
   EXPORT_LAYOUT_ERROR_MESSAGE,
+  EXPORT_RENDER_ERROR_MESSAGE,
   EXPORT_TOO_LARGE_MESSAGE,
   "Export dimensions must be greater than zero.",
   "Export did not produce a PNG image.",
@@ -56,6 +59,11 @@ function getErrorMessage(error: unknown) {
       return message;
     }
   }
+
+  // Unrecognized error: log full diagnostic detail so a real cause can be
+  // captured (via remote device debugging) instead of only ever seeing the
+  // generic fallback text below.
+  console.error("[export] unrecognized failure", error);
 
   return "Export failed. Please try again.";
 }

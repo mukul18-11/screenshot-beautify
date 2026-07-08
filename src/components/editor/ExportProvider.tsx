@@ -28,6 +28,8 @@ const ExportContext = createContext<ExportContextValue | null>(null);
 const PRO_REQUIRED_EXPORT_MESSAGE =
   "Upgrade is required to export with the selected features.";
 const EXPORT_AUTHORIZATION_ERROR_MESSAGE = "Unable to authorize export.";
+const EXPORT_NETWORK_ERROR_MESSAGE =
+  "Could not reach the server. Check your connection and try again.";
 
 async function prepareExport({
   action,
@@ -38,26 +40,44 @@ async function prepareExport({
   clientExportId: string;
   requestedScale: ExportScale;
 }): Promise<ExportAuthorization> {
-  const response = await fetch("/api/export/prepare", {
-    body: JSON.stringify({
-      action,
-      clientExportId,
-      requestedScale,
-      usedFeatureKeys: [],
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch("/api/export/prepare", {
+      body: JSON.stringify({
+        action,
+        clientExportId,
+        requestedScale,
+        usedFeatureKeys: [],
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+  } catch (error) {
+    // A rejected fetch() (network drop, DNS/TLS hiccup, backgrounded tab)
+    // throws a raw, unguarded TypeError that would otherwise surface as an
+    // unhelpful generic "Export failed" message — far more common on
+    // mobile connections than on a stable desktop connection.
+    console.error("[export] prepare request failed", error);
+    throw new Error(EXPORT_NETWORK_ERROR_MESSAGE);
+  }
 
   if (!response.ok) {
     throw new Error(EXPORT_AUTHORIZATION_ERROR_MESSAGE);
   }
 
-  const payload = (await response.json()) as {
-    authorization?: ExportAuthorization;
-  };
+  let payload: { authorization?: ExportAuthorization };
+
+  try {
+    payload = (await response.json()) as {
+      authorization?: ExportAuthorization;
+    };
+  } catch (error) {
+    console.error("[export] prepare response parse failed", error);
+    throw new Error(EXPORT_AUTHORIZATION_ERROR_MESSAGE);
+  }
 
   return (
     payload.authorization ??
