@@ -6,13 +6,14 @@ import {
   useContext,
   useMemo,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 
 import ExportRenderer from "@/components/editor/ExportRenderer";
 import { authorizeLocalExport, createClientExportId } from "@/lib/entitlements";
 import { copyPngToClipboard, exportPng } from "@/lib/export-image";
-import { getExportPixelSize } from "@/lib/export-utils";
+import { getExportPixelSize, getSafeExportScale } from "@/lib/export-utils";
 import { useEditorStore } from "@/store/editor-store";
 import type { ExportScale } from "@/types/editor";
 import type { ExportAction, ExportAuthorization } from "@/types/entitlements";
@@ -105,9 +106,18 @@ type ExportProviderProps = {
   children: ReactNode;
 };
 
+const EXPORT_NODE_MOUNT_TIMEOUT_MS = 5000;
+
 export function ExportProvider({ children }: ExportProviderProps) {
   const exportNodeRef = useRef<HTMLDivElement | null>(null);
+  const exportNodeReadyResolversRef = useRef<
+    Array<(node: HTMLDivElement) => void>
+  >([]);
   const isExportInFlightRef = useRef(false);
+  // The hidden full-size renderer is expensive (it repaints the whole artwork
+  // on every edit and doubles image memory on mobile), so it is only mounted
+  // while an export is actually running.
+  const [isExportNodeActive, setIsExportNodeActive] = useState(false);
   const uploadedImage = useEditorStore((state) => state.uploadedImage);
   const canvasWidth = useEditorStore((state) => state.canvasWidth);
   const canvasHeight = useEditorStore((state) => state.canvasHeight);
@@ -116,52 +126,88 @@ export function ExportProvider({ children }: ExportProviderProps) {
   const setIsExporting = useEditorStore((state) => state.setIsExporting);
   const markExported = useEditorStore((state) => state.markExported);
 
-  const getExportNode = useCallback(() => {
-    const exportNode = exportNodeRef.current;
+  const handleExportNodeRef = useCallback((node: HTMLDivElement | null) => {
+    exportNodeRef.current = node;
 
-    if (!uploadedImage || !exportNode) {
-      throw new Error("No artwork is ready to export.");
+    if (!node) {
+      return;
     }
 
-    return exportNode;
-  }, [uploadedImage]);
+    const resolvers = exportNodeReadyResolversRef.current;
+
+    exportNodeReadyResolversRef.current = [];
+    resolvers.forEach((resolve) => resolve(node));
+  }, []);
+
+  const acquireExportNode = useCallback(() => {
+    const exportNode = exportNodeRef.current;
+
+    if (exportNode) {
+      return Promise.resolve(exportNode);
+    }
+
+    return new Promise<HTMLDivElement>((resolve, reject) => {
+      const handleNodeReady = (node: HTMLDivElement) => {
+        window.clearTimeout(timeoutId);
+        resolve(node);
+      };
+      const timeoutId = window.setTimeout(() => {
+        exportNodeReadyResolversRef.current =
+          exportNodeReadyResolversRef.current.filter(
+            (resolver) => resolver !== handleNodeReady,
+          );
+        reject(new Error("No artwork is ready to export."));
+      }, EXPORT_NODE_MOUNT_TIMEOUT_MS);
+
+      exportNodeReadyResolversRef.current.push(handleNodeReady);
+    });
+  }, []);
 
   const runExportTask = useCallback(
-    async (task: () => Promise<void>) => {
+    async (task: (exportNode: HTMLDivElement) => Promise<void>) => {
       if (isExportInFlightRef.current) {
         throw new Error("Export already in progress.");
       }
 
+      if (!uploadedImage) {
+        throw new Error("No artwork is ready to export.");
+      }
+
       isExportInFlightRef.current = true;
       setIsExporting(true);
+      setIsExportNodeActive(true);
 
       try {
-        await task();
+        const exportNode = await acquireExportNode();
+
+        await task(exportNode);
         markExported();
       } catch (error) {
         setIsExporting(false);
         throw error;
       } finally {
+        setIsExportNodeActive(false);
         isExportInFlightRef.current = false;
       }
     },
-    [markExported, setIsExporting],
+    [acquireExportNode, markExported, setIsExporting, uploadedImage],
   );
 
   const exportCurrentPng = useCallback(async () => {
-    const exportNode = getExportNode();
-
-    await runExportTask(async () => {
+    await runExportTask(async (exportNode) => {
       const clientExportId = createClientExportId();
       const authorization = await prepareExport({
         action: "download",
         clientExportId,
         requestedScale: exportScale,
       });
+      const outputScale =
+        getSafeExportScale(canvasWidth, canvasHeight, exportScale) ??
+        exportScale;
       const outputSize = getExportPixelSize(
         canvasWidth,
         canvasHeight,
-        exportScale,
+        outputScale,
       );
 
       if (!authorization.allowed) {
@@ -198,24 +244,24 @@ export function ExportProvider({ children }: ExportProviderProps) {
     canvasWidth,
     exportFileName,
     exportScale,
-    getExportNode,
     runExportTask,
   ]);
 
   const copyCurrentPng = useCallback(async () => {
-    const exportNode = getExportNode();
-
-    await runExportTask(async () => {
+    await runExportTask(async (exportNode) => {
       const clientExportId = createClientExportId();
       const authorization = await prepareExport({
         action: "copy",
         clientExportId,
         requestedScale: exportScale,
       });
+      const outputScale =
+        getSafeExportScale(canvasWidth, canvasHeight, exportScale) ??
+        exportScale;
       const outputSize = getExportPixelSize(
         canvasWidth,
         canvasHeight,
-        exportScale,
+        outputScale,
       );
 
       if (!authorization.allowed) {
@@ -250,7 +296,6 @@ export function ExportProvider({ children }: ExportProviderProps) {
     canvasHeight,
     canvasWidth,
     exportScale,
-    getExportNode,
     runExportTask,
   ]);
 
@@ -265,8 +310,11 @@ export function ExportProvider({ children }: ExportProviderProps) {
   return (
     <ExportContext.Provider value={contextValue}>
       {children}
-      {uploadedImage && (
-        <ExportRenderer ref={exportNodeRef} uploadedImage={uploadedImage} />
+      {uploadedImage && isExportNodeActive && (
+        <ExportRenderer
+          ref={handleExportNodeRef}
+          uploadedImage={uploadedImage}
+        />
       )}
     </ExportContext.Provider>
   );

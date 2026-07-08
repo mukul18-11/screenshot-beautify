@@ -18,8 +18,11 @@ import { useExportImage } from "@/components/editor/ExportProvider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { EXPORT_LAYOUT_ERROR_MESSAGE } from "@/lib/export-image";
-import { getExportPixelSize } from "@/lib/export-utils";
+import {
+  EXPORT_LAYOUT_ERROR_MESSAGE,
+  EXPORT_TOO_LARGE_MESSAGE,
+} from "@/lib/export-image";
+import { getExportPixelSize, getMaxSafeExportScale } from "@/lib/export-utils";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type UploadedImage } from "@/store/editor-store";
 import type { ExportScale } from "@/types/editor";
@@ -36,6 +39,7 @@ const CLEAN_ERROR_MESSAGES = new Set([
   "Export already in progress.",
   "Export dimensions did not match the selected scale.",
   EXPORT_LAYOUT_ERROR_MESSAGE,
+  EXPORT_TOO_LARGE_MESSAGE,
   "Export dimensions must be greater than zero.",
   "Export did not produce a PNG image.",
   "No artwork is ready to export.",
@@ -72,13 +76,20 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
   const setExportFileName = useEditorStore(
     (state) => state.setExportFileName,
   );
+  const maxSafeScale = getMaxSafeExportScale(canvasWidth, canvasHeight);
+  const isSelectedScaleUnsupported =
+    maxSafeScale !== null && exportScale > maxSafeScale;
+  const effectiveExportScale =
+    isSelectedScaleUnsupported && maxSafeScale !== null
+      ? maxSafeScale
+      : exportScale;
   const exportPixelSize = getExportPixelSize(
     canvasWidth,
     canvasHeight,
-    exportScale,
+    effectiveExportScale,
   );
   const isExportDisabled = !uploadedImage || isExporting;
-  const shouldShowHighResHint = exportScale >= 4;
+  const shouldShowHighResHint = exportScale >= 4 && !isSelectedScaleUnsupported;
 
   function promptSignIn() {
     window.open("/login?next=/editor", "_blank", "noopener,noreferrer");
@@ -208,6 +219,8 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
           >
             {EXPORT_SCALES.map((scale) => {
               const isSelected = exportScale === scale;
+              const isUnsupportedOnDevice =
+                maxSafeScale !== null && scale > maxSafeScale;
 
               return (
                 <button
@@ -215,12 +228,20 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
+                  disabled={isUnsupportedOnDevice}
+                  title={
+                    isUnsupportedOnDevice
+                      ? "Too large for this device"
+                      : undefined
+                  }
                   onClick={() => setExportScale(scale)}
                   className={cn(
                     "h-9 rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:focus-visible:ring-white/30",
                     isSelected
                       ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
                       : "text-slate-500 hover:bg-white/80 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
+                    isUnsupportedOnDevice &&
+                      "pointer-events-none opacity-35",
                   )}
                 >
                   {scale}x
@@ -228,6 +249,16 @@ export default function ExportControls({ uploadedImage }: ExportControlsProps) {
               );
             })}
           </div>
+          {isSelectedScaleUnsupported && maxSafeScale !== null && (
+            <p className="mt-2 flex items-start gap-1.5 text-xs leading-5 text-amber-700 dark:text-amber-200">
+              <Info
+                className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                aria-hidden="true"
+              />
+              {exportScale}x is too large for this device, so the PNG will
+              export at {maxSafeScale}x instead.
+            </p>
+          )}
           {shouldShowHighResHint && (
             <motion.p
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -2 }}

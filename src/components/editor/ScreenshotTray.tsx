@@ -51,7 +51,7 @@ export default function ScreenshotTray({
   const isBusy = isUploading || isExporting;
 
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[var(--editor-panel)]/90 dark:shadow-slate-950/20">
+    <div className="flex min-w-0 transform-gpu items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/78 p-2 shadow-sm shadow-slate-950/[0.04] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[var(--editor-panel)]/90 dark:shadow-slate-950/20">
       <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain">
         <div
           role="list"

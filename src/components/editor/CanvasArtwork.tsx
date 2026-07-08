@@ -826,15 +826,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     const transformFrameRef = useRef<number | null>(null);
     const transformDragActiveRef = useRef(false);
     const transformUpdateRef = useRef<(() => void) | null>(null);
-    // When a touch gesture on an already-selected mockup/text layer turns
-    // out to be a vertical swipe (not a deliberate drag), we hand the
-    // gesture off to a manual page-scroll instead of moving the layer, since
-    // native scrolling can't take over mid-gesture once touch-action is
-    // "none" for a touch-selected layer.
-    const touchScrollHandoffRef = useRef<{
-      pointerId: number;
-      lastClientY: number;
-    } | null>(null);
     const [isDraggingCanvasItem, setIsDraggingCanvasItem] = useState(false);
     const [isMockupSelected, setIsMockupSelected] = useState(false);
     const [screenshotSlotSize, setScreenshotSlotSize] =
@@ -1649,8 +1640,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      const wasLayerAlreadyActive = activeTextLayerId === layerId;
-
       setActiveTextLayerId(layerId);
       setIsMockupSelected(false);
 
@@ -1668,13 +1657,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         eventTarget instanceof HTMLElement &&
         eventTarget.closest("[contenteditable='true']")
       ) {
-        return;
-      }
-
-      // On touch, the first tap only selects the layer so the gesture can
-      // still scroll the page (the layer keeps touch-action: pan-y until it
-      // is active). Dragging starts from the next touch.
-      if (event.pointerType === "touch" && !wasLayerAlreadyActive) {
         return;
       }
 
@@ -1736,14 +1718,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       layerId: TextLayerId,
       event: PointerEvent<HTMLElement>,
     ) {
-      const scrollHandoff = touchScrollHandoffRef.current;
-
-      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
-        window.scrollBy(0, scrollHandoff.lastClientY - event.clientY);
-        scrollHandoff.lastClientY = event.clientY;
-        return;
-      }
-
       const dragState = textDragStateRef.current;
 
       if (
@@ -1759,29 +1733,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const dragDistance = Math.hypot(deltaX, deltaY);
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
-        return;
-      }
-
-      if (
-        !dragState.moved &&
-        event.pointerType === "touch" &&
-        Math.abs(deltaY) > Math.abs(deltaX)
-      ) {
-        // A predominantly vertical touch swipe over an already-active text
-        // layer means the user wants to scroll the page, not drag the text.
-        // Native scrolling can't take over mid-gesture (touch-action was
-        // already "none" for this layer when the touch started), so we hand
-        // the rest of this gesture off to a manual scroll instead.
-        textDragActiveRef.current = false;
-        cancelTextDragUpdate();
-        textDragStateRef.current = null;
-        setIsDraggingCanvasItem(false);
-        setActiveTextLayerId(null);
-        touchScrollHandoffRef.current = {
-          pointerId: event.pointerId,
-          lastClientY: event.clientY,
-        };
-        window.scrollBy(0, -deltaY);
         return;
       }
 
@@ -1863,18 +1814,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       layerId: TextLayerId,
       event: PointerEvent<HTMLElement>,
     ) {
-      const scrollHandoff = touchScrollHandoffRef.current;
-
-      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
-        touchScrollHandoffRef.current = null;
-
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-
-        return;
-      }
-
       const dragState = textDragStateRef.current;
       textDragActiveRef.current = false;
       cancelTextDragUpdate();
@@ -1897,13 +1836,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-
-      if (event.pointerType === "touch") {
-        // Same reasoning as the mockup layer: deselect after every touch
-        // gesture so the layer returns to touch-pan-y and never permanently
-        // blocks single-finger scrolling over its area.
-        setActiveTextLayerId(null);
       }
     }
 
@@ -2246,9 +2178,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         return;
       }
 
-      const wasMockupAlreadySelected =
-        isMockupSelected && targetScreenshotId === activeScreenshotId;
-
       if (targetScreenshotId !== activeScreenshotId) {
         selectScreenshot(targetScreenshotId);
       }
@@ -2265,14 +2194,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       setIsMockupSelected(true);
       setActiveTextLayerId(null);
-
-      // On touch, the first tap only selects the mockup so the gesture can
-      // still scroll the page (the layer keeps touch-action: pan-y until it
-      // is selected). Dragging starts from the next touch.
-      if (event.pointerType === "touch" && !wasMockupAlreadySelected) {
-        event.stopPropagation();
-        return;
-      }
 
       event.preventDefault();
       event.stopPropagation();
@@ -2296,14 +2217,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }
 
     function handleMockupPointerMove(event: PointerEvent<HTMLDivElement>) {
-      const scrollHandoff = touchScrollHandoffRef.current;
-
-      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
-        window.scrollBy(0, scrollHandoff.lastClientY - event.clientY);
-        scrollHandoff.lastClientY = event.clientY;
-        return;
-      }
-
       const dragState = mockupDragStateRef.current;
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -2315,29 +2228,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
       const dragDistance = Math.hypot(deltaX, deltaY);
 
       if (!dragState.moved && dragDistance < DRAG_THRESHOLD_PX) {
-        return;
-      }
-
-      if (
-        !dragState.moved &&
-        event.pointerType === "touch" &&
-        Math.abs(deltaY) > Math.abs(deltaX)
-      ) {
-        // A predominantly vertical touch swipe over an already-selected
-        // layer means the user wants to scroll the page, not drag the
-        // mockup. Native scrolling can't take over mid-gesture (touch-action
-        // was already "none" for this layer when the touch started), so we
-        // hand the rest of this gesture off to a manual scroll instead.
-        transformDragActiveRef.current = false;
-        cancelTransformUpdate();
-        mockupDragStateRef.current = null;
-        setIsDraggingCanvasItem(false);
-        setIsMockupSelected(false);
-        touchScrollHandoffRef.current = {
-          pointerId: event.pointerId,
-          lastClientY: event.clientY,
-        };
-        window.scrollBy(0, -deltaY);
         return;
       }
 
@@ -2388,18 +2278,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
     }
 
     function handleMockupPointerEnd(event: PointerEvent<HTMLDivElement>) {
-      const scrollHandoff = touchScrollHandoffRef.current;
-
-      if (scrollHandoff && scrollHandoff.pointerId === event.pointerId) {
-        touchScrollHandoffRef.current = null;
-
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-
-        return;
-      }
-
       const dragState = mockupDragStateRef.current;
 
       if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -2430,12 +2308,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
 
       if (shouldRemoveFromCanvas) {
         removeScreenshotFromCanvas(dragState.screenshotId);
-        setIsMockupSelected(false);
-      } else if (event.pointerType === "touch") {
-        // Deselecting after every touch gesture returns the mockup body to
-        // touch-pan-y so the page can always be scrolled again by the next
-        // touch. Without this, a selected mockup stays touch-none forever
-        // and permanently blocks single-finger scrolling over its area.
         setIsMockupSelected(false);
       }
     }
@@ -2968,7 +2840,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         position: "absolute",
         top: `${(-layerSettings.imageCrop.top / layerCropRatios.height) * 100}%`,
         width: `${100 / layerCropRatios.width}%`,
-        willChange: "transform",
+        // Compositor hints stay off in export/preview renders: every hinted
+        // element pins a full-size GPU layer, which starves mobile Safari
+        // into blank/black output.
+        willChange: isExportMode ? undefined : "transform",
       } satisfies CSSProperties;
       const layerZoomScale = layerSettings.imageZoom / 100;
       const isLayerZoomed = layerSettings.imageZoom > 100;
@@ -2977,7 +2852,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           ? `scale(${layerZoomScale}) translate(${-layerSettings.imageZoomOffsetX * 100}%, ${-layerSettings.imageZoomOffsetY * 100}%)`
           : undefined,
         transformOrigin: "center",
-        willChange: isLayerZoomed ? "transform" : undefined,
+        willChange: !isExportMode && isLayerZoomed ? "transform" : undefined,
       } satisfies CSSProperties;
       const tiltSettings = {
         tiltEnabled: layerSettings.tiltEnabled,
@@ -3011,7 +2886,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           isExportMode || shouldReduceMotion || isDraggingCanvasItem
             ? undefined
             : "transform 180ms ease-out",
-        willChange: "transform",
+        willChange: isExportMode ? undefined : "transform",
       } satisfies CSSProperties;
       const mockupVisualStyle = {
         ...mockupScaleStyle,
@@ -3027,8 +2902,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           onDragStart={(event) => event.preventDefault()}
           {...screenshotMotionProps}
           className={cn(
-            "block h-full w-full select-none object-cover [-webkit-user-drag:none]",
-            isLayerZoomed ? "will-change-transform" : "will-change-auto",
+            "block h-full w-full select-none object-cover [-webkit-touch-callout:none] [-webkit-user-drag:none]",
+            !isExportMode && isLayerZoomed
+              ? "will-change-transform"
+              : "will-change-auto",
           )}
           style={zoomTransformStyle}
         />
@@ -3043,9 +2920,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
           data-screenshot-layer-id={screenshot.id}
           className={cn(
             "absolute flex select-none",
-            // On touch devices an unselected mockup must not swallow page
-            // scrolling; full 2D dragging is enabled once it is selected.
-            isActiveLayer && isMockupSelected ? "touch-none" : "touch-pan-y",
+            // touch-none so the very first touch can start dragging the
+            // mockup; the page still scrolls from the canvas gutters around
+            // the artwork.
+            "touch-none",
             screenshotShellClasses,
             !isExportMode && "cursor-grab active:cursor-grabbing",
           )}
@@ -3086,10 +2964,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     <motion.div
                       ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
                       className="relative overflow-hidden"
-                      style={{
-                        ...screenshotCropStyle,
-                        touchAction: "pan-y",
-                      }}
+                      style={screenshotCropStyle}
                     >
                       <div style={cropContentStyle}>
                         <AnimatePresence mode="wait">
@@ -3114,10 +2989,7 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                       <motion.div
                         ref={isActiveLayer ? screenshotZoomTargetRef : undefined}
                         className="relative overflow-hidden"
-                        style={{
-                          ...screenshotCropStyle,
-                          touchAction: "pan-y",
-                        }}
+                        style={screenshotCropStyle}
                       >
                         <div style={cropContentStyle}>
                           <AnimatePresence mode="wait">
@@ -3134,7 +3006,6 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                     style={{
                       ...screenshotCropStyle,
                       ...mockupDecorationStyle,
-                      touchAction: "pan-y",
                     }}
                   >
                     <div style={cropContentStyle}>
@@ -3376,7 +3247,10 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
         onPointerLeave={handleCanvasPointerLeave}
         onPointerMove={handleCanvasPointerMove}
         className={cn(
-          "relative overflow-hidden",
+          // isolate keeps the mix-blend noise/pattern layers compositing
+          // against the artwork only; without it WebKit can blend against
+          // the page and paint the whole canvas black.
+          "relative isolate overflow-hidden",
           className,
         )}
         style={{
@@ -3402,8 +3276,8 @@ const CanvasArtwork = forwardRef<HTMLDivElement, CanvasArtworkProps>(
                   ? undefined
                   : "filter 220ms ease-out, transform 280ms ease-out",
               willChange:
-                backgroundBlurPixels > 0 ||
-                (!isExportMode && backgroundParallaxEnabled)
+                !isExportMode &&
+                (backgroundBlurPixels > 0 || backgroundParallaxEnabled)
                   ? "filter, transform"
                   : undefined,
             }}

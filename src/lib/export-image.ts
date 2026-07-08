@@ -1,8 +1,9 @@
-import { toBlob } from "html-to-image";
+import { toSvg } from "html-to-image";
 
 import {
   getExportFileName,
   getExportPixelSize,
+  getSafeExportScale,
   supportsClipboardImageWrite,
 } from "@/lib/export-utils";
 import type { ExportScale } from "@/types/editor";
@@ -14,8 +15,11 @@ export const CLIPBOARD_IMAGE_WRITE_FAILED_MESSAGE =
 const IMAGE_LOAD_ERROR_MESSAGE = "An image could not be loaded for export.";
 export const EXPORT_LAYOUT_ERROR_MESSAGE =
   "Export renderer did not match the selected canvas size.";
+export const EXPORT_TOO_LARGE_MESSAGE =
+  "This export is too large for this device. Lower the export scale or canvas size.";
 const EXPORT_LAYOUT_TOLERANCE_PX = 1;
 const CSS_URL_PATTERN = /url\((['"]?)(.*?)\1\)/g;
+const WEBKIT_RENDER_ATTEMPTS = 3;
 
 type ExportPngOptions = {
   cacheBust?: boolean;
@@ -352,6 +356,149 @@ function shouldIncludeExportNode(node: Node) {
   return !node.closest("[data-export-ignore='true']");
 }
 
+function isWebKitRenderer() {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const userAgent = navigator.userAgent;
+  const isSafariEngine =
+    /AppleWebKit/i.test(userAgent) &&
+    !/Chrome|Chromium|CriOS|Edg|OPR/i.test(userAgent);
+  // Every iOS/iPadOS browser is WebKit underneath, whatever its branding.
+  const isIosDevice =
+    /iP(?:hone|od|ad)/.test(userAgent) ||
+    (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
+
+  return isSafariEngine || isIosDevice;
+}
+
+function waitForDelay(durationMs: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, durationMs);
+  });
+}
+
+// WebKit's Image.decode() rejects for large SVG images even when they render
+// fine, so decode failures are ignored on purpose; the load event is the
+// source of truth. (html-to-image's own loader hangs forever on this.)
+async function loadExportImage(url: string): Promise<HTMLImageElement> {
+  const image = new Image();
+
+  image.decoding = "async";
+
+  await new Promise<void>((resolve, reject) => {
+    image.addEventListener("load", () => resolve(), { once: true });
+    image.addEventListener(
+      "error",
+      () => reject(new Error(IMAGE_LOAD_ERROR_MESSAGE)),
+      { once: true },
+    );
+    image.src = url;
+  });
+
+  if (typeof image.decode === "function") {
+    await image.decode().catch(() => undefined);
+  }
+
+  return image;
+}
+
+function isCanvasBlank(canvas: HTMLCanvasElement) {
+  const probeSize = 16;
+  const probeCanvas = document.createElement("canvas");
+
+  probeCanvas.width = probeSize;
+  probeCanvas.height = probeSize;
+
+  const probeContext = probeCanvas.getContext("2d");
+
+  if (!probeContext) {
+    return false;
+  }
+
+  probeContext.drawImage(canvas, 0, 0, probeSize, probeSize);
+
+  const pixels = probeContext.getImageData(0, 0, probeSize, probeSize).data;
+
+  for (let index = 3; index < pixels.length; index += 4) {
+    if (pixels[index] !== 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function renderSvgToPngBlob(
+  svgDataUrl: string,
+  exportWidth: number,
+  exportHeight: number,
+): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+
+  canvas.width = exportWidth;
+  canvas.height = exportHeight;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Unable to create PNG export.");
+  }
+
+  try {
+    const renderAttempts = isWebKitRenderer() ? WEBKIT_RENDER_ATTEMPTS : 1;
+    let image = await loadExportImage(svgDataUrl);
+
+    for (let attempt = 0; attempt < renderAttempts; attempt += 1) {
+      if (attempt > 0) {
+        // WebKit rasterizes fonts/images inside SVG foreignObject lazily, so
+        // the first draw can come out empty. Give it a beat and redraw from a
+        // fresh decode instead of shipping a blank frame.
+        await waitForNextPaint();
+        await waitForDelay(120 * attempt);
+        image = await loadExportImage(svgDataUrl);
+      }
+
+      context.clearRect(0, 0, exportWidth, exportHeight);
+      context.drawImage(image, 0, 0, exportWidth, exportHeight);
+
+      if (!isCanvasBlank(canvas)) {
+        break;
+      }
+    }
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/png");
+    });
+
+    if (!blob) {
+      throw new Error("Unable to create PNG export.");
+    }
+
+    return blob;
+  } finally {
+    // Release the backing store eagerly; iOS keeps large canvases alive
+    // until garbage collection otherwise.
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
+export function getEffectiveExportScale(
+  width: number,
+  height: number,
+  scale: ExportScale,
+): ExportScale {
+  const safeScale = getSafeExportScale(width, height, scale);
+
+  if (safeScale === null) {
+    throw new Error(EXPORT_TOO_LARGE_MESSAGE);
+  }
+
+  return safeScale;
+}
+
 export async function createExportPngBlob({
   cacheBust = false,
   height,
@@ -359,7 +506,8 @@ export async function createExportPngBlob({
   scale,
   width,
 }: Omit<ExportPngOptions, "fileName">): Promise<Blob> {
-  const exportSize = getExportPixelSize(width, height, scale);
+  const effectiveScale = getEffectiveExportScale(width, height, scale);
+  const exportSize = getExportPixelSize(width, height, effectiveScale);
 
   if (width <= 0 || height <= 0 || exportSize.width <= 0 || exportSize.height <= 0) {
     throw new Error("Export dimensions must be greater than zero.");
@@ -371,18 +519,14 @@ export async function createExportPngBlob({
   await waitForExportLayout(node, { height, width });
 
   const restoreInlinedResources = await inlineExportResources(node);
-  let blob: Blob | null;
+  let svgDataUrl: string;
 
   try {
-    blob = await toBlob(node, {
+    svgDataUrl = await toSvg(node, {
       cacheBust,
-      canvasHeight: height,
-      canvasWidth: width,
       filter: shouldIncludeExportNode,
       height,
       onImageErrorHandler: handleExportImageError,
-      pixelRatio: scale,
-      skipAutoScale: true,
       width,
       style: {
         height: `${height}px`,
@@ -393,9 +537,11 @@ export async function createExportPngBlob({
     restoreInlinedResources();
   }
 
-  if (!blob) {
-    throw new Error("Unable to create PNG export.");
-  }
+  const blob = await renderSvgToPngBlob(
+    svgDataUrl,
+    exportSize.width,
+    exportSize.height,
+  );
 
   if (blob.type && blob.type !== "image/png") {
     throw new Error("Export did not produce a PNG image.");
@@ -419,11 +565,26 @@ export async function copyPngToClipboard(
     throw new Error(CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE);
   }
 
-  const blob = await createExportPngBlob(options);
-  const clipboardItem = new ClipboardItem({ "image/png": blob });
+  const blobPromise = createExportPngBlob(options);
 
   try {
+    // Safari only allows clipboard writes tied to a user gesture, so hand it
+    // the pending blob instead of awaiting the (slow) render first.
+    const clipboardItem = new ClipboardItem({ "image/png": blobPromise });
+
     await navigator.clipboard.write([clipboardItem]);
+    return;
+  } catch {
+    // Fall through: either the render failed (rethrown below with its real
+    // message) or this browser cannot accept promised clipboard payloads.
+  }
+
+  const blob = await blobPromise;
+
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({ "image/png": blob }),
+    ]);
   } catch {
     throw new Error(CLIPBOARD_IMAGE_WRITE_FAILED_MESSAGE);
   }

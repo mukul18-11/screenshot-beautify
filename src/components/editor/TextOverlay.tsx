@@ -884,11 +884,10 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
     ...createLayerWidthStyle(subtitleWidth, placementBounds),
   } satisfies CSSProperties;
 
-  // An inactive layer keeps vertical page scrolling alive on touch devices;
-  // full 2D dragging is enabled once the layer is selected.
-  function getLayerTouchActionClass(layerId: TextLayerId) {
-    return activeLayerId === layerId ? "touch-none" : "touch-pan-y";
-  }
+  // touch-none so the very first touch can start dragging a text layer;
+  // text layers are small, so the page still scrolls from the space around
+  // them.
+  const layerTouchActionClass = "touch-none";
 
   function createLayerInteractionProps(layerId: TextLayerId) {
     return {
@@ -928,7 +927,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           data-text-layer-id="badge"
           className={cn(
             "pointer-events-auto relative max-w-full",
-            getLayerTouchActionClass("badge"),
+            layerTouchActionClass,
             isMovable && "cursor-move select-none",
           )}
           style={badgeLayerStyleProperties}
@@ -978,7 +977,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           data-text-layer-id="headline"
           className={cn(
             "pointer-events-auto relative max-w-full",
-            getLayerTouchActionClass("headline"),
+            layerTouchActionClass,
             isMovable && "cursor-move select-none",
           )}
           style={headlineLayerStyleProperties}
@@ -1023,7 +1022,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
           data-text-layer-id="subtitle"
           className={cn(
             "pointer-events-auto relative max-w-full",
-            getLayerTouchActionClass("subtitle"),
+            layerTouchActionClass,
             isMovable && "cursor-move select-none",
           )}
           style={subtitleLayerStyleProperties}
@@ -1091,7 +1090,7 @@ const TextOverlay = forwardRef<HTMLDivElement, TextOverlayProps>(
               isCanvasOverlay
                 ? "pointer-events-auto absolute left-1/2 top-1/2"
                 : "pointer-events-auto relative max-w-full",
-              getLayerTouchActionClass(layer.id),
+              layerTouchActionClass,
               isMovable && "cursor-move select-none",
             )}
             style={customLayerStyleProperties}

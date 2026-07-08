@@ -98,7 +98,7 @@ export default function CanvasPreview({
       className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-2 py-2 sm:px-4 sm:py-3 lg:px-8 lg:py-5"
     >
       {showFitBadge && previewScale > 0 && (
-        <div className="pointer-events-none absolute right-3 top-3 z-20 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white/80 shadow-lg shadow-slate-950/20 backdrop-blur-md">
+        <div className="pointer-events-none absolute right-3 top-3 z-20 transform-gpu rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white/80 shadow-lg shadow-slate-950/20 backdrop-blur-md">
           Fit {zoomPercent}%
         </div>
       )}
