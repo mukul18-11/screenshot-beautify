@@ -13,6 +13,7 @@ export const CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE =
 export const CLIPBOARD_IMAGE_WRITE_FAILED_MESSAGE =
   "Could not copy image. Try downloading instead.";
 const IMAGE_LOAD_ERROR_MESSAGE = "An image could not be loaded for export.";
+const PNG_EXPORT_ERROR_MESSAGE = "Unable to create PNG export.";
 export const EXPORT_LAYOUT_ERROR_MESSAGE =
   "Export renderer did not match the selected canvas size.";
 export const EXPORT_TOO_LARGE_MESSAGE =
@@ -539,24 +540,130 @@ function waitForDelay(durationMs: number) {
   });
 }
 
-function createSvgObjectUrl(svgDataUrl: string) {
+type SvgDataUrlPayload = {
+  svgText: string;
+  type: string;
+};
+
+type SvgRenderCandidate = {
+  cleanup?: () => void;
+  url: string;
+};
+
+function decodeSvgDataUrl(svgDataUrl: string): SvgDataUrlPayload {
   const separatorIndex = svgDataUrl.indexOf(",");
 
   if (separatorIndex === -1 || !svgDataUrl.startsWith("data:image/svg+xml")) {
-    throw new Error("Unable to create PNG export.");
+    throw new Error(PNG_EXPORT_ERROR_MESSAGE);
   }
 
   const metadata = svgDataUrl.slice(5, separatorIndex);
   const payload = svgDataUrl.slice(separatorIndex + 1);
   const isBase64 = /;base64/i.test(metadata);
-  const type = metadata || "image/svg+xml;charset=utf-8";
-  const blobPart = isBase64
-    ? Uint8Array.from(window.atob(payload), (character) =>
-        character.charCodeAt(0),
+  const type =
+    metadata.replace(/;base64/gi, "") || "image/svg+xml;charset=utf-8";
+  const svgText = isBase64
+    ? new TextDecoder().decode(
+        Uint8Array.from(window.atob(payload), (character) =>
+          character.charCodeAt(0),
+        ),
       )
     : decodeURIComponent(payload);
 
-  return URL.createObjectURL(new Blob([blobPart], { type }));
+  return { svgText, type };
+}
+
+function bytesToBinaryString(bytes: Uint8Array) {
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+
+  return binary;
+}
+
+function createBase64SvgDataUrl(svgText: string) {
+  const bytes = new TextEncoder().encode(svgText);
+
+  return `data:image/svg+xml;base64,${window.btoa(bytesToBinaryString(bytes))}`;
+}
+
+function createSvgObjectUrl(svgData: SvgDataUrlPayload): SvgRenderCandidate {
+  const objectUrl = URL.createObjectURL(
+    new Blob([svgData.svgText], { type: svgData.type }),
+  );
+
+  return {
+    cleanup: () => URL.revokeObjectURL(objectUrl),
+    url: objectUrl,
+  };
+}
+
+function createSvgRenderCandidateFactories(svgDataUrl: string) {
+  const factories: Array<() => SvgRenderCandidate> = [];
+
+  try {
+    const svgData = decodeSvgDataUrl(svgDataUrl);
+
+    factories.push(() => createSvgObjectUrl(svgData));
+    factories.push(() => ({
+      url: createBase64SvgDataUrl(svgData.svgText),
+    }));
+  } catch {
+    // Still try the original data URL; the renderer will surface one clean
+    // export error if no candidate works.
+  }
+
+  factories.push(() => ({ url: svgDataUrl }));
+
+  return factories;
+}
+
+async function renderSvgCandidateToPngBlob(
+  candidateUrl: string,
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+  exportWidth: number,
+  exportHeight: number,
+) {
+  const renderAttempts = isWebKitRenderer() ? WEBKIT_RENDER_ATTEMPTS : 1;
+  let image = await loadExportImage(candidateUrl);
+  let renderedNonBlank = false;
+
+  for (let attempt = 0; attempt < renderAttempts; attempt += 1) {
+    if (attempt > 0) {
+      // WebKit rasterizes fonts/images inside SVG foreignObject lazily, so
+      // the first draw can come out empty. Give it a beat and redraw from a
+      // fresh decode instead of shipping a blank frame.
+      await waitForNextPaint();
+      await waitForDelay(120 * attempt);
+      image = await loadExportImage(candidateUrl);
+    }
+
+    context.clearRect(0, 0, exportWidth, exportHeight);
+    context.drawImage(image, 0, 0, exportWidth, exportHeight);
+
+    if (!isCanvasBlank(canvas)) {
+      renderedNonBlank = true;
+      break;
+    }
+  }
+
+  if (!renderedNonBlank) {
+    throw new Error(PNG_EXPORT_ERROR_MESSAGE);
+  }
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/png");
+  });
+
+  if (!blob) {
+    throw new Error(PNG_EXPORT_ERROR_MESSAGE);
+  }
+
+  return blob;
 }
 
 // WebKit's Image.decode() rejects for large SVG images even when they render
@@ -623,44 +730,35 @@ async function renderSvgToPngBlob(
   const context = canvas.getContext("2d");
 
   if (!context) {
-    throw new Error("Unable to create PNG export.");
+    throw new Error(PNG_EXPORT_ERROR_MESSAGE);
   }
 
-  const svgObjectUrl = createSvgObjectUrl(svgDataUrl);
-
   try {
-    const renderAttempts = isWebKitRenderer() ? WEBKIT_RENDER_ATTEMPTS : 1;
-    let image = await loadExportImage(svgObjectUrl);
+    for (const createCandidate of createSvgRenderCandidateFactories(svgDataUrl)) {
+      let candidate: SvgRenderCandidate | null = null;
 
-    for (let attempt = 0; attempt < renderAttempts; attempt += 1) {
-      if (attempt > 0) {
-        // WebKit rasterizes fonts/images inside SVG foreignObject lazily, so
-        // the first draw can come out empty. Give it a beat and redraw from a
-        // fresh decode instead of shipping a blank frame.
-        await waitForNextPaint();
-        await waitForDelay(120 * attempt);
-        image = await loadExportImage(svgObjectUrl);
-      }
+      try {
+        candidate = createCandidate();
+        context.clearRect(0, 0, exportWidth, exportHeight);
 
-      context.clearRect(0, 0, exportWidth, exportHeight);
-      context.drawImage(image, 0, 0, exportWidth, exportHeight);
-
-      if (!isCanvasBlank(canvas)) {
-        break;
+        return await renderSvgCandidateToPngBlob(
+          candidate.url,
+          canvas,
+          context,
+          exportWidth,
+          exportHeight,
+        );
+      } catch {
+        canvas.width = exportWidth;
+        canvas.height = exportHeight;
+        // Try the next SVG loading strategy before surfacing a renderer error.
+      } finally {
+        candidate?.cleanup?.();
       }
     }
 
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/png");
-    });
-
-    if (!blob) {
-      throw new Error("Unable to create PNG export.");
-    }
-
-    return blob;
+    throw new Error(PNG_EXPORT_ERROR_MESSAGE);
   } finally {
-    URL.revokeObjectURL(svgObjectUrl);
     // Release the backing store eagerly; iOS keeps large canvases alive
     // until garbage collection otherwise.
     canvas.width = 0;
