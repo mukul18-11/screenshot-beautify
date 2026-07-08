@@ -19,6 +19,7 @@ export const EXPORT_TOO_LARGE_MESSAGE =
   "This export is too large for this device. Lower the export scale or canvas size.";
 const EXPORT_LAYOUT_TOLERANCE_PX = 1;
 const CSS_URL_PATTERN = /url\((['"]?)(.*?)\1\)/g;
+const MAX_RASTERIZED_RESOURCE_DIMENSION = 4096;
 const WEBKIT_RENDER_ATTEMPTS = 3;
 
 type ExportPngOptions = {
@@ -134,16 +135,141 @@ async function blobToDataUrl(blob: Blob) {
   });
 }
 
-function createResourceInliner() {
+type InlineResourceContext = {
+  element?: HTMLElement;
+  imageElement?: HTMLImageElement;
+};
+
+function shouldRasterizeResourcesForExport() {
+  return (
+    isWebKitRenderer() ||
+    (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0)
+  );
+}
+
+function getRasterizedResourceDimension(
+  renderedSize: number,
+  naturalSize: number,
+  scale: ExportScale,
+) {
+  const scaledSize = Math.ceil(Math.max(1, renderedSize || naturalSize) * scale);
+  const maxSize = Math.max(
+    1,
+    Math.min(naturalSize || scaledSize, MAX_RASTERIZED_RESOURCE_DIMENSION),
+  );
+
+  return Math.max(1, Math.min(scaledSize, maxSize));
+}
+
+function canvasToPngDataUrl(canvas: HTMLCanvasElement) {
+  const dataUrl = canvas.toDataURL("image/png");
+
+  if (!dataUrl || dataUrl === "data:,") {
+    throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
+  }
+
+  return dataUrl;
+}
+
+async function rasterizeImageElement(
+  image: HTMLImageElement,
+  scale: ExportScale,
+) {
+  await waitForImageElement(image);
+
+  const rect = image.getBoundingClientRect();
+  const targetWidth = getRasterizedResourceDimension(
+    rect.width,
+    image.naturalWidth,
+    scale,
+  );
+  const targetHeight = getRasterizedResourceDimension(
+    rect.height,
+    image.naturalHeight,
+    scale,
+  );
+  const canvas = document.createElement("canvas");
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
+  }
+
+  try {
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    return canvasToPngDataUrl(canvas);
+  } finally {
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
+async function rasterizeBackgroundImage(
+  url: string,
+  element: HTMLElement,
+  scale: ExportScale,
+) {
+  const image = await loadExportImage(resolveResourceUrl(url));
+  const rect = element.getBoundingClientRect();
+  const targetWidth = getRasterizedResourceDimension(
+    rect.width,
+    image.naturalWidth,
+    scale,
+  );
+  const targetHeight = getRasterizedResourceDimension(
+    rect.height,
+    image.naturalHeight,
+    scale,
+  );
+  const canvas = document.createElement("canvas");
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error(IMAGE_LOAD_ERROR_MESSAGE);
+  }
+
+  try {
+    const coverScale = Math.max(
+      targetWidth / image.naturalWidth,
+      targetHeight / image.naturalHeight,
+    );
+    const sourceWidth = targetWidth / coverScale;
+    const sourceHeight = targetHeight / coverScale;
+    const sourceX = (image.naturalWidth - sourceWidth) / 2;
+    const sourceY = (image.naturalHeight - sourceHeight) / 2;
+
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      targetWidth,
+      targetHeight,
+    );
+
+    return canvasToPngDataUrl(canvas);
+  } finally {
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
+function createResourceInliner(scale: ExportScale) {
   const cache = new Map<string, Promise<string>>();
 
-  return (url: string) => {
-    const resourceUrl = resolveResourceUrl(url.trim());
-
-    if (isDataUrl(resourceUrl)) {
-      return Promise.resolve(resourceUrl);
-    }
-
+  function fetchResourceDataUrl(resourceUrl: string) {
     const cachedDataUrl = cache.get(resourceUrl);
 
     if (cachedDataUrl) {
@@ -166,6 +292,30 @@ function createResourceInliner() {
     cache.set(resourceUrl, dataUrl);
 
     return dataUrl;
+  }
+
+  return (url: string, context: InlineResourceContext = {}) => {
+    const resourceUrl = resolveResourceUrl(url.trim());
+
+    if (isDataUrl(resourceUrl)) {
+      return Promise.resolve(resourceUrl);
+    }
+
+    if (shouldRasterizeResourcesForExport()) {
+      if (context.imageElement) {
+        return rasterizeImageElement(context.imageElement, scale).catch(() =>
+          fetchResourceDataUrl(resourceUrl),
+        );
+      }
+
+      if (context.element) {
+        return rasterizeBackgroundImage(resourceUrl, context.element, scale).catch(
+          () => fetchResourceDataUrl(resourceUrl),
+        );
+      }
+    }
+
+    return fetchResourceDataUrl(resourceUrl);
   };
 }
 
@@ -185,7 +335,11 @@ function getCssUrls(cssText: string) {
 
 async function inlineCssUrls(
   cssText: string,
-  inlineResource: (url: string) => Promise<string>,
+  inlineResource: (
+    url: string,
+    context?: InlineResourceContext,
+  ) => Promise<string>,
+  element: HTMLElement,
 ) {
   const urls = getCssUrls(cssText);
 
@@ -197,7 +351,7 @@ async function inlineCssUrls(
 
   await Promise.all(
     urls.map(async (url) => {
-      replacements.set(url, await inlineResource(url));
+      replacements.set(url, await inlineResource(url, { element }));
     }),
   );
 
@@ -208,8 +362,8 @@ async function inlineCssUrls(
   });
 }
 
-async function inlineExportResources(node: HTMLElement) {
-  const inlineResource = createResourceInliner();
+async function inlineExportResources(node: HTMLElement, scale: ExportScale) {
+  const inlineResource = createResourceInliner(scale);
   const restoreCallbacks: Array<() => void> = [];
   const elements = [node, ...Array.from(node.querySelectorAll<HTMLElement>("*"))];
 
@@ -231,7 +385,11 @@ async function inlineExportResources(node: HTMLElement) {
       }
 
       const originalPriority = element.style.getPropertyPriority(propertyName);
-      const inlinedValue = await inlineCssUrls(originalValue, inlineResource);
+      const inlinedValue = await inlineCssUrls(
+        originalValue,
+        inlineResource,
+        element,
+      );
 
       restoreCallbacks.push(() => {
         element.style.setProperty(propertyName, originalValue, originalPriority);
@@ -246,7 +404,9 @@ async function inlineExportResources(node: HTMLElement) {
 
       const originalSrc = image.src;
       const originalSrcSet = image.srcset;
-      const inlinedSrc = await inlineResource(originalSrc);
+      const inlinedSrc = await inlineResource(originalSrc, {
+        imageElement: image,
+      });
 
       restoreCallbacks.push(() => {
         image.src = originalSrc;
@@ -538,13 +698,16 @@ export async function createExportPngBlob({
 
   await waitForFonts();
   await waitForImages(node);
-  await waitForBackgroundImages(node);
   await waitForExportLayout(node, { height, width });
 
-  const restoreInlinedResources = await inlineExportResources(node);
+  const restoreInlinedResources = await inlineExportResources(
+    node,
+    effectiveScale,
+  );
   let svgDataUrl: string;
 
   try {
+    await waitForBackgroundImages(node);
     svgDataUrl = await toSvg(node, {
       cacheBust,
       filter: shouldIncludeExportNode,
