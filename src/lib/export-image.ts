@@ -379,6 +379,26 @@ function waitForDelay(durationMs: number) {
   });
 }
 
+function createSvgObjectUrl(svgDataUrl: string) {
+  const separatorIndex = svgDataUrl.indexOf(",");
+
+  if (separatorIndex === -1 || !svgDataUrl.startsWith("data:image/svg+xml")) {
+    throw new Error("Unable to create PNG export.");
+  }
+
+  const metadata = svgDataUrl.slice(5, separatorIndex);
+  const payload = svgDataUrl.slice(separatorIndex + 1);
+  const isBase64 = /;base64/i.test(metadata);
+  const type = metadata || "image/svg+xml;charset=utf-8";
+  const blobPart = isBase64
+    ? Uint8Array.from(window.atob(payload), (character) =>
+        character.charCodeAt(0),
+      )
+    : decodeURIComponent(payload);
+
+  return URL.createObjectURL(new Blob([blobPart], { type }));
+}
+
 // WebKit's Image.decode() rejects for large SVG images even when they render
 // fine, so decode failures are ignored on purpose; the load event is the
 // source of truth. (html-to-image's own loader hangs forever on this.)
@@ -446,9 +466,11 @@ async function renderSvgToPngBlob(
     throw new Error("Unable to create PNG export.");
   }
 
+  const svgObjectUrl = createSvgObjectUrl(svgDataUrl);
+
   try {
     const renderAttempts = isWebKitRenderer() ? WEBKIT_RENDER_ATTEMPTS : 1;
-    let image = await loadExportImage(svgDataUrl);
+    let image = await loadExportImage(svgObjectUrl);
 
     for (let attempt = 0; attempt < renderAttempts; attempt += 1) {
       if (attempt > 0) {
@@ -457,7 +479,7 @@ async function renderSvgToPngBlob(
         // fresh decode instead of shipping a blank frame.
         await waitForNextPaint();
         await waitForDelay(120 * attempt);
-        image = await loadExportImage(svgDataUrl);
+        image = await loadExportImage(svgObjectUrl);
       }
 
       context.clearRect(0, 0, exportWidth, exportHeight);
@@ -478,6 +500,7 @@ async function renderSvgToPngBlob(
 
     return blob;
   } finally {
+    URL.revokeObjectURL(svgObjectUrl);
     // Release the backing store eagerly; iOS keeps large canvases alive
     // until garbage collection otherwise.
     canvas.width = 0;
